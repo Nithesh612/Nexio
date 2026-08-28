@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import Hero from './hero'
+import CategoryNav from './CategoryNav'
+import LinksSection from './links'
+import SaveLinkModal from './SaveLinkModal'
 
 const API_URL = 'http://localhost:5000/hub'
 
@@ -96,7 +100,7 @@ function formatTitleFromUrl(url) {
     const clean = normalizeUrl(url)
     const domain = clean.split('/')[0].replace(/^www\./i, '')
     const mainName = domain.split('.')[0]
-    
+
     // Capitalize and format brand name cleanly (e.g. uxpilot -> Uxpilot, figma -> Figma)
     if (!mainName) return domain
     return mainName.charAt(0).toUpperCase() + mainName.slice(1)
@@ -140,6 +144,70 @@ function Favicon({ url, letter, color, className = 'thumb' }) {
 
 const linkTypes = ['UI/UX', 'AI Tools', 'Development', 'Design', 'Article', 'Research', 'Tools', 'Other']
 
+function parseCsv(text) {
+  const rows = []
+  let row = []
+  let cell = ''
+  let inQuotes = false
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i]
+    const nextChar = text[i + 1]
+
+    if (char === '"' && inQuotes && nextChar === '"') {
+      cell += '"'
+      i += 1
+    } else if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      row.push(cell.trim())
+      cell = ''
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i += 1
+      row.push(cell.trim())
+      if (row.some(Boolean)) rows.push(row)
+      row = []
+      cell = ''
+    } else {
+      cell += char
+    }
+  }
+
+  row.push(cell.trim())
+  if (row.some(Boolean)) rows.push(row)
+  if (rows.length === 0) return []
+
+  const headers = rows[0].map((header) => header.toLowerCase())
+  return rows.slice(1).map((values) =>
+    headers.reduce((item, header, index) => ({
+      ...item,
+      [header]: values[index] || '',
+    }), {}),
+  )
+}
+
+function parseImportText(text, fileName) {
+  if (fileName.toLowerCase().endsWith('.csv')) {
+    return parseCsv(text)
+  }
+
+  const data = JSON.parse(text)
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data.links)) return data.links
+  return []
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = fileName
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
+}
+
 export default function Home() {
   const [view, setView] = useState('landing')
   const [links, setLinks] = useState([])
@@ -148,6 +216,9 @@ export default function Home() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All links')
   const [isAdding, setIsAdding] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [importStatus, setImportStatus] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [form, setForm] = useState({
     title: '',
     url: '',
@@ -161,7 +232,7 @@ export default function Home() {
   const fetchLinks = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/links`)
+      const res = await fetch(API_URL)
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data) && data.length > 0) {
@@ -232,22 +303,29 @@ export default function Home() {
     })
   }, [links, query, filter])
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   function updateForm(key, value) {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  async function saveLink(event) {
-    event.preventDefault()
+  async function handleSaveLinkModal(linkData) {
+    setSaveError('')
+    setIsSubmitting(true)
 
-    const cleanUrl = normalizeUrl(form.url)
-    if (!cleanUrl) return
+    const rawUrl = linkData?.url || form.url
+    const cleanUrl = normalizeUrl(rawUrl)
+    if (!cleanUrl) {
+      setIsSubmitting(false)
+      return
+    }
 
-    const derivedTitle = formatTitleFromUrl(cleanUrl)
-    const selectedCategory = form.type || 'UI/UX'
+    const derivedTitle = linkData?.title || form.title || formatTitleFromUrl(cleanUrl)
+    const selectedCategory = linkData?.category || form.type || 'UI/UX'
 
     try {
       // Save directly into MongoDB
-      const res = await fetch(`/save-link`, {
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -278,7 +356,14 @@ export default function Home() {
 
         setLinks((current) => [newLink, ...current])
         setSelected(newLink)
+
+        if (savedData.docSaved === false) {
+          setSaveError(`Saved in app, but Google Doc failed: ${savedData.docError || 'Unknown error'}`)
+          return
+        }
       } else {
+        const errorData = await res.json().catch(() => ({}))
+        setSaveError(errorData.error || 'Could not save the link. Please check the backend.')
         // Fallback local save
         const fallbackLink = {
           id: Date.now(),
@@ -300,6 +385,7 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Failed to save to database:', err)
+      setSaveError('Could not reach the backend. Link is shown locally only.')
       const fallbackLink = {
         id: Date.now(),
         title: derivedTitle,
@@ -317,9 +403,12 @@ export default function Home() {
       }
       setLinks((current) => [fallbackLink, ...current])
       setSelected(fallbackLink)
+    } finally {
+      setIsSubmitting(false)
     }
 
     setIsAdding(false)
+    setRefreshTrigger((prev) => prev + 1)
     setFilter('All links')
     setForm({
       title: '',
@@ -348,188 +437,80 @@ export default function Home() {
     setView('app')
   }
 
+  async function handleImportFile(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    try {
+      setImportStatus('Importing...')
+      const text = await file.text()
+      const parsedLinks = parseImportText(text, file.name)
+
+      if (!parsedLinks.length) {
+        setImportStatus('No links found. Use JSON or CSV with a url column.')
+        return
+      }
+
+      const res = await fetch(`${API_URL}/import`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ links: parsedLinks }),
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setImportStatus(data.error || 'Import failed.')
+        return
+      }
+
+      await fetchLinks()
+      setRefreshTrigger((prev) => prev + 1)
+      setFilter('All links')
+      setImportStatus(`Imported ${data.imported || 0} links. Skipped ${data.skipped || 0} duplicates.`)
+    } catch (error) {
+      console.error('Import failed:', error)
+      setImportStatus('Import failed. Check the file format.')
+    }
+  }
+
+  async function handleExport(format) {
+    try {
+      setImportStatus(`Exporting ${format.toUpperCase()}...`)
+      const res = await fetch(`${API_URL}/export?format=${format}`)
+
+      if (!res.ok) {
+        setImportStatus('Export failed. Please check the backend.')
+        return
+      }
+
+      const blob = await res.blob()
+      const date = new Date().toISOString().slice(0, 10)
+      downloadBlob(blob, `nexio-links-${date}.${format}`)
+      setImportStatus(`Exported ${format.toUpperCase()} file.`)
+    } catch (error) {
+      console.error('Export failed:', error)
+      setImportStatus('Export failed. Please check the backend.')
+    }
+  }
+
   const selectedUrl = selected ? withProtocol(selected.url) : ''
 
   if (view === 'landing') {
     return (
-      <main className="landing-page">
-        <header className="landing-nav">
-          <div className="brand">
-            <div className="brand-mark">L</div>
-            <div>
-              <p>Link Vault</p>
-              <span>Personal URL library</span>
-            </div>
-          </div>
-          <nav aria-label="Landing navigation">
-            <a href="#all-tools">All tools</a>
-            <a href="#features">Features</a>
-            <a href="#workflow">Workflow</a>
-            <button type="button" onClick={() => setIsAdding(true)}>
-              Add link
-            </button>
-            <button type="button" onClick={() => setView('app')}>
-              Open workspace
-            </button>
-          </nav>
-        </header>
+      <>
+        <Hero setIsAdding={setIsAdding} setView={setView} />
+        <CategoryNav refreshTrigger={refreshTrigger} />
+        <LinksSection />
 
-        <section className="landing-hero">
-          <div className="hero-copy">
-            <span className="eyebrow">Save, analyze, organize</span>
-            <h1>One clean home for every useful link you collect.</h1>
-            <p>
-              Store URLs with context, tags, collections, favorites, and notes. When you select a saved
-              item, the original page opens in a focused side panel for quick review.
-            </p>
-            <div className="hero-actions">
-              <button type="button" onClick={() => setIsAdding(true)}>
-                Add URL
-              </button>
-              <a href="#features">See features</a>
-            </div>
-          </div>
-
-          <div className="hero-product" aria-label="Link Vault preview">
-            <div className="mini-window">
-              <div className="window-bar">
-                <span />
-                <span />
-                <span />
-              </div>
-              <div className="mini-layout">
-                <div className="mini-list">
-                  {initialLinks.slice(0, 3).map((item) => (
-                    <div className="mini-row" key={item.id}>
-                      <div style={{ backgroundColor: item.color }}>{item.letter}</div>
-                      <section>
-                        <strong>{item.title}</strong>
-                        <small>{item.collection}</small>
-                      </section>
-                    </div>
-                  ))}
-                </div>
-                <div className="mini-preview">
-                  <span>Preview</span>
-                  <h2>{initialLinks[0].source}</h2>
-                  <p>{initialLinks[0].description}</p>
-                  <button type="button" onClick={() => setView('app')}>
-                    Open original URL
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="landing-tools" id="all-tools">
-          <div className="section-heading">
-            <span className="eyebrow">All tools and links</span>
-            <h2>Browse the saved library before you open the workspace.</h2>
-            <button className="section-add" type="button" onClick={() => setIsAdding(true)}>
-              Add new
-            </button>
-          </div>
-          <div className="tool-grid">
-            {links.map((item) => (
-              <a
-                className="tool-card"
-                key={item.id}
-                href={withProtocol(item.url)}
-                target="_blank"
-                rel="noreferrer"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                <Favicon url={item.url} letter={item.letter} color={item.color} className="tool-icon" />
-                <h3>{item.title}</h3>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section className="landing-features" id="features">
-          <article>
-            <span>01</span>
-            <h2>Capture details</h2>
-            <p>Add URL, title, type, collection, tags, and notes so a link stays useful later.</p>
-          </article>
-          <article>
-            <span>02</span>
-            <h2>Find faster</h2>
-            <p>Search across saved links and filter by inbox, favorites, read later, or collection.</p>
-          </article>
-          <article>
-            <span>03</span>
-            <h2>Preview in place</h2>
-            <p>Click any item to open its original URL inside the side panel with a backup open button.</p>
-          </article>
-        </section>
-
-        <section className="landing-workflow" id="workflow">
-          <div>
-            <span className="eyebrow">Simple workflow</span>
-            <h2>Drop links in first. Organize them when you are ready.</h2>
-          </div>
-          <button type="button" onClick={() => setView('app')}>
-            Go to dashboard
-          </button>
-        </section>
-
-        {isAdding && (
-          <div className="modal-backdrop" role="presentation" onClick={() => setIsAdding(false)}>
-            <form className="link-modal" onSubmit={saveLink} onClick={(event) => event.stopPropagation()}>
-              <div className="modal-title">
-                <div>
-                  <p>New item</p>
-                  <h2>Save a useful link</h2>
-                </div>
-                <button type="button" title="Close" onClick={() => setIsAdding(false)}>
-                  x
-                </button>
-              </div>
-
-              <label>
-                URL
-                <input
-                  required
-                  type="url"
-                  placeholder="https://example.com/article"
-                  value={form.url}
-                  onChange={(event) => updateForm('url', event.target.value)}
-                />
-              </label>
-
-              {form.url.trim() && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#f1f5f9', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                  <Favicon url={form.url} letter={formatTitleFromUrl(form.url).charAt(0)} color="#def7ec" className="tool-icon" />
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '14px', color: '#1e293b' }}>
-                      {formatTitleFromUrl(form.url)}
-                    </strong>
-                    <small style={{ color: '#64748b', fontSize: '12px' }}>Auto-detected Title & Logo</small>
-                  </div>
-                </div>
-              )}
-
-              <label>
-                Category
-                <select
-                  value={form.type}
-                  onChange={(event) => updateForm('type', event.target.value)}
-                >
-                  {linkTypes.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </label>
-
-              <button className="submit-link" type="submit">
-                Save link
-              </button>
-            </form>
-          </div>
-        )}
-      </main>
+        <SaveLinkModal
+          isOpen={isAdding}
+          onClose={() => setIsAdding(false)}
+          onSave={handleSaveLinkModal}
+          saveError={saveError}
+          isSubmitting={isSubmitting}
+        />
+      </>
     )
   }
 
@@ -584,6 +565,23 @@ export default function Home() {
           <div>
             <strong>Workspace</strong>
             <span>Personal library</span>
+          </div>
+          <div className="backup-actions">
+            <label className="backup-button">
+              Import
+              <input
+                type="file"
+                accept=".json,.csv,application/json,text/csv"
+                onChange={handleImportFile}
+              />
+            </label>
+            <button type="button" className="backup-button" onClick={() => handleExport('json')}>
+              JSON
+            </button>
+            <button type="button" className="backup-button" onClick={() => handleExport('csv')}>
+              CSV
+            </button>
+            {importStatus && <p className="backup-status">{importStatus}</p>}
           </div>
         </div>
       </aside>
@@ -738,60 +736,13 @@ export default function Home() {
         )}
       </aside>
 
-      {isAdding && (
-        <div className="modal-backdrop" role="presentation" onClick={() => setIsAdding(false)}>
-          <form className="link-modal" onSubmit={saveLink} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-title">
-              <div>
-                <p>New item</p>
-                <h2>Save a useful link</h2>
-              </div>
-              <button type="button" title="Close" onClick={() => setIsAdding(false)}>
-                x
-              </button>
-            </div>
-
-            <label>
-              URL
-              <input
-                required
-                type="url"
-                placeholder="https://example.com/article"
-                value={form.url}
-                onChange={(event) => updateForm('url', event.target.value)}
-              />
-            </label>
-
-            {form.url.trim() && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#f1f5f9', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                <Favicon url={form.url} letter={formatTitleFromUrl(form.url).charAt(0)} color="#def7ec" className="tool-icon" />
-                <div>
-                  <strong style={{ display: 'block', fontSize: '14px', color: '#1e293b' }}>
-                    {formatTitleFromUrl(form.url)}
-                  </strong>
-                  <small style={{ color: '#64748b', fontSize: '12px' }}>Auto-detected Title & Logo</small>
-                </div>
-              </div>
-            )}
-
-            <label>
-              Category
-              <select
-                value={form.type}
-                onChange={(event) => updateForm('type', event.target.value)}
-              >
-                {linkTypes.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </label>
-
-            <button className="submit-link" type="submit">
-              Save link
-            </button>
-          </form>
-        </div>
-      )}
+      <SaveLinkModal
+        isOpen={isAdding}
+        onClose={() => setIsAdding(false)}
+        onSave={handleSaveLinkModal}
+        saveError={saveError}
+        isSubmitting={isSubmitting}
+      />
     </main>
   )
 }

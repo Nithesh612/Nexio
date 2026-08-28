@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
+const { ensureProtocol, saveLinkToGoogleDoc } = require("./googleDocs");
 
 // Hub / Link Schema (No extra models folder needed)
 const linkSchema = new mongoose.Schema({
@@ -17,6 +18,11 @@ const linkSchema = new mongoose.Schema({
     category: {
         type: String,
         default: "General",
+        trim: true
+    },
+    description: {
+        type: String,
+        default: "",
         trim: true
     },
 
@@ -37,6 +43,57 @@ linkSchema.set('toJSON', {
 
 const Link = mongoose.models.Link || mongoose.model("Link", linkSchema);
 
+function titleFromUrl(url) {
+    try {
+        const host = new URL(ensureProtocol(url)).hostname.replace(/^www\./i, "");
+        const name = host.split(".")[0];
+        return name ? name.charAt(0).toUpperCase() + name.slice(1) : host;
+    } catch {
+        return "Imported Link";
+    }
+}
+
+function normalizeImportLink(item) {
+    const rawUrl = String(item.url || item.link || item.URL || "").trim();
+    if (!rawUrl) return null;
+
+    const normalizedUrl = ensureProtocol(rawUrl);
+    const title = String(item.title || item.name || item.Title || titleFromUrl(normalizedUrl)).trim();
+    const category = String(item.category || item.type || item.Category || "Imported").trim();
+    const description = String(item.description || item.desc || item.Description || "").trim();
+
+    return {
+        title: title || titleFromUrl(normalizedUrl),
+        url: normalizedUrl,
+        category: category || "Imported",
+        description,
+    };
+}
+
+function csvEscape(value) {
+    const text = String(value ?? "");
+    if (/[",\n\r]/.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+    return text;
+}
+
+function linksToCsv(links) {
+    const headers = ["title", "url", "category", "description", "createdAt"];
+    const rows = links.map((link) => [
+        link.title,
+        link.url,
+        link.category,
+        link.description || "",
+        link.createdAt ? link.createdAt.toISOString() : "",
+    ]);
+
+    return [
+        headers.join(","),
+        ...rows.map((row) => row.map(csvEscape).join(",")),
+    ].join("\n");
+}
+
 // GET all links / bookmarks
 router.get("/", async (req, res) => {
     try {
@@ -45,6 +102,73 @@ router.get("/", async (req, res) => {
     } catch (error) {
         console.error("GET /hub error:", error);
         res.status(500).json({ error: "Failed to fetch links" });
+    }
+});
+
+// GET export links as JSON or CSV
+router.get("/export", async (req, res) => {
+    try {
+        const format = String(req.query.format || "json").toLowerCase();
+        const links = await Link.find().sort({ createdAt: -1 });
+
+        if (format === "csv") {
+            res.setHeader("Content-Type", "text/csv; charset=utf-8");
+            res.setHeader("Content-Disposition", "attachment; filename=\"nexio-links.csv\"");
+            return res.send(linksToCsv(links));
+        }
+
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.setHeader("Content-Disposition", "attachment; filename=\"nexio-links.json\"");
+        return res.json({
+            exportedAt: new Date().toISOString(),
+            count: links.length,
+            links,
+        });
+    } catch (error) {
+        console.error("GET /hub/export error:", error);
+        res.status(500).json({ error: "Failed to export links" });
+    }
+});
+
+// POST import links from parsed JSON/CSV data
+router.post("/import", async (req, res) => {
+    try {
+        const incomingLinks = Array.isArray(req.body)
+            ? req.body
+            : Array.isArray(req.body.links)
+                ? req.body.links
+                : [];
+
+        if (!incomingLinks.length) {
+            return res.status(400).json({ error: "No links found to import" });
+        }
+
+        const normalizedLinks = incomingLinks
+            .map(normalizeImportLink)
+            .filter(Boolean);
+
+        if (!normalizedLinks.length) {
+            return res.status(400).json({ error: "Import file must include at least one URL" });
+        }
+
+        const urls = [...new Set(normalizedLinks.map((link) => link.url))];
+        const existingLinks = await Link.find({ url: { $in: urls } }).select("url");
+        const existingUrls = new Set(existingLinks.map((link) => link.url));
+        const uniqueLinks = normalizedLinks.filter((link, index, list) =>
+            !existingUrls.has(link.url)
+            && list.findIndex((candidate) => candidate.url === link.url) === index
+        );
+
+        const insertedLinks = uniqueLinks.length ? await Link.insertMany(uniqueLinks) : [];
+
+        res.status(201).json({
+            imported: insertedLinks.length,
+            skipped: normalizedLinks.length - insertedLinks.length,
+            links: insertedLinks,
+        });
+    } catch (error) {
+        console.error("POST /hub/import error:", error);
+        res.status(500).json({ error: "Failed to import links" });
     }
 });
 
@@ -74,15 +198,36 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: "URL is required" });
         }
 
+        const normalizedUrl = ensureProtocol(url.trim());
         const newLink = new Link({
             title: title.trim(),
-            url: url.trim(),
+            url: normalizedUrl,
             category: category ? category.trim() : "General",
             description: description ? description.trim() : ""
         });
 
         const savedLink = await newLink.save();
-        res.status(201).json(savedLink);
+        let docSaved = false;
+        let docError = null;
+
+        try {
+            await saveLinkToGoogleDoc({
+                title: savedLink.title,
+                url: savedLink.url,
+                category: savedLink.category,
+                description: savedLink.description,
+            });
+            docSaved = true;
+        } catch (error) {
+            docError = error.message;
+            console.error("Google Docs save failed:", error);
+        }
+
+        res.status(docSaved ? 201 : 207).json({
+            ...savedLink.toJSON(),
+            docSaved,
+            docError,
+        });
     } catch (error) {
         console.error("POST /hub error:", error);
         res.status(500).json({ error: "Failed to create link" });

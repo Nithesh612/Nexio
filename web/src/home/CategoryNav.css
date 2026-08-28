@@ -1,0 +1,239 @@
+.category-section {
+  width: 100%;
+  padding: 60px 24px;
+  background-color: #f6f5f3; /* off-white matching the screenshot bg */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+}
+
+.category-pill {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 12px 32px;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.category-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  color: #17201b;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.category-item:hover {
+  background: #f0f0f0;
+}
+
+.category-item.active {
+  background: #17201b;
+  color: #ffffff;
+}
+
+.category-item.active:hover {
+  background: #000000;
+}
+
+.new-badge {
+  color: #ff3366; /* bright pink */
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.section-title-wrapper {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.section-main-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #17201b;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.section-sub-title {
+  font-size: 16px;
+  color: #72766b;
+  margin: 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.category-pill-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.category-content-card {
+  width: 100%;
+  max-width: 1200px;
+  min-height: 420px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.02);
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px 24px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  padding: 12px;
+  border-radius: 12px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.feature-item:hover {
+  background: #f6f5f3;
+  transform: translateY(-1px);
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff;
+  overflow: hidden;
+}
+
+.favicon-icon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.favicon-fallback {
+  font-size: 18px;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.feature-text h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #17201b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feature-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #72766b;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px 20px;
+  color: #72766b;
+  font-size: 15px;
+  width: 100%;
+}
+
+.empty-state p {
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* DB-saved link indicator */
+.feature-item.from-db {
+  border-left: 3px solid #10b981;
+  padding-left: 10px;
+}
+
+.db-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #10b981;
+  background: #ecfdf5;
+  border-radius: 999px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.db-count {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .category-section {
+    padding: 40px 16px;
+  }
+  .category-pill {
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 24px;
+    padding: 16px;
+    gap: 12px;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .category-content-card {
+    padding: 24px;
+  }
+}
