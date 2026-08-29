@@ -35,6 +35,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
   const [customTitle, setCustomTitle] = useState(false);
   const [category, setCategory] = useState('UI/UX');
   const [imgError, setImgError] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (url.trim() && !customTitle) {
@@ -166,7 +167,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
           <div className="modal-input-group">
             <label>Select Category</label>
             <div className="category-chips-grid">
-              {CATEGORIES.map((cat) => {
+              {CATEGORIES.slice(0, 5).map((cat) => {
                 const isSelected = category === cat.id;
                 return (
                   <button
@@ -180,6 +181,34 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
                   </button>
                 );
               })}
+              
+              {/* More Dropdown */}
+              <div className="more-category-wrapper">
+                <button
+                  type="button"
+                  className={`category-chip more-chip ${!CATEGORIES.slice(0, 5).some(c => c.id === category) ? 'selected' : ''}`}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <span className="chip-icon">⋯</span>
+                  <span className="chip-label">More</span>
+                </button>
+                
+                <div className={`more-dropdown-menu ${isDropdownOpen ? 'show-dropdown' : ''}`}>
+                  {['Design', 'Article', 'Research', 'Tools', 'Other'].map(extraCat => (
+                    <button
+                      key={extraCat}
+                      type="button"
+                      className={`dropdown-item ${category === extraCat ? 'active' : ''}`}
+                      onClick={() => {
+                        setCategory(extraCat);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      {extraCat}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

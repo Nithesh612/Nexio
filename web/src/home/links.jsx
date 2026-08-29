@@ -1,94 +1,20 @@
 import React, { useState } from 'react';
 import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
+import { Layers, PenTool, Bot, Code, BookOpen, Lightbulb } from 'lucide-react';
 import './links.css';
 
-function getFaviconUrl(url) {
-  try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-  } catch {
-    return null;
-  }
-}
-
-const linksData = {
-  all: {
-    title: 'All Links',
-    description: 'Browse all curated links across every category.',
-    items: [
-      { id: 1, title: 'Framer', desc: 'Design and publish production-ready websites with zero code.', url: 'https://www.framer.com', category: 'UI/UX' },
-      { id: 2, title: 'Figma', desc: 'Collaborative interface design tool built for teams.', url: 'https://www.figma.com', category: 'UI/UX' },
-      { id: 3, title: 'GitHub Copilot', desc: 'AI-powered code assistant inside your editor.', url: 'https://github.com/features/copilot', category: 'Development' },
-      { id: 4, title: 'Vercel', desc: 'Deploy and scale your web projects instantly.', url: 'https://vercel.com', category: 'Development' },
-      { id: 5, title: 'Notion', desc: 'All-in-one workspace for notes, docs and projects.', url: 'https://www.notion.so', category: 'Resources' },
-      { id: 6, title: 'Runway ML', desc: 'Generate and edit video clips from a single prompt.', url: 'https://runwayml.com', category: 'AI Agents' },
-      { id: 7, title: 'Midjourney', desc: 'Generate stunning artwork from text prompts.', url: 'https://www.midjourney.com', category: 'AI Agents' },
-      { id: 8, title: 'Dribbble', desc: 'Discover the world\'s top designers and creatives.', url: 'https://dribbble.com', category: 'Inspiration' },
-      { id: 9, title: 'Awwwards', desc: 'The awards for design, creativity and innovation.', url: 'https://www.awwwards.com', category: 'Inspiration' },
-    ],
-  },
-  uiux: {
-    title: 'UI/UX',
-    description: 'Design tools, inspiration and resources for UI/UX designers.',
-    items: [
-      { id: 10, title: 'Framer', desc: 'Design and publish production-ready websites with zero code.', url: 'https://www.framer.com', category: 'UI/UX' },
-      { id: 11, title: 'Figma', desc: 'Collaborative interface design tool built for teams.', url: 'https://www.figma.com', category: 'UI/UX' },
-      { id: 12, title: 'Mobbin', desc: 'The world\'s largest mobile & web design reference library.', url: 'https://mobbin.com', category: 'UI/UX' },
-      { id: 13, title: 'Spline', desc: 'Design and publish 3D web experiences in the browser.', url: 'https://spline.design', category: 'UI/UX' },
-      { id: 14, title: 'Lottiefiles', desc: 'Lightweight animations for your apps and websites.', url: 'https://lottiefiles.com', category: 'UI/UX' },
-      { id: 15, title: 'UI Verse', desc: 'Open-source UI elements made with HTML & CSS.', url: 'https://uiverse.io', category: 'UI/UX' },
-    ],
-  },
-  'ai-agents': {
-    title: 'AI Agents',
-    description: 'Powerful AI agent tools and platforms to automate your workflow.',
-    items: [
-      { id: 20, title: 'Runway ML', desc: 'Generate and edit video clips from a single prompt.', url: 'https://runwayml.com', category: 'AI Agents' },
-      { id: 21, title: 'Midjourney', desc: 'Generate stunning artwork from text prompts.', url: 'https://www.midjourney.com', category: 'AI Agents' },
-      { id: 22, title: 'Character.AI', desc: 'Chat and create with AI characters consistently.', url: 'https://character.ai', category: 'AI Agents' },
-      { id: 23, title: 'Claude', desc: 'AI assistant by Anthropic, built for complex tasks.', url: 'https://claude.ai', category: 'AI Agents' },
-      { id: 24, title: 'Perplexity', desc: 'AI-powered search engine with sourced answers.', url: 'https://www.perplexity.ai', category: 'AI Agents' },
-      { id: 25, title: 'Pika Labs', desc: 'Create and edit videos using simple text prompts.', url: 'https://pika.art', category: 'AI Agents' },
-    ],
-  },
-  development: {
-    title: 'Development',
-    description: 'Developer tools, libraries and resources to build faster.',
-    items: [
-      { id: 30, title: 'GitHub Copilot', desc: 'AI-powered code assistant inside your editor.', url: 'https://github.com/features/copilot', category: 'Development' },
-      { id: 31, title: 'Vercel', desc: 'Deploy and scale your web projects with ease.', url: 'https://vercel.com', category: 'Development' },
-      { id: 32, title: 'Supabase', desc: 'Open source Firebase alternative with Postgres.', url: 'https://supabase.com', category: 'Development' },
-      { id: 33, title: 'Tauri', desc: 'Build smaller, faster desktop apps with web tech.', url: 'https://tauri.app', category: 'Development' },
-      { id: 34, title: 'Railway', desc: 'Deploy your apps and databases in seconds.', url: 'https://railway.app', category: 'Development' },
-      { id: 35, title: 'Vite', desc: 'Next generation frontend tooling for faster builds.', url: 'https://vitejs.dev', category: 'Development' },
-    ],
-  },
-  resources: {
-    title: 'Resources',
-    description: 'Curated resources for learning, productivity, and creativity.',
-    items: [
-      { id: 40, title: 'Notion', desc: 'All-in-one workspace for notes, docs and projects.', url: 'https://www.notion.so', category: 'Resources' },
-      { id: 41, title: 'Descript', desc: 'Edit video and audio as easily as a document.', url: 'https://www.descript.com', category: 'Resources' },
-      { id: 42, title: 'Readwise', desc: 'Resurface your best highlights from books and articles.', url: 'https://readwise.io', category: 'Resources' },
-      { id: 43, title: 'Obsidian', desc: 'Powerful knowledge base that works on local Markdown files.', url: 'https://obsidian.md', category: 'Resources' },
-      { id: 44, title: 'Excalidraw', desc: 'Virtual whiteboard for sketching hand-drawn diagrams.', url: 'https://excalidraw.com', category: 'Resources' },
-    ],
-  },
-  inspiration: {
-    title: 'Inspiration',
-    description: 'Visual inspiration and creative references for your next project.',
-    items: [
-      { id: 50, title: 'Dribbble', desc: 'Discover the world\'s top designers and creatives.', url: 'https://dribbble.com', category: 'Inspiration' },
-      { id: 51, title: 'Awwwards', desc: 'The awards for design, creativity and innovation.', url: 'https://www.awwwards.com', category: 'Inspiration' },
-      { id: 52, title: 'Behance', desc: 'Showcase and discover creative work from top artists.', url: 'https://www.behance.net', category: 'Inspiration' },
-      { id: 53, title: 'Godly', desc: 'The best web design inspiration in the world.', url: 'https://godly.website', category: 'Inspiration' },
-      { id: 54, title: 'Landingfolio', desc: 'The best landing page design inspiration and templates.', url: 'https://www.landingfolio.com', category: 'Inspiration' },
-    ],
-  },
+// Category tab metadata (no items — all from DB)
+const tabMeta = {
+  all:         { title: 'All Links',    description: 'Browse all your saved links across every category.' },
+  uiux:        { title: 'UI/UX',        description: 'Design tools, inspiration and resources for UI/UX designers.' },
+  'ai-agents': { title: 'AI Agents',    description: 'Powerful AI agent tools and platforms to automate your workflow.' },
+  development: { title: 'Development',  description: 'Developer tools, libraries and resources to build faster.' },
+  resources:   { title: 'Resources',    description: 'Curated resources for learning, productivity, and creativity.' },
+  inspiration: { title: 'Inspiration',  description: 'Visual inspiration and creative references for your next project.' },
 };
 
-// Palette for card banner gradient fallbacks per category
+// Gradient palette per category
 const categoryColors = {
   'UI/UX':       ['#667eea', '#764ba2'],
   'AI Agents':   ['#f093fb', '#f5576c'],
@@ -160,19 +86,49 @@ function LinkCard({ item }) {
   );
 }
 
-export default function LinksSection() {
+export default function LinksSection({ savedLinks = [] }) {
   const [activeTab, setActiveTab] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 3 columns × 3 rows
 
   const tabs = [
-    { id: 'all', label: 'All Links' },
-    { id: 'uiux', label: 'UI/UX' },
-    { id: 'ai-agents', label: 'AI Agents' },
-    { id: 'development', label: 'Development' },
-    { id: 'resources', label: 'Resources' },
-    { id: 'inspiration', label: 'Inspiration' },
+    { id: 'all',         label: 'All Links',   icon: Layers },
+    { id: 'uiux',        label: 'UI/UX',       icon: PenTool },
+    { id: 'ai-agents',   label: 'AI Agents',   icon: Bot },
+    { id: 'development', label: 'Development', icon: Code },
+    { id: 'resources',   label: 'Resources',   icon: BookOpen },
+    { id: 'inspiration', label: 'Inspiration', icon: Lightbulb },
   ];
 
-  const currentData = linksData[activeTab];
+  const meta = tabMeta[activeTab] || tabMeta.all;
+
+  // Map DB links to LinkCard format
+  const mappedLinks = savedLinks.map(link => ({
+    id: link.id || link._id,
+    title: link.title,
+    desc: link.description || '',
+    url: link.url,
+    category: link.type || link.category || 'Other',
+  }));
+
+  // Filter by active tab
+  const filteredItems = activeTab === 'all'
+    ? mappedLinks
+    : mappedLinks.filter(
+        link => link.category.toLowerCase().replace(/[\/\s-]/g, '') === activeTab.replace(/[\/\s-]/g, '')
+      );
+
+  // Pagination only for All Links
+  const isPaginated = activeTab === 'all';
+  const totalPages = isPaginated ? Math.ceil(filteredItems.length / itemsPerPage) : 1;
+  const currentItems = isPaginated
+    ? filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    : filteredItems;
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setCurrentPage(1);
+  };
 
   return (
     <section className="links-section">
@@ -180,40 +136,111 @@ export default function LinksSection() {
 
         {/* Left Sidebar */}
         <div className="links-sidebar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`sidebar-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`sidebar-tab ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <Icon size={18} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Right Content Area */}
         <div className="links-content">
           <div className="links-header">
-            <h2>{currentData.title}</h2>
-            <p>{currentData.description}</p>
+            <h2>{meta.title}</h2>
+            <p>{meta.description}</p>
           </div>
 
           <div className="links-grid">
-            {currentData.items && currentData.items.length > 0 ? (
-              currentData.items.map((item) => (
+            {currentItems && currentItems.length > 0 ? (
+              currentItems.map((item) => (
                 <LinkCard key={item.id} item={item} />
               ))
             ) : (
               <div className="empty-links">
-                <LottieAnimation 
-                  animationData={emptyAnimation} 
-                  width={260} 
-                  height={260} 
+                <LottieAnimation
+                  animationData={emptyAnimation}
+                  width={260}
+                  height={260}
                 />
                 <p>No links found in this category. Use "Add Link" to save one!</p>
               </div>
             )}
           </div>
+
+          {/* Pagination — only for All Links tab */}
+          {isPaginated && totalPages > 1 && (
+            <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', marginTop:'40px', paddingTop:'24px', borderTop:'1px solid #f1f5f9'}}>
+              {/* Prev */}
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 18px', borderRadius: '999px',
+                  border: '1.5px solid', fontSize: '13px', fontWeight: 600,
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  background: currentPage === 1 ? '#f8fafc' : '#0f172a',
+                  borderColor: currentPage === 1 ? '#e2e8f0' : '#0f172a',
+                  color: currentPage === 1 ? '#cbd5e1' : '#ffffff',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Prev
+              </button>
+
+              {/* Page Numbers */}
+              <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      width: '36px', height: '36px', borderRadius: '50%',
+                      border: '1.5px solid', fontSize: '13px', fontWeight: 600,
+                      cursor: 'pointer', transition: 'all 0.2s',
+                      background: currentPage === page ? '#0f172a' : 'transparent',
+                      borderColor: currentPage === page ? '#0f172a' : '#e2e8f0',
+                      color: currentPage === page ? '#ffffff' : '#64748b',
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              {/* Next */}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 18px', borderRadius: '999px',
+                  border: '1.5px solid', fontSize: '13px', fontWeight: 600,
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  background: currentPage === totalPages ? '#f8fafc' : '#0f172a',
+                  borderColor: currentPage === totalPages ? '#e2e8f0' : '#0f172a',
+                  color: currentPage === totalPages ? '#cbd5e1' : '#ffffff',
+                }}
+              >
+                Next
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

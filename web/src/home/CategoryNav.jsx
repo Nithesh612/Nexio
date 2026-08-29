@@ -5,21 +5,6 @@ import './CategoryNav.css';
 
 const API_URL = 'http://localhost:5000/hub';
 
-// Default links to show when DB is empty or loading
-const defaultLinks = {
-  all: [
-    { title: 'Kimi AI', desc: 'Long-context AI assistant for research and analysis.', url: 'https://www.kimi.com/en', category: 'AI Agents' },
-    { title: 'Figma', desc: 'Collaborative UI design and prototyping tool.', url: 'https://www.figma.com', category: 'UI/UX' },
-    { title: 'Runway ML', desc: 'Generate video clips from a single prompt.', url: 'https://runwayml.com', category: 'AI Agents' },
-    { title: 'Framer', desc: 'Design and publish production-ready websites.', url: 'https://www.framer.com', category: 'UI/UX' },
-    { title: 'GitHub Copilot', desc: 'Write code faster with AI assistance.', url: 'https://github.com/features/copilot', category: 'Development' },
-    { title: 'Descript', desc: 'Edit video as easily as editing a document.', url: 'https://www.descript.com', category: 'Resources' },
-    { title: 'Notion AI', desc: 'Extract insights and organize your notes.', url: 'https://www.notion.so', category: 'AI Agents' },
-    { title: 'Midjourney', desc: 'Generate stunning artwork from text prompts.', url: 'https://www.midjourney.com', category: 'AI Agents' },
-    { title: 'Character.AI', desc: 'Chat with AI characters consistently.', url: 'https://character.ai', category: 'AI Agents' },
-  ],
-};
-
 const categoryMap = {
   all: 'All Links',
   uiux: 'UI/UX',
@@ -49,19 +34,37 @@ function mapCategoryToId(category) {
   return 'all';
 }
 
-export default function CategoryNav({ refreshTrigger }) {
+export default function CategoryNav({ refreshTrigger, onAddLink }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [dbLinks, setDbLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imgErrors, setImgErrors] = useState({});
 
   const categories = [
-    { id: 'all', label: 'All Links' },
-    { id: 'uiux', label: 'UI/UX', isNew: true },
-    { id: 'ai-agents', label: 'AI Agents', isNew: true },
-    { id: 'development', label: 'Development' },
-    { id: 'resources', label: 'Resources' },
-    { id: 'inspiration', label: 'Inspiration' },
+    {
+      id: 'all', label: 'All Links',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    },
+    {
+      id: 'uiux', label: 'UI/UX',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    },
+    {
+      id: 'ai-agents', label: 'AI Agents',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-6a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/><path d="M9 17h6"/></svg>
+    },
+    {
+      id: 'development', label: 'Development',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    },
+    {
+      id: 'resources', label: 'Resources',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    },
+    {
+      id: 'inspiration', label: 'Inspiration',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
+    },
   ];
 
   // Fetch links from DB
@@ -83,29 +86,18 @@ export default function CategoryNav({ refreshTrigger }) {
     }
   }
 
-  // Merge DB links with defaults
+  // Only DB links — no defaults
   function getItemsForCategory(catId) {
-    // Convert DB links to display format
     const fromDb = dbLinks.map((link) => ({
       title: link.title,
-      desc: link.description || `Saved link for ${link.title}`,
+      desc: link.description || '',
       url: link.url,
       category: link.category || 'General',
       fromDb: true,
     }));
 
-    // Get defaults
-    const defaults = defaultLinks.all || [];
-
-    // Combine: DB links first, then defaults
-    const allItems = [...fromDb, ...defaults];
-
-    if (catId === 'all') {
-      return allItems;
-    }
-
-    // Filter by category
-    return allItems.filter((item) => mapCategoryToId(item.category) === catId);
+    if (catId === 'all') return fromDb;
+    return fromDb.filter((item) => mapCategoryToId(item.category) === catId);
   }
 
   const handleCategoryClick = (e, id) => {
@@ -125,10 +117,7 @@ export default function CategoryNav({ refreshTrigger }) {
       <div className="section-title-wrapper">
         <h2 className="section-main-title">Category</h2>
         <p className="section-sub-title">
-          Discover AI agents, UI tools, and dev resources — all in one place.
-          {dbLinks.length > 0 && (
-            <span className="db-count"> ({dbLinks.length} saved in database)</span>
-          )}
+          Save and organize your favourite links — tools, articles, and resources all in one place.
         </p>
       </div>
 
@@ -141,8 +130,8 @@ export default function CategoryNav({ refreshTrigger }) {
               className={`category-item ${activeCategory === cat.id ? 'active' : ''}`}
               onClick={(e) => handleCategoryClick(e, cat.id)}
             >
-              {cat.label}{' '}
-              {cat.isNew && <span className="new-badge">New</span>}
+              {cat.icon && <span className="cat-icon">{cat.icon}</span>}
+              {cat.label}
             </a>
           ))}
         </div>
@@ -195,12 +184,24 @@ export default function CategoryNav({ refreshTrigger }) {
           </div>
         ) : (
           <div className="empty-state">
-            <LottieAnimation 
-              animationData={emptyAnimation} 
-              width={260} 
-              height={260} 
-            />
-            <p>No links found in this category. Use "Add Link" to save one!</p>
+            <div className="empty-illustration">
+              <LottieAnimation
+                animationData={emptyAnimation}
+                width={220}
+                height={220}
+              />
+            </div>
+            <h3 className="empty-title">No links saved yet</h3>
+            <p className="empty-subtitle">
+              This category is empty. Save useful links, tools, and resources<br />
+              to keep everything organized in one place.
+            </p>
+            {onAddLink && (
+              <button className="empty-add-btn" onClick={onAddLink}>
+                + Add Link
+              </button>
+            )}
+            <p className="empty-hint">Start building your collection ↗</p>
           </div>
         )}
       </div>

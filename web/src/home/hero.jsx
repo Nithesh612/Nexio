@@ -5,7 +5,7 @@ const NAV_LINKS = ['Home', 'About', 'Services', 'Contact']
 
 
 
-export default function Hero({ setIsAdding, setView }) {
+export default function Hero({ setIsAdding, setView, onImport, onExport }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const motionRef = useRef(null)
@@ -120,6 +120,34 @@ export default function Hero({ setIsAdding, setView }) {
                 <line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
               Add Link
+            </button>
+
+            <label className="v-icon-action" title="Import links">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 16V4" />
+                <path d="m7 9 5-5 5 5" />
+                <path d="M5 20h14" />
+              </svg>
+              <span className="sr-only">Import links</span>
+              <input
+                type="file"
+                accept=".json,.csv,application/json,text/csv"
+                onChange={onImport}
+              />
+            </label>
+
+            <button
+              className="v-icon-action"
+              type="button"
+              title="Export links as JSON"
+              aria-label="Export links as JSON"
+              onClick={() => onExport('json')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 4v12" />
+                <path d="m17 11-5 5-5-5" />
+                <path d="M5 20h14" />
+              </svg>
             </button>
 
           {/* Search bar */}

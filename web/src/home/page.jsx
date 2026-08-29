@@ -211,6 +211,7 @@ function downloadBlob(blob, fileName) {
 export default function Home() {
   const [view, setView] = useState('landing')
   const [links, setLinks] = useState([])
+  const [dbLinks, setDbLinks] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [query, setQuery] = useState('')
@@ -236,21 +237,51 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data) && data.length > 0) {
-          const formatted = data.map((item) => ({
-            id: item.id || item._id,
-            title: item.title,
-            url: item.url,
-            source: normalizeUrl(item.url).split('/')[0].replace(/^www\./, ''),
-            type: item.category || 'UI/UX',
-            collection: 'Inbox',
-            description: item.description || `Saved link for ${item.title}`,
-            tags: [item.category ? item.category.toLowerCase() : 'ui/ux'],
-            color: '#def7ec',
-            letter: item.title.charAt(0).toUpperCase(),
-            saved: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
-            favorite: false,
-            readLater: true,
-          }))
+          const formatted = data.map((item) => {
+            // Smart description from URL keywords
+            const urlLower = (item.url || '').toLowerCase()
+            const titleLower = (item.title || '').toLowerCase()
+            let smartDesc = item.description
+            if (!smartDesc || smartDesc.startsWith('Saved link for')) {
+              if (urlLower.includes('block') || urlLower.includes('component') || titleLower.includes('block')) {
+                smartDesc = 'Animated UI component blocks for modern web interfaces.'
+              } else if (urlLower.includes('animated') || titleLower.includes('animated')) {
+                smartDesc = 'Interactive animated elements and motion design resources.'
+              } else if (urlLower.includes('design') || titleLower.includes('design')) {
+                smartDesc = 'Design tools and creative resources for modern interfaces.'
+              } else if (urlLower.includes('ai') || titleLower.includes('ai')) {
+                smartDesc = 'AI-powered tools and intelligent automation resources.'
+              } else if (urlLower.includes('docs') || urlLower.includes('guide')) {
+                smartDesc = 'Documentation and comprehensive developer guides.'
+              } else {
+                const cat = item.category || 'UI/UX'
+                const catMap = {
+                  'UI/UX': 'Design and interface inspiration.',
+                  'AI Agents': 'AI tools and autonomous agents.',
+                  'Development': 'Coding resources and developer tools.',
+                  'Resources': 'Useful materials and guides.',
+                  'Inspiration': 'Creative ideas and references.',
+                }
+                smartDesc = catMap[cat] || 'Saved bookmark for future reference.'
+              }
+            }
+            return {
+              id: item.id || item._id,
+              title: item.title,
+              url: item.url,
+              source: normalizeUrl(item.url).split('/')[0].replace(/^www\./, ''),
+              type: item.category || 'UI/UX',
+              collection: 'Inbox',
+              description: smartDesc,
+              tags: [item.category ? item.category.toLowerCase() : 'ui/ux'],
+              color: '#def7ec',
+              letter: item.title.charAt(0).toUpperCase(),
+              saved: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
+              favorite: false,
+              readLater: true,
+            }
+          })
+          setDbLinks(formatted)
           setLinks([...formatted, ...initialLinks])
           setSelected(formatted[0])
         } else {
@@ -323,6 +354,16 @@ export default function Home() {
     const derivedTitle = linkData?.title || form.title || formatTitleFromUrl(cleanUrl)
     const selectedCategory = linkData?.category || form.type || 'UI/UX'
 
+    const categoryDescriptions = {
+      'UI/UX': 'Design and interface inspiration.',
+      'AI Agents': 'AI tools and autonomous agents.',
+      'Development': 'Coding resources and developer tools.',
+      'Resources': 'Useful materials and guides.',
+      'Inspiration': 'Creative ideas and references.',
+      'Other': 'Saved bookmark for future reference.'
+    }
+    const smartDescription = categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
+
     try {
       // Save directly into MongoDB
       const res = await fetch(API_URL, {
@@ -332,7 +373,7 @@ export default function Home() {
           title: derivedTitle,
           url: cleanUrl,
           category: selectedCategory,
-          description: `Saved link for ${derivedTitle}.`,
+          description: smartDescription,
         }),
       })
 
@@ -355,6 +396,7 @@ export default function Home() {
         }
 
         setLinks((current) => [newLink, ...current])
+        setDbLinks((current) => [newLink, ...current])
         setSelected(newLink)
 
         if (savedData.docSaved === false) {
@@ -372,7 +414,7 @@ export default function Home() {
           source: cleanUrl.split('/')[0].replace(/^www\./, ''),
           type: selectedCategory,
           collection: 'Inbox',
-          description: `Saved link for ${derivedTitle}.`,
+          description: smartDescription,
           tags: [selectedCategory.toLowerCase()],
           color: '#def7ec',
           letter: derivedTitle.charAt(0).toUpperCase(),
@@ -499,9 +541,14 @@ export default function Home() {
   if (view === 'landing') {
     return (
       <>
-        <Hero setIsAdding={setIsAdding} setView={setView} />
-        <CategoryNav refreshTrigger={refreshTrigger} />
-        <LinksSection />
+        <Hero
+          setIsAdding={setIsAdding}
+          setView={setView}
+          onImport={handleImportFile}
+          onExport={handleExport}
+        />
+        <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} />
+        <LinksSection savedLinks={dbLinks} />
 
         <SaveLinkModal
           isOpen={isAdding}
