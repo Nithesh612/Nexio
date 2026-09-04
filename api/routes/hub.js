@@ -25,11 +25,26 @@ const linkSchema = new mongoose.Schema({
         default: "",
         trim: true
     },
+    collection: {
+        type: String,
+        default: "All Links",
+        trim: true
+    },
+    favorite: {
+        type: Boolean,
+        default: false
+    },
+    readLater: {
+        type: Boolean,
+        default: false
+    },
 
     createdAt: {
         type: Date,
         default: Date.now
     }
+}, {
+    suppressReservedKeysWarning: true
 });
 
 // Map _id to id
@@ -61,12 +76,16 @@ function normalizeImportLink(item) {
     const title = String(item.title || item.name || item.Title || titleFromUrl(normalizedUrl)).trim();
     const category = String(item.category || item.type || item.Category || "Imported").trim();
     const description = String(item.description || item.desc || item.Description || "").trim();
+    const collection = String(item.collection || item.Collection || "All Links").trim();
 
     return {
         title: title || titleFromUrl(normalizedUrl),
         url: normalizedUrl,
         category: category || "Imported",
         description,
+        collection: collection || "All Links",
+        favorite: item.favorite === true || String(item.favorite).toLowerCase() === "true",
+        readLater: item.readLater === true || String(item.readLater).toLowerCase() === "true",
     };
 }
 
@@ -189,7 +208,7 @@ router.get("/:id", async (req, res) => {
 // POST create new link
 router.post("/", async (req, res) => {
     try {
-        const { title, url, category, description } = req.body;
+        const { title, url, category, description, collection, favorite, readLater } = req.body;
 
         if (!title || !title.trim()) {
             return res.status(400).json({ error: "Title is required" });
@@ -199,11 +218,32 @@ router.post("/", async (req, res) => {
         }
 
         const normalizedUrl = ensureProtocol(url.trim());
+
+        // Check if link already exists in database
+        const existingLink = await Link.findOne({
+            $or: [
+                { url: normalizedUrl },
+                { url: url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '') },
+                { url: new RegExp(`^https?:\\/\\/(www\\.)?${url.trim().replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')}\\/?$`, 'i') }
+            ]
+        });
+
+        if (existingLink) {
+            return res.status(409).json({
+                error: "This link is already saved in your hub! Duplicate links cannot be added.",
+                isDuplicate: true,
+                existingLink
+            });
+        }
+
         const newLink = new Link({
             title: title.trim(),
             url: normalizedUrl,
             category: category ? category.trim() : "General",
-            description: description ? description.trim() : ""
+            description: description ? description.trim() : "",
+            collection: collection ? collection.trim() : "All Links",
+            favorite: Boolean(favorite),
+            readLater: Boolean(readLater)
         });
 
         const savedLink = await newLink.save();
@@ -237,7 +277,7 @@ router.post("/", async (req, res) => {
 // PUT update link
 router.put("/:id", async (req, res) => {
     try {
-        const { title, url, category, description } = req.body;
+        const { title, url, category, description, collection, favorite, readLater } = req.body;
 
         if (!title || !title.trim()) {
             return res.status(400).json({ error: "Title is required" });
@@ -252,7 +292,10 @@ router.put("/:id", async (req, res) => {
                 title: title.trim(),
                 url: url.trim(),
                 category: category ? category.trim() : "General",
-                description: description ? description.trim() : ""
+                description: description ? description.trim() : "",
+                collection: collection ? collection.trim() : "All Links",
+                favorite: Boolean(favorite),
+                readLater: Boolean(readLater)
             },
             { new: true, runValidators: true }
         );

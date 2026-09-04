@@ -1,0 +1,227 @@
+.latest-models-section {
+  width: 100%;
+  background-color: #f6f5f3;
+  padding: 70px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  overflow: hidden;
+}
+
+.latest-models-header {
+  text-align: center;
+  max-width: 720px;
+  margin-bottom: 48px;
+}
+
+.latest-models-title {
+  font-size: 40px;
+  font-weight: 800;
+  color: #2b1810;
+  letter-spacing: -0.6px;
+  margin: 0 0 16px;
+  line-height: 1.15;
+}
+
+.latest-models-subtitle {
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0 12px;
+}
+
+/* Models Infinite Marquee Strip */
+.models-marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  padding: 12px 0 24px;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.models-marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: max-content;
+  animation: scrollMarquee 35s linear infinite;
+  will-change: transform;
+}
+
+.models-marquee-track.paused {
+  animation-play-state: paused;
+}
+
+@keyframes scrollMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% / 3));
+  }
+}
+
+/* Model Card */
+.model-card {
+  position: relative;
+  width: 175px;
+  height: 175px;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.model-card:hover,
+.model-card.is-hovered {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+}
+
+/* Background Media Container */
+.model-media-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(1.08);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.model-card.is-hovered .model-media-bg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.model-media-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.model-media-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%);
+}
+
+/* Default Content (Visible when NOT hovered) */
+.model-default-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 2;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.model-card.is-hovered .model-default-content {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.model-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.model-logo {
+  width: 20px;
+  height: 20px;
+  color: #2b1810;
+}
+
+.model-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2b1810;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+/* Hover Floating Center Content (Exact match to reference image) */
+.model-hover-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.model-card.is-hovered .model-hover-content {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Glassmorphism / Crisp White Logo Badge in Center */
+.model-live-favicon-wrapper {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.model-live-favicon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.model-hover-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+@media (max-width: 900px) {
+  .latest-models-title {
+    font-size: 32px;
+  }
+  .latest-models-subtitle {
+    font-size: 14px;
+  }
+  .model-card {
+    width: 155px;
+    height: 155px;
+  }
+  .models-strip {
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+}

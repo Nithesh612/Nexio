@@ -3,6 +3,9 @@ import Hero from './hero'
 import CategoryNav from './CategoryNav'
 import LinksSection from './links'
 import SaveLinkModal from './SaveLinkModal'
+import DashboardPage from '../dashbord/page'
+import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
+import LatestModels from './LatestModels'
 
 const API_URL = 'http://localhost:5000/hub'
 
@@ -84,7 +87,7 @@ const initialLinks = [
   },
 ]
 
-const sidebarFilters = ['All links', 'Inbox', 'Favorites', 'Read later']
+const sidebarFilters = ['All links', 'Saved', 'Favorites']
 const collections = ['Development', 'Design', 'Research', 'Business', 'Personal growth']
 
 function normalizeUrl(value) {
@@ -224,7 +227,7 @@ export default function Home() {
     title: '',
     url: '',
     type: 'UI/UX',
-    collection: 'Inbox',
+    collection: 'Saved',
     tags: '',
     description: '',
   })
@@ -271,6 +274,7 @@ export default function Home() {
               url: item.url,
               source: normalizeUrl(item.url).split('/')[0].replace(/^www\./, ''),
               type: item.category || 'UI/UX',
+              category: item.category || 'UI/UX',
               collection: 'Inbox',
               description: smartDesc,
               tags: [item.category ? item.category.toLowerCase() : 'ui/ux'],
@@ -325,8 +329,8 @@ export default function Home() {
       const matchesFilter =
         filter === 'All links' ||
         (filter === 'Favorites' && item.favorite) ||
-        (filter === 'Inbox' && item.collection === 'Inbox') ||
-        (filter === 'Read later' && item.readLater) ||
+        (filter === 'Saved' && item.collection === 'Saved') ||
+        
         filter === item.collection ||
         filter === item.type
 
@@ -351,15 +355,33 @@ export default function Home() {
       return
     }
 
+    // Check if link already exists in state
+    const isAlreadySaved = links.some((l) => {
+      const existingClean = normalizeUrl(l.url || '')
+      return existingClean === cleanUrl || existingClean.replace(/^www\./i, '') === cleanUrl.replace(/^www\./i, '')
+    })
+
+    if (isAlreadySaved) {
+      setSaveError('This link is already saved! You cannot add duplicate links.')
+      setIsSubmitting(false)
+      return
+    }
+
     const derivedTitle = linkData?.title || form.title || formatTitleFromUrl(cleanUrl)
     const selectedCategory = linkData?.category || form.type || 'UI/UX'
 
     const categoryDescriptions = {
       'UI/UX': 'Design and interface inspiration.',
+      'AI Image & Video': 'AI image generators, video synthesis, and visual creation tools.',
+      'AI': 'Artificial intelligence models, chatbots, and autonomous agents.',
       'AI Agents': 'AI tools and autonomous agents.',
       'Development': 'Coding resources and developer tools.',
-      'Resources': 'Useful materials and guides.',
+      'Resources': 'Useful materials, tools, and guides.',
       'Inspiration': 'Creative ideas and references.',
+      'Wallpaper': 'High-resolution wallpapers, backgrounds, and aesthetic visuals.',
+      'Stock': 'Free and premium stock photos, illustrations, and assets.',
+      'Host': 'Hosting providers, cloud infrastructure, and deployment platforms.',
+      'Design': 'Design tools and creative assets.',
       'Other': 'Saved bookmark for future reference.'
     }
     const smartDescription = categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
@@ -403,63 +425,28 @@ export default function Home() {
           setSaveError(`Saved in app, but Google Doc failed: ${savedData.docError || 'Unknown error'}`)
           return
         }
+
+        setIsAdding(false)
+        setRefreshTrigger((prev) => prev + 1)
+        setFilter('All links')
+        setForm({
+          title: '',
+          url: '',
+          collection: 'Inbox',
+          type: 'UI/UX',
+          tags: '',
+          description: '',
+        })
       } else {
         const errorData = await res.json().catch(() => ({}))
         setSaveError(errorData.error || 'Could not save the link. Please check the backend.')
-        // Fallback local save
-        const fallbackLink = {
-          id: Date.now(),
-          title: derivedTitle,
-          url: cleanUrl,
-          source: cleanUrl.split('/')[0].replace(/^www\./, ''),
-          type: selectedCategory,
-          collection: 'Inbox',
-          description: smartDescription,
-          tags: [selectedCategory.toLowerCase()],
-          color: '#def7ec',
-          letter: derivedTitle.charAt(0).toUpperCase(),
-          saved: 'Just now',
-          favorite: false,
-          readLater: true,
-        }
-        setLinks((current) => [fallbackLink, ...current])
-        setSelected(fallbackLink)
       }
     } catch (err) {
       console.error('Failed to save to database:', err)
-      setSaveError('Could not reach the backend. Link is shown locally only.')
-      const fallbackLink = {
-        id: Date.now(),
-        title: derivedTitle,
-        url: cleanUrl,
-        source: cleanUrl.split('/')[0].replace(/^www\./, ''),
-        type: selectedCategory,
-        collection: 'Inbox',
-        description: `Saved link for ${derivedTitle}.`,
-        tags: [selectedCategory.toLowerCase()],
-        color: '#def7ec',
-        letter: derivedTitle.charAt(0).toUpperCase(),
-        saved: 'Just now',
-        favorite: false,
-        readLater: true,
-      }
-      setLinks((current) => [fallbackLink, ...current])
-      setSelected(fallbackLink)
+      setSaveError('Could not reach the backend. Please ensure the server is running.')
     } finally {
       setIsSubmitting(false)
     }
-
-    setIsAdding(false)
-    setRefreshTrigger((prev) => prev + 1)
-    setFilter('All links')
-    setForm({
-      title: '',
-      url: '',
-      collection: 'Inbox',
-      type: 'UI/UX',
-      tags: '',
-      description: '',
-    })
   }
 
   function toggleFavorite(linkId) {
@@ -548,13 +535,19 @@ export default function Home() {
           onExport={handleExport}
         />
         <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} />
-        <LinksSection savedLinks={dbLinks} />
+        <LinksSection savedLinks={dbLinks} onAddLink={() => setIsAdding(true)} />
+        <LatestModels />
+        <AnimatedConnect01 />
 
         <SaveLinkModal
           isOpen={isAdding}
-          onClose={() => setIsAdding(false)}
+          onClose={() => {
+            setIsAdding(false)
+            setSaveError('')
+          }}
           onSave={handleSaveLinkModal}
           saveError={saveError}
+          onClearError={() => setSaveError('')}
           isSubmitting={isSubmitting}
         />
       </>
@@ -562,235 +555,7 @@ export default function Home() {
   }
 
   return (
-    <main className="link-app">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">L</div>
-          <div>
-            <p>Link Vault</p>
-            <span>{links.length} saved links</span>
-          </div>
-        </div>
-
-        <button className="save-button" type="button" onClick={() => setIsAdding(true)}>
-          <span>+</span>
-          Save new link
-        </button>
-
-        <nav className="nav-block" aria-label="Library filters">
-          <p>Library</p>
-          {sidebarFilters.map((item) => (
-            <button
-              className={filter === item ? 'nav-item active' : 'nav-item'}
-              key={item}
-              type="button"
-              onClick={() => setFilter(item)}
-            >
-              <span>{item === 'All links' ? '#' : item.charAt(0)}</span>
-              {item}
-            </button>
-          ))}
-        </nav>
-
-        <div className="nav-block">
-          <p>Collections</p>
-          {collections.map((item) => (
-            <button
-              className={filter === item ? 'nav-item active' : 'nav-item'}
-              key={item}
-              type="button"
-              onClick={() => setFilter(item)}
-            >
-              <i />
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="sidebar-footer">
-          <div className="avatar">N</div>
-          <div>
-            <strong>Workspace</strong>
-            <span>Personal library</span>
-          </div>
-          <div className="backup-actions">
-            <label className="backup-button">
-              Import
-              <input
-                type="file"
-                accept=".json,.csv,application/json,text/csv"
-                onChange={handleImportFile}
-              />
-            </label>
-            <button type="button" className="backup-button" onClick={() => handleExport('json')}>
-              JSON
-            </button>
-            <button type="button" className="backup-button" onClick={() => handleExport('csv')}>
-              CSV
-            </button>
-            {importStatus && <p className="backup-status">{importStatus}</p>}
-          </div>
-        </div>
-      </aside>
-
-      <section className="library-panel">
-        <header className="topbar">
-          <div>
-            <p>Saved knowledge</p>
-            <h1>Organize every useful URL in one calm place.</h1>
-          </div>
-          <div className="topbar-actions">
-            <button type="button" title="Compact view">=</button>
-            <button type="button" title="Grid view">::</button>
-          </div>
-        </header>
-
-        <div className="toolbar">
-          <label className="search-box">
-            <span>Search</span>
-            <input
-              type="search"
-              placeholder="Search links, tags, notes..."
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </label>
-          <select value={filter} onChange={(event) => setFilter(event.target.value)}>
-            {[...sidebarFilters, ...collections].map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="quick-stats">
-          <article>
-            <strong>{links.length}</strong>
-            <span>Total links</span>
-          </article>
-          <article>
-            <strong>{links.filter((item) => item.favorite).length}</strong>
-            <span>Favorites</span>
-          </article>
-          <article>
-            <strong>{new Set(links.flatMap((item) => item.tags)).size}</strong>
-            <span>Tags</span>
-          </article>
-        </div>
-
-        <div className="list-header">
-          <span>{displayedLinks.length} items</span>
-          <span>Click any row to preview the original URL</span>
-        </div>
-
-        <div className="link-list">
-          {displayedLinks.map((item) => (
-            <article
-              className={selected?.id === item.id ? 'link-row selected' : 'link-row'}
-              key={item.id}
-              onClick={() => setSelected(item)}
-            >
-              <Favicon url={item.url} letter={item.letter} color={item.color} className="thumb" />
-              <div className="link-content">
-                <div className="link-title-row">
-                  <h2>{item.title}</h2>
-                  <span>{item.saved}</span>
-                </div>
-                <p>{item.description}</p>
-                <div className="metadata">
-                  <span>{item.type}</span>
-                  <span>{item.collection}</span>
-                  <span>{item.url}</span>
-                </div>
-                <div className="tag-row">
-                  {item.tags.map((tag) => (
-                    <small key={tag}>#{tag}</small>
-                  ))}
-                </div>
-              </div>
-              <button
-                className={item.favorite ? 'favorite active' : 'favorite'}
-                type="button"
-                title="Favorite"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  toggleFavorite(item.id)
-                }}
-              >
-                *
-              </button>
-            </article>
-          ))}
-
-          {displayedLinks.length === 0 && (
-            <div className="empty-state">
-              <h2>No links found</h2>
-              <p>Try a different search or save a fresh link to this collection.</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <aside className="preview-panel">
-        {selected ? (
-          <>
-            <div className="preview-header">
-              <Favicon url={selected.url} letter={selected.letter} color={selected.color} className="preview-thumb" />
-              <button type="button" title="Close preview" onClick={() => setSelected(null)}>
-                x
-              </button>
-            </div>
-
-            <div className="preview-copy">
-              <span>{selected.type}</span>
-              <h2>{selected.title}</h2>
-              <p>{selected.description}</p>
-            </div>
-
-            <div className="preview-meta">
-              <div>
-                <small>Source</small>
-                <strong>{selected.source}</strong>
-              </div>
-              <div>
-                <small>Collection</small>
-                <strong>{selected.collection}</strong>
-              </div>
-              <div>
-                <small>Saved</small>
-                <strong>{selected.saved}</strong>
-              </div>
-            </div>
-
-            <div className="preview-tags">
-              {selected.tags.map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
-
-            <a className="open-link" href={selectedUrl} target="_blank" rel="noreferrer">
-              Open original URL
-            </a>
-
-            <div className="browser-frame">
-              <img src={`https://image.thum.io/get/width/800/crop/800/${selectedUrl}`} alt={selected.title} style={{ width: "100%", height: "100%", objectFit: "cover", border: "none" }} />
-            </div>
-          </>
-        ) : (
-          <div className="empty-preview">
-            <h2>Select a link</h2>
-            <p>The saved URL will open here in the side panel when the site allows embedding.</p>
-          </div>
-        )}
-      </aside>
-
-      <SaveLinkModal
-        isOpen={isAdding}
-        onClose={() => setIsAdding(false)}
-        onSave={handleSaveLinkModal}
-        saveError={saveError}
-        isSubmitting={isSubmitting}
-      />
-    </main>
+    <DashboardPage onBack={() => setView('landing')} />
   )
 }
 

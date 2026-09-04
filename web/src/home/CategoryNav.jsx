@@ -11,6 +11,7 @@ const categoryMap = {
   'ai-agents': 'AI Agents',
   development: 'Development',
   resources: 'Resources',
+  design: 'Design',
   inspiration: 'Inspiration',
 };
 
@@ -30,7 +31,7 @@ function mapCategoryToId(category) {
   if (lower === 'ai agents' || lower === 'ai-agents') return 'ai-agents';
   if (lower === 'development' || lower === 'dev') return 'development';
   if (lower === 'resources') return 'resources';
-  if (lower === 'inspiration') return 'inspiration';
+  if (lower === 'inspiration' || lower === 'design') return 'inspiration';
   return 'all';
 }
 
@@ -43,7 +44,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
   const categories = [
     {
       id: 'all', label: 'All Links',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
     },
     {
       id: 'uiux', label: 'UI/UX',
@@ -59,7 +60,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     },
     {
       id: 'resources', label: 'Resources',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
     },
     {
       id: 'inspiration', label: 'Inspiration',
@@ -114,13 +115,6 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
 
   return (
     <div className="category-section">
-      <div className="section-title-wrapper">
-        <h2 className="section-main-title">Category</h2>
-        <p className="section-sub-title">
-          Save and organize your favourite links — tools, articles, and resources all in one place.
-        </p>
-      </div>
-
       <div className="category-pill-container">
         <div className="category-pill">
           {categories.map((cat) => (
@@ -148,7 +142,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
               return (
                 <a
                   key={idx}
-                  className={`feature-item${item.fromDb ? ' from-db' : ''}`}
+                  className="feature-item"
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -172,10 +166,10 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
                     )}
                   </div>
                   <div className="feature-text">
-                    <h3>
-                      {item.title}
-                      {item.fromDb && <span className="db-badge">Saved</span>}
-                    </h3>
+                    <div className="feature-title-row">
+                      <h3>{item.title}</h3>
+                      <span className="saved-badge">SAVED</span>
+                    </div>
                     <p>{item.desc}</p>
                   </div>
                 </a>
@@ -187,21 +181,23 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
             <div className="empty-illustration">
               <LottieAnimation
                 animationData={emptyAnimation}
-                width={220}
-                height={220}
+                width={190}
+                height={190}
               />
             </div>
-            <h3 className="empty-title">No links saved yet</h3>
+            <h3 className="empty-title">No links saved in {categoryMap[activeCategory] || 'this category'}</h3>
             <p className="empty-subtitle">
-              This category is empty. Save useful links, tools, and resources<br />
-              to keep everything organized in one place.
+              Save your favorite tools, articles, and references to keep them easily accessible.
             </p>
             {onAddLink && (
-              <button className="empty-add-btn" onClick={onAddLink}>
-                + Add Link
+              <button type="button" className="empty-add-btn" onClick={onAddLink}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add Link</span>
               </button>
             )}
-            <p className="empty-hint">Start building your collection ↗</p>
           </div>
         )}
       </div>

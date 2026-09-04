@@ -1,15 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
 import './hero.css'
+import heroPoster from '../assets/hero.png'
 
-const NAV_LINKS = ['Home', 'About', 'Services', 'Contact']
+const NAV_LINKS = ['Home', 'Features', 'Pricing', 'Contact']
 
 
 
 export default function Hero({ setIsAdding, setView, onImport, onExport }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [videoState, setVideoState] = useState('loading')
+  const videoRef = useRef(null)
   const motionRef = useRef(null)
   const cardRef = useRef(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return undefined
+
+    const loadVideo = () => {
+      video.src = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_064556_051587f1-74a1-4336-8c05-4dde3594ed05.mp4'
+      video.load()
+      video.play().catch(() => setVideoState('error'))
+    }
+
+    const idleId = window.requestIdleCallback?.(loadVideo, { timeout: 1800 })
+    const timeoutId = idleId === undefined ? window.setTimeout(loadVideo, 900) : undefined
+
+    return () => {
+      if (idleId !== undefined) window.cancelIdleCallback(idleId)
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+    }
+  }, [])
 
   /* ── Entrance motion ── */
   useEffect(() => {
@@ -51,19 +73,23 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
       <section className="v-screen" id="screen">
         {/* ── Background video ── */}
         <video
+          ref={videoRef}
           className="v-background"
-          autoPlay
           muted
           loop
           playsInline
+          poster={heroPoster}
+          preload="none"
           disablePictureInPicture
           aria-hidden="true"
-        >
-          <source
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_064556_051587f1-74a1-4336-8c05-4dde3594ed05.mp4"
-            type="video/mp4"
-          />
-        </video>
+          onCanPlay={() => setVideoState('ready')}
+          onPlaying={() => setVideoState('ready')}
+          onWaiting={() => setVideoState('buffering')}
+          onError={() => setVideoState('error')}
+        />
+        {videoState === 'buffering' && (
+          <span className="v-video-status" role="status" aria-label="Video buffering" />
+        )}
 
         {/* ── Header ── */}
         <header className={`v-header${menuOpen ? ' menu-open' : ''}`}>
@@ -108,7 +134,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
             </nav>
           </div>
 
-          {/* Add Link button + Search bar */}
+          {/* Add Link button + Dashboard button */}
           <div className="v-header-right">
             <button
               className="v-add-link-btn"
@@ -122,49 +148,13 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
               Add Link
             </button>
 
-            <label className="v-icon-action" title="Import links">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 16V4" />
-                <path d="m7 9 5-5 5 5" />
-                <path d="M5 20h14" />
-              </svg>
-              <span className="sr-only">Import links</span>
-              <input
-                type="file"
-                accept=".json,.csv,application/json,text/csv"
-                onChange={onImport}
-              />
-            </label>
-
             <button
-              className="v-icon-action"
+              className="v-primary-cta"
               type="button"
-              title="Export links as JSON"
-              aria-label="Export links as JSON"
-              onClick={() => onExport('json')}
+              onClick={() => setView('app')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 4v12" />
-                <path d="m17 11-5 5-5-5" />
-                <path d="M5 20h14" />
-              </svg>
+              Dashboard
             </button>
-
-          {/* Search bar */}
-          <div className="v-search-bar">
-            <svg className="v-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              className="v-search-input"
-              type="search"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search"
-            />
-          </div>
           </div>
 
           {/* Hamburger toggle */}
@@ -213,25 +203,25 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
           <div className="v-hero-content">
             <h1 className="v-hero-title">
               <span className="v-line line-one">
-                <span className="v-line-reveal">Stop Digging</span>
+                <span className="v-line-reveal">Organize Your</span>
               </span>
               <span className="v-line line-two">
-                <span className="v-line-reveal">Through Dashboards.</span>
+                <span className="v-line-reveal">Links, Effortlessly.</span>
               </span>
             </h1>
 
             <p className="v-hero-copy">
-              Your metrics are scattered across a dozen dashboards.
+              Keep all your important links in one place. Save, organize,
               <br />
-              Vantage bring them into one clear signal, so every
+              and access everything you need with Nexio's intuitive
               <br />
-              decision is backed by data you actually trust.
+              link management platform.
             </p>
 
             <button
               className="v-primary-cta"
               type="button"
-              onClick={() => setView('app')}
+              onClick={() => setIsAdding(true)}
             >
               <span className="v-cta-label">Get Started</span>
               <span className="v-arrow-box" aria-hidden="true">
@@ -246,13 +236,29 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
                 </svg>
               </span>
             </button>
+
+            {/* Search bar in hero section */}
+            <div className="v-search-bar">
+              <svg className="v-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                className="v-search-input"
+                type="search"
+                placeholder="Search your links..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search links"
+              />
+            </div>
           </div>
 
           {/* Demo card — bottom right */}
           <article className="v-demo-card" ref={cardRef}>
             <div className="v-demo-visual">
               <img
-                src="/src/assets/hero.png"
+                src={heroPoster}
                 alt="Abstract cinematic background"
                 className="v-demo-thumb"
               />

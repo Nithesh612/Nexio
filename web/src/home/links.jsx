@@ -1,27 +1,57 @@
 import React, { useState } from 'react';
 import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
-import { Layers, PenTool, Bot, Code, BookOpen, Lightbulb } from 'lucide-react';
+import {
+  Layers,
+  Palette,
+  Video,
+  Sparkles,
+  Code,
+  Folder,
+  Image as ImageIcon,
+  Camera,
+  Globe,
+  PenTool,
+  FileText,
+  FlaskConical,
+  Wrench
+} from 'lucide-react';
 import './links.css';
 
-// Category tab metadata (no items — all from DB)
+// Category tab metadata
 const tabMeta = {
-  all:         { title: 'All Links',    description: 'Browse all your saved links across every category.' },
-  uiux:        { title: 'UI/UX',        description: 'Design tools, inspiration and resources for UI/UX designers.' },
-  'ai-agents': { title: 'AI Agents',    description: 'Powerful AI agent tools and platforms to automate your workflow.' },
-  development: { title: 'Development',  description: 'Developer tools, libraries and resources to build faster.' },
-  resources:   { title: 'Resources',    description: 'Curated resources for learning, productivity, and creativity.' },
-  inspiration: { title: 'Inspiration',  description: 'Visual inspiration and creative references for your next project.' },
+  all:               { title: 'All Links',          description: 'Browse all your saved links across every category.' },
+  'ui/ux':           { title: 'UI/UX',              description: 'Design tools, UI kits, and resources for designers.' },
+  'ai-image-video':  { title: 'AI Image & Video',   description: 'Cutting-edge AI image generators and video creation platforms.' },
+  ai:                { title: 'AI',                 description: 'Powerful AI assistants, LLMs, and intelligent workflow tools.' },
+  development:       { title: 'Development',        description: 'Developer tools, frameworks, and technical libraries.' },
+  other:             { title: 'Other',              description: 'Miscellaneous links and general bookmarks.' },
+  inspiration:       { title: 'Inspiration',        description: 'Visual inspiration and creative references for your next project.' },
+  wallpaper:         { title: 'Wallpaper',          description: 'High resolution desktop and mobile wallpapers.' },
+  stock:             { title: 'Stock',              description: 'Curated stock photos, vectors, 3D assets, and media.' },
+  host:              { title: 'Host',               description: 'Hosting services, cloud providers, and deployment platforms.' },
+  design:            { title: 'Design',             description: 'Design systems, typography, icons, and graphic resources.' },
+  article:           { title: 'Article',            description: 'Interesting articles, tutorials, and long-form essays.' },
+  research:          { title: 'Research',           description: 'Research papers, benchmarks, datasets, and case studies.' },
+  tools:             { title: 'Tools',              description: 'Productivity utilities, web apps, and everyday tools.' },
 };
 
 // Gradient palette per category
 const categoryColors = {
-  'UI/UX':       ['#667eea', '#764ba2'],
-  'AI Agents':   ['#f093fb', '#f5576c'],
-  'Development': ['#4facfe', '#00f2fe'],
-  'Resources':   ['#43e97b', '#38f9d7'],
-  'Inspiration': ['#fa709a', '#fee140'],
-  'default':     ['#a18cd1', '#fbc2eb'],
+  'UI/UX':             ['#667eea', '#764ba2'],
+  'AI Image & Video':  ['#f093fb', '#f5576c'],
+  'AI':                ['#a855f7', '#6366f1'],
+  'Development':       ['#4facfe', '#00f2fe'],
+  'Other':             ['#64748b', '#475569'],
+  'Inspiration':       ['#fa709a', '#fee140'],
+  'Wallpaper':         ['#38ef7d', '#11998e'],
+  'Stock':             ['#ff9a9e', '#fecfef'],
+  'Host':              ['#2af598', '#009efd'],
+  'Design':            ['#fbc2eb', '#a6c1ee'],
+  'Article':           ['#f6d365', '#fda085'],
+  'Research':          ['#96fbc4', '#f9f586'],
+  'Tools':             ['#c471ed', '#f64f59'],
+  'default':           ['#a18cd1', '#fbc2eb'],
 };
 
 function LinkCard({ item }) {
@@ -86,18 +116,26 @@ function LinkCard({ item }) {
   );
 }
 
-export default function LinksSection({ savedLinks = [] }) {
+export default function LinksSection({ savedLinks = [], onAddLink }) {
   const [activeTab, setActiveTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9; // 3 columns × 3 rows
+  const itemsPerPage = 12; // 4 columns × 3 rows = 12 items per page
 
   const tabs = [
-    { id: 'all',         label: 'All Links',   icon: Layers },
-    { id: 'uiux',        label: 'UI/UX',       icon: PenTool },
-    { id: 'ai-agents',   label: 'AI Agents',   icon: Bot },
-    { id: 'development', label: 'Development', icon: Code },
-    { id: 'resources',   label: 'Resources',   icon: BookOpen },
-    { id: 'inspiration', label: 'Inspiration', icon: Lightbulb },
+    { id: 'all',              label: 'All Links',         icon: Layers,       categoryVal: 'all' },
+    { id: 'ui/ux',            label: 'UI/UX',             icon: Palette,      categoryVal: 'UI/UX' },
+    { id: 'ai-image-video',   label: 'AI Image & Video',  icon: Video,        categoryVal: 'AI Image & Video' },
+    { id: 'ai',               label: 'AI',                icon: Sparkles,     categoryVal: 'AI' },
+    { id: 'development',      label: 'Development',       icon: Code,         categoryVal: 'Development' },
+    { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
+    { id: 'inspiration',      label: 'Inspiration',       icon: Layers,       categoryVal: 'Inspiration' },
+    { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
+    { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
+    { id: 'host',             label: 'Host',              icon: Globe,        categoryVal: 'Host' },
+    { id: 'design',           label: 'Design',            icon: PenTool,      categoryVal: 'Design' },
+    { id: 'article',          label: 'Article',           icon: FileText,     categoryVal: 'Article' },
+    { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
+    { id: 'tools',            label: 'Tools',             icon: Wrench,       categoryVal: 'Tools' },
   ];
 
   const meta = tabMeta[activeTab] || tabMeta.all;
@@ -111,19 +149,22 @@ export default function LinksSection({ savedLinks = [] }) {
     category: link.type || link.category || 'Other',
   }));
 
+  // Selected tab configuration
+  const currentTabConfig = tabs.find(t => t.id === activeTab);
+
   // Filter by active tab
   const filteredItems = activeTab === 'all'
     ? mappedLinks
-    : mappedLinks.filter(
-        link => link.category.toLowerCase().replace(/[\/\s-]/g, '') === activeTab.replace(/[\/\s-]/g, '')
-      );
+    : mappedLinks.filter((link) => {
+        if (!currentTabConfig) return true;
+        const targetCategory = currentTabConfig.categoryVal.toLowerCase();
+        const linkCat = (link.category || '').toLowerCase().trim();
+        return linkCat === targetCategory;
+      });
 
-  // Pagination only for All Links
-  const isPaginated = activeTab === 'all';
-  const totalPages = isPaginated ? Math.ceil(filteredItems.length / itemsPerPage) : 1;
-  const currentItems = isPaginated
-    ? filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-    : filteredItems;
+  // Pagination for 3 rows x 4 columns (12 items per page)
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -164,19 +205,33 @@ export default function LinksSection({ savedLinks = [] }) {
                 <LinkCard key={item.id} item={item} />
               ))
             ) : (
-              <div className="empty-links">
-                <LottieAnimation
-                  animationData={emptyAnimation}
-                  width={260}
-                  height={260}
-                />
-                <p>No links found in this category. Use "Add Link" to save one!</p>
+              <div className="empty-links-state">
+                <div className="empty-links-lottie">
+                  <LottieAnimation
+                    animationData={emptyAnimation}
+                    width={200}
+                    height={200}
+                  />
+                </div>
+                <h3 className="empty-links-title">No links saved in {meta.title}</h3>
+                <p className="empty-links-subtitle">
+                  Keep your favorite articles, tools, and inspirations organized in one place.
+                </p>
+                {onAddLink && (
+                  <button type="button" className="empty-links-add-btn" onClick={onAddLink}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Add Link</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Pagination — only for All Links tab */}
-          {isPaginated && totalPages > 1 && (
+          {/* Pagination — 4 columns x 3 rows = 12 items per page */}
+          {totalPages > 1 && (
             <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', marginTop:'40px', paddingTop:'24px', borderTop:'1px solid #f1f5f9'}}>
               {/* Prev */}
               <button

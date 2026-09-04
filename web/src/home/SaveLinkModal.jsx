@@ -1,13 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Palette,
+  Video,
+  Sparkles,
+  Code,
+  Image as ImageIcon,
+  Camera,
+  Globe,
+  PenTool,
+  FileText,
+  FlaskConical,
+  Wrench,
+  Folder,
+  Layers,
+  Ellipsis
+} from 'lucide-react';
 import './SaveLinkModal.css';
 
-const CATEGORIES = [
-  { id: 'UI/UX', label: 'UI/UX', icon: '🎨' },
-  { id: 'AI Agents', label: 'AI Agents', icon: '🤖' },
-  { id: 'Development', label: 'Development', icon: '⚡' },
-  { id: 'Resources', label: 'Resources', icon: '📚' },
-  { id: 'Inspiration', label: 'Inspiration', icon: '✨' },
-  { id: 'Other', label: 'Other', icon: '📁' },
+const PRIMARY_CATEGORIES = [
+  { id: 'UI/UX', label: 'UI/UX', icon: Palette },
+  { id: 'AI Image & Video', label: 'AI Image & Video', icon: Video },
+  { id: 'AI', label: 'AI', icon: Sparkles },
+  { id: 'Development', label: 'Development', icon: Code },
+  { id: 'Other', label: 'Other', icon: Folder },
+];
+
+const MORE_CATEGORIES = [
+  { id: 'Inspiration', label: 'Inspiration', icon: Layers },
+  { id: 'Wallpaper', label: 'Wallpaper', icon: ImageIcon },
+  { id: 'Stock', label: 'Stock', icon: Camera },
+  { id: 'Host', label: 'Host', icon: Globe },
+  { id: 'Design', label: 'Design', icon: PenTool },
+  { id: 'Article', label: 'Article', icon: FileText },
+  { id: 'Research', label: 'Research', icon: FlaskConical },
+  { id: 'Tools', label: 'Tools', icon: Wrench },
 ];
 
 function getFavicon(url) {
@@ -29,13 +55,39 @@ function formatTitle(url) {
   }
 }
 
-export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSubmitting = false }) {
+export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onClearError, isSubmitting = false }) {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [customTitle, setCustomTitle] = useState(false);
   const [category, setCategory] = useState('UI/UX');
   const [imgError, setImgError] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const isExtraCategorySelected = MORE_CATEGORIES.some(c => c.id === category);
+  const selectedMoreCat = MORE_CATEGORIES.find(c => c.id === category);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setUrl('');
+      setTitle('');
+      setCustomTitle(false);
+      setCategory('UI/UX');
+      setImgError(false);
+      setIsDropdownOpen(false);
+    }
+  }, [isOpen]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleDocumentClick = (e) => {
+      if (!e.target.closest('.more-category-wrapper')) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleDocumentClick);
+    return () => document.removeEventListener('pointerdown', handleDocumentClick);
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (url.trim() && !customTitle) {
@@ -59,10 +111,13 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url.trim()) return;
+    if (!category || !category.trim()) {
+      return;
+    }
     onSave({
       url: url.trim(),
       title: title.trim() || formatTitle(url),
-      category: category || 'UI/UX',
+      category: category.trim(),
     });
   };
 
@@ -122,7 +177,10 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
                 autoFocus
                 placeholder="https://example.com/article"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  if (saveError && onClearError) onClearError();
+                }}
                 className="modern-modal-input"
               />
             </div>
@@ -165,9 +223,15 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
 
           {/* Category Chips Selector */}
           <div className="modal-input-group">
-            <label>Select Category</label>
+            <div className="category-section-header">
+              <label>
+                Select Category <span className="required-star">*</span>
+              </label>
+              <span className="selected-category-badge">{category || 'Select a category'}</span>
+            </div>
             <div className="category-chips-grid">
-              {CATEGORIES.slice(0, 5).map((cat) => {
+              {PRIMARY_CATEGORIES.map((cat) => {
+                const IconComponent = cat.icon;
                 const isSelected = category === cat.id;
                 return (
                   <button
@@ -176,7 +240,9 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
                     className={`category-chip ${isSelected ? 'selected' : ''}`}
                     onClick={() => setCategory(cat.id)}
                   >
-                    <span className="chip-icon">{cat.icon}</span>
+                    <span className="chip-icon">
+                      <IconComponent size={15} />
+                    </span>
                     <span className="chip-label">{cat.label}</span>
                   </button>
                 );
@@ -186,27 +252,49 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, isSu
               <div className="more-category-wrapper">
                 <button
                   type="button"
-                  className={`category-chip more-chip ${!CATEGORIES.slice(0, 5).some(c => c.id === category) ? 'selected' : ''}`}
+                  className={`category-chip more-chip ${isExtraCategorySelected ? 'selected active-more' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}`}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
-                  <span className="chip-icon">⋯</span>
-                  <span className="chip-label">More</span>
+                  <span className="chip-icon">
+                    {isExtraCategorySelected && selectedMoreCat ? (
+                      (() => {
+                        const SelIcon = selectedMoreCat.icon;
+                        return <SelIcon size={15} />;
+                      })()
+                    ) : (
+                      <Ellipsis size={15} />
+                    )}
+                  </span>
+                  <span className="chip-label">{isExtraCategorySelected ? category : 'More'}</span>
+                  <svg className={`more-arrow ${isDropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </button>
                 
                 <div className={`more-dropdown-menu ${isDropdownOpen ? 'show-dropdown' : ''}`}>
-                  {['Design', 'Article', 'Research', 'Tools', 'Other'].map(extraCat => (
-                    <button
-                      key={extraCat}
-                      type="button"
-                      className={`dropdown-item ${category === extraCat ? 'active' : ''}`}
-                      onClick={() => {
-                        setCategory(extraCat);
-                        setIsDropdownOpen(false);
-                      }}
-                    >
-                      {extraCat}
-                    </button>
-                  ))}
+                  <div className="dropdown-menu-header">More Categories</div>
+                  {MORE_CATEGORIES.map(extraCat => {
+                    const ExtraIcon = extraCat.icon;
+                    return (
+                      <button
+                        key={extraCat.id}
+                        type="button"
+                        className={`dropdown-item ${category === extraCat.id ? 'active' : ''}`}
+                        onClick={() => {
+                          setCategory(extraCat.id);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="dropdown-item-icon">
+                          <ExtraIcon size={15} />
+                        </span>
+                        <span className="dropdown-item-label">{extraCat.label}</span>
+                        {category === extraCat.id && (
+                          <span className="dropdown-item-check">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -84,6 +84,25 @@
   user-select: none;
 }
 
+.v-video-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(255, 255, 255, .28);
+  border-top-color: rgba(255, 255, 255, .9);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: video-buffer-spin 800ms linear infinite;
+  pointer-events: none;
+}
+
+@keyframes video-buffer-spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 /* ============================================================
    HEADER
    ============================================================ */
@@ -139,7 +158,7 @@
 }
 
 .v-nav-link:first-child {
-  /* no extra offset needed */
+  /* active by default */
 }
 
 
@@ -226,7 +245,7 @@
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 /* Add Link Button */
@@ -250,6 +269,27 @@
 
 .v-add-link-btn:hover {
   background: rgba(255,255,255,.13);
+}
+
+/* Dashboard Button (in header) */
+.v-header-right .v-primary-cta {
+  width: auto !important;
+  height: 40px !important;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0 !important;
+}
+
+.v-header-right .v-primary-cta .v-cta-label {
+  position: static;
+  transform: none;
+  font-size: 14px;
+}
+
+.v-header-right .v-primary-cta .v-arrow-box {
+  display: none;
 }
 
 .v-icon-action {
@@ -294,7 +334,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: clamp(160px, 16vw, 220px);
+  width: clamp(220px, 28vw, 360px);
   height: 40px;
   padding: 0 14px;
   border: 1px solid rgba(255,255,255,.18);
@@ -302,6 +342,7 @@
   background: rgba(255,255,255,.08);
   backdrop-filter: blur(12px) saturate(110%);
   transition: background 200ms, border-color 200ms;
+  margin-top: 20px;
 }
 
 .v-search-bar:focus-within {
