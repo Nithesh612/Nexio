@@ -8,6 +8,7 @@ import {
   Bookmark,
   ChevronDown,
   Code2,
+  CloudOff,
   Download,
   Edit2,
   FileText,
@@ -409,7 +410,7 @@ export default function DashboardPage({ onBack }) {
         const data = await response.json()
         if (isActive) setLiveLinks(Array.isArray(data) ? data.map(mapLiveLink) : [])
       } catch (error) {
-        if (isActive) setLinksError('Could not load live links from MongoDB.')
+        if (isActive) setLinksError('Unable to connect to the server. Please check your connection and try again.')
       } finally {
         if (isActive) setIsLoadingLinks(false)
       }
@@ -517,7 +518,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.map((item) => (
         item.id === linkId ? { ...item, collection: selectedLink.collection } : item
       )))
-      setStatus('Could not update Saved in MongoDB.')
+      setStatus('Could not save link. Server error.')
     }
   }
 
@@ -553,7 +554,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.map((item) => (
         item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
       )))
-      setStatus('Could not update Favorites in MongoDB.')
+      setStatus('Could not update favorites. Server error.')
     }
   }
 
@@ -603,7 +604,7 @@ export default function DashboardPage({ onBack }) {
       )))
       setStatus('Link updated successfully.')
     } catch {
-      setStatus('Could not update this link in MongoDB.')
+      setStatus('Could not update link. Server error.')
     } finally {
       setIsEditing(false)
       setItemToEdit(null)
@@ -623,7 +624,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.filter((link) => link.id !== itemToDelete.id))
       setStatus('Link deleted successfully.')
     } catch {
-      setStatus('Could not delete this link from MongoDB.')
+      setStatus('Could not delete link. Server error.')
     } finally {
       setIsDeleting(false)
       setItemToDelete(null)
@@ -1861,11 +1862,25 @@ export default function DashboardPage({ onBack }) {
             <div className={viewMode === 'list' ? 'list-view-linear' : 'list-view'}>
               {isLoadingLinks ? (
                 <div className="service-card empty-state" style={{ gridColumn: '1 / -1' }}>
-                  Loading links from MongoDB...
+                  Loading your links...
                 </div>
               ) : linksError ? (
-                <div className="service-card empty-state" style={{ gridColumn: '1 / -1', color: '#b45309' }}>
-                  {linksError}
+                <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1', borderColor: '#fecaca', backgroundColor: '#fef2f2' }}>
+                  <div className="dashboard-empty-animation">
+                    <CloudOff size={52} color="#ef4444" style={{ marginBottom: '16px', opacity: 0.9 }} />
+                  </div>
+                  <h3 className="dashboard-empty-title" style={{ color: '#991b1b' }}>Server Connection Error</h3>
+                  <p className="dashboard-empty-subtitle" style={{ color: '#b91c1c' }}>
+                    {linksError}
+                  </p>
+                  <button
+                    type="button"
+                    className="dashboard-empty-add-btn"
+                    onClick={() => window.location.reload()}
+                    style={{ backgroundColor: '#ef4444', marginTop: '4px' }}
+                  >
+                    Try Again
+                  </button>
                 </div>
               ) : filteredLinks.length === 0 ? (
                 <div className="dashboard-empty-container">
