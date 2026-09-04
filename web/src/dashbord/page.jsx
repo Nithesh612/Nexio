@@ -28,7 +28,7 @@ import LottieAnimation from '../home/LottieAnimation'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
-const API_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub'
+const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub')
 
 const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },

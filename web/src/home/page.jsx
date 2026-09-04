@@ -7,7 +7,7 @@ import DashboardPage from '../dashbord/page'
 import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
 import LatestModels from './LatestModels'
 
-const API_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub'
+const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub')
 
 const initialLinks = [
   {

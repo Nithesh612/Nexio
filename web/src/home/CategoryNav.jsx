@@ -3,7 +3,7 @@ import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
 import './CategoryNav.css';
 
-const API_URL = typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub';
+const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub');
 
 const categoryMap = {
   all: 'All Links',
