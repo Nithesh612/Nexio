@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
-const NAV_LINKS = ['Home', 'Dashboard', 'Pricing', 'Contact']
+
+const NAV_LINKS = ['Home', 'Features', 'Pricing', 'Contact']
+
 
 
 export default function Hero({ setIsAdding, setView, onImport, onExport }) {
@@ -93,7 +95,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
                   onClick={(e) => {
                     e.preventDefault()
                     setMenuOpen(false)
-                    if (label === 'Dashboard') setView('app')
+                    if (label === 'Services') setView('app')
                   }}
                 >
                   {label}

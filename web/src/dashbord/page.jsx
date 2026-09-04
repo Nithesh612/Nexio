@@ -8,7 +8,6 @@ import {
   Bookmark,
   ChevronDown,
   Code2,
-  CloudOff,
   Download,
   Edit2,
   FileText,
@@ -17,7 +16,6 @@ import {
   Link2,
   LayoutGrid,
   List,
-  Menu,
   Palette,
   Plus,
   Search,
@@ -29,7 +27,7 @@ import LottieAnimation from '../home/LottieAnimation'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
-const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000/hub` : 'http://localhost:5000/hub')
+const API_URL = 'http://localhost:5000/hub'
 
 const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
@@ -379,7 +377,6 @@ const navItems = [
 
 export default function DashboardPage({ onBack }) {
   const [activeNav, setActiveNav] = useState('All Links')
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
   const [liveLinks, setLiveLinks] = useState([])
@@ -410,7 +407,7 @@ export default function DashboardPage({ onBack }) {
         const data = await response.json()
         if (isActive) setLiveLinks(Array.isArray(data) ? data.map(mapLiveLink) : [])
       } catch (error) {
-        if (isActive) setLinksError('Unable to connect to the server. Please check your connection and try again.')
+        if (isActive) setLinksError('Could not load live links from MongoDB.')
       } finally {
         if (isActive) setIsLoadingLinks(false)
       }
@@ -518,7 +515,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.map((item) => (
         item.id === linkId ? { ...item, collection: selectedLink.collection } : item
       )))
-      setStatus('Could not save link. Server error.')
+      setStatus('Could not update Saved in MongoDB.')
     }
   }
 
@@ -554,7 +551,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.map((item) => (
         item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
       )))
-      setStatus('Could not update favorites. Server error.')
+      setStatus('Could not update Favorites in MongoDB.')
     }
   }
 
@@ -604,7 +601,7 @@ export default function DashboardPage({ onBack }) {
       )))
       setStatus('Link updated successfully.')
     } catch {
-      setStatus('Could not update link. Server error.')
+      setStatus('Could not update this link in MongoDB.')
     } finally {
       setIsEditing(false)
       setItemToEdit(null)
@@ -624,7 +621,7 @@ export default function DashboardPage({ onBack }) {
       setLiveLinks((current) => current.filter((link) => link.id !== itemToDelete.id))
       setStatus('Link deleted successfully.')
     } catch {
-      setStatus('Could not delete link. Server error.')
+      setStatus('Could not delete this link from MongoDB.')
     } finally {
       setIsDeleting(false)
       setItemToDelete(null)
@@ -1512,53 +1509,13 @@ export default function DashboardPage({ onBack }) {
           cursor: not-allowed;
           opacity: 0.45;
         }
-        .mobile-backdrop {
-          display: none;
-        }
-        .mobile-menu-btn {
-          display: none;
-        }
         @media (max-width: 1100px) {
-          .mobile-menu-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #ffffff;
-            border: 1px solid rgba(15,23,42,0.08);
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
-            color: #111827;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-right: 12px;
-          }
-          .mobile-backdrop {
-            display: block;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(2px);
-            z-index: 40;
-          }
-          .sidebar { 
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 280px;
-            z-index: 50;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
-          }
-          .sidebar.mobile-open {
-            transform: translateX(0);
-          }
+          .dashboard-shell { flex-direction: column; }
+          .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(15,23,42,0.08); }
           .stats-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
-          .topbar { flex-direction: row; align-items: center; flex-wrap: wrap; }
-          .top-actions { width: 100%; justify-content: flex-end; margin-top: 10px; }
-          .search-input-wrap { flex: 1; min-width: 0; }
+          .topbar { flex-direction: column; align-items: flex-start; }
+          .top-actions { width: 100%; justify-content: space-between; }
+          .search-input-wrap { flex: 1; }
         }
         @media (max-width: 700px) {
           .main-content { padding: 20px 16px 24px; }
@@ -1719,10 +1676,7 @@ export default function DashboardPage({ onBack }) {
       `}</style>
 
       <div className="dashboard-shell">
-        {isMobileMenuOpen && (
-          <div className="mobile-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
-        )}
-        <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <aside className="sidebar">
           {onBack && (
             <button
               type="button"
@@ -1770,9 +1724,6 @@ export default function DashboardPage({ onBack }) {
 
         <main className="main-content">
           <header className="topbar">
-            <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu size={20} />
-            </button>
             <div className="search-input-wrap">
               <Search size={16} />
               <input
@@ -1862,25 +1813,11 @@ export default function DashboardPage({ onBack }) {
             <div className={viewMode === 'list' ? 'list-view-linear' : 'list-view'}>
               {isLoadingLinks ? (
                 <div className="service-card empty-state" style={{ gridColumn: '1 / -1' }}>
-                  Loading your links...
+                  Loading links from MongoDB...
                 </div>
               ) : linksError ? (
-                <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1', borderColor: '#fecaca', backgroundColor: '#fef2f2' }}>
-                  <div className="dashboard-empty-animation">
-                    <CloudOff size={52} color="#ef4444" style={{ marginBottom: '16px', opacity: 0.9 }} />
-                  </div>
-                  <h3 className="dashboard-empty-title" style={{ color: '#991b1b' }}>Server Connection Error</h3>
-                  <p className="dashboard-empty-subtitle" style={{ color: '#b91c1c' }}>
-                    {linksError}
-                  </p>
-                  <button
-                    type="button"
-                    className="dashboard-empty-add-btn"
-                    onClick={() => window.location.reload()}
-                    style={{ backgroundColor: '#ef4444', marginTop: '4px' }}
-                  >
-                    Try Again
-                  </button>
+                <div className="service-card empty-state" style={{ gridColumn: '1 / -1', color: '#b45309' }}>
+                  {linksError}
                 </div>
               ) : filteredLinks.length === 0 ? (
                 <div className="dashboard-empty-container">
