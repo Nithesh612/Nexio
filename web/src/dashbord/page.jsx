@@ -15,6 +15,8 @@ import {
   Inbox,
   Link2,
   LayoutGrid,
+  List,
+  Menu,
   Palette,
   Plus,
   Search,
@@ -22,16 +24,22 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-
+import LottieAnimation from '../home/LottieAnimation'
+import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 const API_URL = 'http://localhost:5000/hub'
 
 const stats = [
-  { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#7d4ae8', icon: LinkIcon },
-  { label: 'Saved', value: '24', delta: '+ 8%', accent: '#f4c849', icon: StarIcon },
-  { label: 'Type', value: '0', delta: '+ 15%', accent: '#57c89d', icon: TagIcon },
-  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f4c849', icon: StarIcon },
+  { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
+  { label: 'Saved', value: '24', delta: '+ 8%', accent: '#f4c849', icon: Bookmark },
+  { label: 'Type', value: '0', delta: '+ 15%', accent: '#57c89d', icon: LayoutGrid },
+  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f4c849', icon: Star },
+]
+
+const PREDEFINED_CATEGORIES = [
+  'Saved', 'UI/UX', 'AI Image & Video', 'AI', 'Inspiration', 'Other',
+  'Wallpaper', 'Stock', 'Host', 'Article', 'Research', 'Tools'
 ]
 
 const recentLinks = [
@@ -123,6 +131,15 @@ function getHostname(url) {
 function getFaviconUrl(url) {
   const hostname = getHostname(url)
   return hostname ? `https://www.google.com/s2/favicons?domain=${hostname}&sz=128` : ''
+}
+
+function getScreenshotUrl(url) {
+  try {
+    const clean = url.startsWith('http') ? url : `https://${url}`;
+    return `https://s0.wp.com/mshots/v1/${encodeURIComponent(clean)}?w=800&h=500`;
+  } catch {
+    return `https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=800&h=500`;
+  }
 }
 
 function getLiveDescription(item, title, category) {
@@ -361,6 +378,7 @@ const navItems = [
 
 export default function DashboardPage({ onBack }) {
   const [activeNav, setActiveNav] = useState('All Links')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
   const [liveLinks, setLiveLinks] = useState([])
@@ -369,6 +387,14 @@ export default function DashboardPage({ onBack }) {
   const [savePulseId, setSavePulseId] = useState(null)
   const [favoritePulseId, setFavoritePulseId] = useState(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState('All')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [itemToDelete, setItemToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [itemToEdit, setItemToEdit] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', url: '', category: '' })
+  const [isEditing, setIsEditing] = useState(false)
+  const [viewMode, setViewMode] = useState('grid')
   const cardsPerPage = 8
 
   useEffect(() => {
@@ -393,25 +419,49 @@ export default function DashboardPage({ onBack }) {
     return () => { isActive = false }
   }, [])
 
+  const availableCategories = useMemo(() => {
+    const cats = new Set()
+    liveLinks.forEach((l) => {
+      if (l.category) {
+        l.category.split(',').forEach(c => cats.add(c.trim()))
+      }
+    })
+    return ['All', ...Array.from(cats)]
+  }, [liveLinks])
+
   const filteredLinks = useMemo(() => {
-    if (activeNav === 'All Links' || activeNav === 'Dashboard') {
-      return liveLinks
-    }
+    let base = liveLinks
 
     if (activeNav === 'Favorites') {
-      return liveLinks.filter((item) => item.favorite)
+      base = base.filter((item) => item.favorite)
+    } else if (activeNav === 'Saved') {
+      base = base.filter((item) => item.collection === 'Inbox')
     }
 
-    if (activeNav === 'Saved') {
-      return liveLinks.filter((item) => item.collection === 'Inbox')
+    if (activeFilter !== 'All') {
+      base = base.filter((item) => {
+        if (!item.category) return false
+        const itemCats = item.category.split(',').map(c => c.trim())
+        return itemCats.includes(activeFilter)
+      })
     }
 
-    return liveLinks
-  }, [activeNav, liveLinks])
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      base = base.filter((item) =>
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.url && item.url.toLowerCase().includes(q)) ||
+        (item.category && item.category.toLowerCase().includes(q))
+      )
+    }
+
+    return base
+  }, [activeNav, activeFilter, searchQuery, liveLinks])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [activeNav])
+  }, [activeNav, activeFilter, searchQuery])
 
   const totalPages = Math.max(1, Math.ceil(filteredLinks.length / cardsPerPage))
   const visibleLinks = filteredLinks.slice(
@@ -512,48 +562,71 @@ export default function DashboardPage({ onBack }) {
     window.open(targetUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const handleEditService = async (item) => {
-    const title = window.prompt('Edit title', item.title)
-    if (title === null || !title.trim()) return
+  const handleEditService = (item) => {
+    setItemToEdit(item)
+    setEditForm({ 
+      title: item.title || '', 
+      description: item.description || '',
+      url: item.url || '',
+      category: item.category || ''
+    })
+  }
 
-    const description = window.prompt('Edit description', item.description)
-    if (description === null) return
-
+  const confirmEdit = async (e) => {
+    e.preventDefault()
+    if (!itemToEdit || !editForm.title.trim()) return
+    setIsEditing(true)
     try {
-      const response = await fetch(`${API_URL}/${item.id}`, {
+      const response = await fetch(`${API_URL}/${itemToEdit.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: title.trim(),
-          url: item.url,
-          category: item.category,
-          description: description.trim(),
-          collection: item.collection,
-          favorite: item.favorite,
-          readLater: item.readLater,
+          title: editForm.title.trim(),
+          url: editForm.url.trim(),
+          category: editForm.category.trim(),
+          description: editForm.description.trim(),
+          collection: itemToEdit.collection,
+          favorite: itemToEdit.favorite,
+          readLater: itemToEdit.readLater,
         }),
       })
       if (!response.ok) throw new Error('Edit failed')
 
       setLiveLinks((current) => current.map((link) => (
-        link.id === item.id ? { ...link, title: title.trim(), description: description.trim() } : link
+        link.id === itemToEdit.id ? { 
+          ...link, 
+          title: editForm.title.trim(), 
+          description: editForm.description.trim(),
+          url: editForm.url.trim(),
+          category: editForm.category.trim()
+        } : link
       )))
       setStatus('Link updated successfully.')
     } catch {
       setStatus('Could not update this link in MongoDB.')
+    } finally {
+      setIsEditing(false)
+      setItemToEdit(null)
     }
   }
 
-  const handleDeleteService = async (item) => {
-    if (!window.confirm(`Delete ${item.title}?`)) return
+  const handleDeleteService = (item) => {
+    setItemToDelete(item)
+  }
 
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+    setIsDeleting(true)
     try {
-      const response = await fetch(`${API_URL}/${item.id}`, { method: 'DELETE' })
+      const response = await fetch(`${API_URL}/${itemToDelete.id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error('Delete failed')
-      setLiveLinks((current) => current.filter((link) => link.id !== item.id))
+      setLiveLinks((current) => current.filter((link) => link.id !== itemToDelete.id))
       setStatus('Link deleted successfully.')
     } catch {
       setStatus('Could not delete this link from MongoDB.')
+    } finally {
+      setIsDeleting(false)
+      setItemToDelete(null)
     }
   }
 
@@ -656,7 +729,7 @@ export default function DashboardPage({ onBack }) {
           width: 35px;
           height: 35px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #7a3ae8, #b76ef7);
+          background: linear-gradient(135deg, #2563eb, #60a5fa);
           display: grid;
           place-items: center;
           color: white;
@@ -678,10 +751,10 @@ export default function DashboardPage({ onBack }) {
           padding: 11px 14px;
           border: none;
           border-radius: 12px;
-          background: linear-gradient(135deg, #7b45ea, #8a5ae3);
+          background: linear-gradient(135deg, #2563eb, #3b82f6);
           color: white;
           font-weight: 700;
-          box-shadow: 0 8px 20px rgba(123, 69, 234, 0.22);
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
         }
         .side-section-label {
           display: none;
@@ -727,8 +800,8 @@ export default function DashboardPage({ onBack }) {
           margin-top: auto;
           border-radius: 16px;
           padding: 18px 16px 16px;
-          background: rgba(132, 104, 241, 0.12);
-          border: 1px solid rgba(132, 104, 241, 0.1);
+          background: rgba(59, 130, 246, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.1);
         }
         .upgrade-card h4 {
           margin: 0 0 8px;
@@ -745,8 +818,8 @@ export default function DashboardPage({ onBack }) {
           width: 100%;
           border: none;
           border-radius: 10px;
-          background: rgba(123, 69, 234, 0.12);
-          color: #4b3f97;
+          background: rgba(37, 99, 235, 0.12);
+          color: #1e3a8a;
           font-weight: 700;
           padding: 10px 12px;
         }
@@ -776,7 +849,7 @@ export default function DashboardPage({ onBack }) {
           font-size: 1.5rem;
         }
         .greeting .highlight {
-          color: #7d4ae8;
+          color: #2563eb;
         }
         .top-actions {
           display: flex;
@@ -784,15 +857,21 @@ export default function DashboardPage({ onBack }) {
           gap: 14px;
         }
         .search-input-wrap {
-          width: 300px;
+          width: 340px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          background: rgba(255,255,255,0.55);
-          border: 1px solid rgba(15,23,42,0.08);
-          border-radius: 12px;
-          padding: 9px 12px;
-          color: #6b7280;
+          gap: 10px;
+          background: #ffffff;
+          border: 1px solid rgba(15,23,42,0.06);
+          border-radius: 999px;
+          padding: 10px 18px;
+          color: #64748b;
+          box-shadow: 0 2px 8px rgba(15,23,42,0.02);
+          transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .search-input-wrap:focus-within {
+          box-shadow: 0 4px 14px rgba(37,99,235,0.08);
+          border-color: rgba(37,99,235,0.3);
         }
         .search-input-wrap input {
           border: none;
@@ -805,7 +884,7 @@ export default function DashboardPage({ onBack }) {
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #4f46e5, #7a5cf6);
+          background: linear-gradient(135deg, #1d4ed8, #3b82f6);
           color: white;
           display: grid;
           place-items: center;
@@ -825,12 +904,22 @@ export default function DashboardPage({ onBack }) {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: rgba(255,255,255,0.55);
-          border: 1px solid rgba(15,23,42,0.08);
-          color: #374151;
-          border-radius: 10px;
-          padding: 9px 16px;
-          font-weight: 600;
+          background: #ffffff;
+          border: 1px solid rgba(15,23,42,0.06);
+          color: #475569;
+          border-radius: 999px;
+          padding: 9px 20px;
+          font-size: 0.9rem;
+          font-weight: 700;
+          box-shadow: 0 2px 8px rgba(15,23,42,0.02);
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+        .ghost-btn:hover {
+          color: #0f172a;
+          border-color: rgba(15,23,42,0.12);
+          box-shadow: 0 4px 12px rgba(15,23,42,0.05);
+          transform: translateY(-1px);
         }
         .export-menu-wrap {
           position: relative;
@@ -863,7 +952,7 @@ export default function DashboardPage({ onBack }) {
         }
         .export-option:hover {
           background: #f3f1ee;
-          color: #5d41d9;
+          color: #2563eb;
         }
         .stats-grid {
           display: grid;
@@ -886,8 +975,8 @@ export default function DashboardPage({ onBack }) {
           border-radius: 50%;
           display: grid;
           place-items: center;
-          color: var(--icon-color, #7d4ae8);
-          background: rgba(125, 74, 232, 0.09);
+          color: var(--icon-color, #2563eb);
+          background: rgba(37, 99, 235, 0.09);
         }
         .stat-value {
           font-size: 1.85rem;
@@ -954,21 +1043,41 @@ export default function DashboardPage({ onBack }) {
         .chip-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
-          margin: 0 0 18px;
+          gap: 12px;
+          margin: 0 0 24px;
         }
         .chip {
-          border: 1px solid rgba(15,23,42,0.08);
-          background: rgba(255,255,255,0.45);
-          color: #4b5563;
-          border-radius: 8px;
-          padding: 7px 12px;
-          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          border: 1px solid rgba(15,23,42,0.06);
+          background: rgba(255,255,255,0.7);
+          backdrop-filter: blur(8px);
+          color: #475569;
+          border-radius: 999px;
+          padding: 8px 18px;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+        }
+        .chip:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 14px -3px rgba(15, 23, 42, 0.08);
+          background: #ffffff;
+          color: #0f172a;
+          border-color: rgba(37, 99, 235, 0.2);
         }
         .chip.active {
-          background: #5d41d9;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
           color: white;
           border-color: transparent;
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+          transform: translateY(-2px);
+        }
+        .chip.active:hover {
+          box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+          transform: translateY(-3px);
         }
         .panel {
           background: rgba(255,255,255,0.46);
@@ -1001,6 +1110,67 @@ export default function DashboardPage({ onBack }) {
           gap: 14px;
           padding: 0 14px 14px;
         }
+        .view-toggle {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          background: rgba(15,23,42,0.04);
+          padding: 4px;
+          border-radius: 8px;
+        }
+        .view-toggle button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border: none;
+          background: transparent;
+          color: #64748b;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .view-toggle button:hover {
+          color: #0f172a;
+        }
+        .view-toggle button.active {
+          background: white;
+          color: #2563eb;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .list-view-linear {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px;
+          padding: 0 14px 14px;
+        }
+        .list-view-linear .service-card {
+          display: grid;
+          grid-template-columns: 260px 1fr 180px;
+          grid-template-rows: auto auto auto 1fr;
+          grid-template-areas: 
+            "preview top footer"
+            "preview title footer"
+            "preview desc footer"
+            "preview meta footer";
+          height: auto;
+        }
+        .list-view-linear .service-preview { grid-area: preview; height: 100%; border-right: 1px solid #e5e7eb; }
+        .list-view-linear .service-card-top { grid-area: top; padding: 16px 20px 8px; }
+        .list-view-linear .link-title { grid-area: title; margin: 0 20px 8px; }
+        .list-view-linear .link-description { grid-area: desc; margin: 0 20px 12px; }
+        .list-view-linear .meta-tags { grid-area: meta; margin: 0 20px 16px; align-self: start; }
+        .list-view-linear .date { display: none; }
+        .list-view-linear .service-footer { 
+          grid-area: footer; 
+          border-top: none; 
+          border-left: 1px solid #f1f5f9;
+          flex-direction: column;
+          justify-content: center;
+          gap: 16px;
+          padding: 0 24px;
+        }
         .service-card {
           display: flex;
           flex-direction: column;
@@ -1020,15 +1190,32 @@ export default function DashboardPage({ onBack }) {
           position: relative;
           height: 140px;
           overflow: hidden;
-          background: #f1f5f9;
+          background: linear-gradient(135deg, var(--dot-color, #3b82f6), #f8fafc);
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .service-preview img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: top center;
+        .service-preview .link-banner-brand-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 58px;
+          height: 58px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+          padding: 8px;
+          transition: transform 0.25s ease;
+        }
+        .service-card:hover .link-banner-brand-container {
+          transform: scale(1.08);
+        }
+        .service-preview .link-banner-brand-logo {
+          width: 36px;
+          height: 36px;
+          object-fit: contain;
+          border-radius: 8px;
         }
         .service-preview-fallback {
           display: none;
@@ -1037,6 +1224,58 @@ export default function DashboardPage({ onBack }) {
           place-items: center;
           background: linear-gradient(135deg, var(--dot-color), #f8fafc);
           color: #ffffff;
+        }
+        .dashboard-empty-container {
+          grid-column: 1 / -1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 60px 24px;
+          text-align: center;
+          background: #ffffff;
+          border-radius: 18px;
+          border: 1.5px dashed #e2e8f0;
+          margin: 12px;
+        }
+        .dashboard-empty-animation {
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .dashboard-empty-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 6px;
+        }
+        .dashboard-empty-subtitle {
+          font-size: 14px;
+          color: #64748b;
+          max-width: 380px;
+          margin: 0 0 20px;
+          line-height: 1.5;
+        }
+        .dashboard-empty-add-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          background: #0f172a;
+          color: #ffffff;
+          border: none;
+          border-radius: 999px;
+          font-size: 13.5px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .dashboard-empty-add-btn:hover {
+          background: #1e293b;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
         }
         .service-category {
           position: absolute;
@@ -1155,7 +1394,7 @@ export default function DashboardPage({ onBack }) {
           font-weight: 700;
         }
         .date {
-          color: #6366f1;
+          color: #2563eb;
           font-weight: 600;
           font-size: 0.76rem;
           margin: 0 16px;
@@ -1176,7 +1415,7 @@ export default function DashboardPage({ onBack }) {
           gap: 5px;
           border: none;
           background: transparent;
-          color: #6366f1;
+          color: #2563eb;
           font-size: 0.82rem;
           font-weight: 700;
           cursor: pointer;
@@ -1207,7 +1446,7 @@ export default function DashboardPage({ onBack }) {
         .card-action:hover {
           background: #f3f4f6;
         }
-        .edit-action { color: #6366f1; }
+        .edit-action { color: #2563eb; }
         .delete-action { color: #ef4444; }
         .empty-state {
           display: flex;
@@ -1264,21 +1503,61 @@ export default function DashboardPage({ onBack }) {
           font-weight: 800;
         }
         .page-btn.active {
-          background: #5d41d9;
-          border-color: #5d41d9;
+          background: #2563eb;
+          border-color: #2563eb;
           color: white;
         }
         .page-btn:disabled {
           cursor: not-allowed;
           opacity: 0.45;
         }
+        .mobile-backdrop {
+          display: none;
+        }
+        .mobile-menu-btn {
+          display: none;
+        }
         @media (max-width: 1100px) {
-          .dashboard-shell { flex-direction: column; }
-          .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(15,23,42,0.08); }
+          .mobile-menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border: 1px solid rgba(15,23,42,0.08);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            color: #111827;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-right: 12px;
+          }
+          .mobile-backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 40;
+          }
+          .sidebar { 
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+          }
+          .sidebar.mobile-open {
+            transform: translateX(0);
+          }
           .stats-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
-          .topbar { flex-direction: column; align-items: flex-start; }
-          .top-actions { width: 100%; justify-content: space-between; }
-          .search-input-wrap { flex: 1; }
+          .topbar { flex-direction: row; align-items: center; flex-wrap: wrap; }
+          .top-actions { width: 100%; justify-content: flex-end; margin-top: 10px; }
+          .search-input-wrap { flex: 1; min-width: 0; }
         }
         @media (max-width: 700px) {
           .main-content { padding: 20px 16px 24px; }
@@ -1292,10 +1571,157 @@ export default function DashboardPage({ onBack }) {
           .list-view { grid-template-columns: 1fr; }
           .pagination { align-items: flex-start; flex-direction: column; }
         }
+        .delete-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.4);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          animation: modalFadeIn 0.2s ease-out;
+        }
+        .delete-modal-card {
+          background: white;
+          width: 90%;
+          max-width: 400px;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          text-align: center;
+          animation: modalScaleUp 0.2s ease-out;
+        }
+        .delete-modal-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: #fef2f2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+        }
+        .delete-modal-card h3 {
+          margin: 0 0 8px;
+          color: #111827;
+          font-size: 1.25rem;
+          font-weight: 700;
+        }
+        .delete-modal-card p {
+          margin: 0 0 24px;
+          color: #6b7280;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+        .delete-modal-actions {
+          display: flex;
+          gap: 12px;
+        }
+        .delete-modal-actions button {
+          flex: 1;
+          padding: 10px 16px;
+          border-radius: 10px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+        }
+        .delete-modal-actions .cancel-btn {
+          background: #f3f4f6;
+          color: #374151;
+        }
+        .delete-modal-actions .cancel-btn:hover {
+          background: #e5e7eb;
+        }
+        .delete-modal-actions .delete-btn {
+          background: #ef4444;
+          color: white;
+        }
+        .delete-modal-actions .delete-btn:hover {
+          background: #dc2626;
+        }
+        .delete-modal-actions button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalScaleUp {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .edit-modal-form {
+          text-align: left;
+        }
+        .edit-modal-form .form-group {
+          margin-bottom: 16px;
+        }
+        .edit-modal-form label {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #374151;
+          margin-bottom: 6px;
+        }
+        .edit-modal-form input,
+        .edit-modal-form textarea,
+        .edit-modal-form select {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid #d1d5db;
+          background: #f9fafb;
+          font-size: 0.95rem;
+          color: #111827;
+          outline: none;
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .edit-modal-form input:focus,
+        .edit-modal-form textarea:focus,
+        .edit-modal-form select:focus {
+          border-color: #2563eb;
+          background: #ffffff;
+        }
+        .edit-modal-form textarea {
+          resize: vertical;
+          min-height: 80px;
+        }
+        .edit-modal-card h3 {
+          margin: 0 0 16px;
+          color: #111827;
+          font-size: 1.25rem;
+          font-weight: 800;
+          text-align: left;
+        }
+        .edit-modal-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563eb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 16px;
+        }
+        .delete-modal-actions .save-btn {
+          background: #2563eb;
+          color: white;
+        }
+        .delete-modal-actions .save-btn:hover {
+          background: #1d4ed8;
+        }
       `}</style>
 
       <div className="dashboard-shell">
-        <aside className="sidebar">
+        {isMobileMenuOpen && (
+          <div className="mobile-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+        )}
+        <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           {onBack && (
             <button
               type="button"
@@ -1315,7 +1741,7 @@ export default function DashboardPage({ onBack }) {
               ← Back to home
             </button>
           )}
-         
+
 
           <button className="new-link-btn" type="button">
             <Plus size={18} />
@@ -1338,14 +1764,21 @@ export default function DashboardPage({ onBack }) {
             </div>
           </div>
 
-        
+
         </aside>
 
         <main className="main-content">
           <header className="topbar">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={20} />
+            </button>
             <div className="search-input-wrap">
               <Search size={16} />
-              <input placeholder="Search links, tags, notes..." />
+              <input
+                placeholder="Search links, tags, notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
 
             <div className="top-actions">
@@ -1399,20 +1832,33 @@ export default function DashboardPage({ onBack }) {
               </div>
             ))}
           </div>
- 
 
-          {/* <div className="chip-row">
-            {['All', 'Websites', 'Articles', 'Videos', 'Documents', 'Tools', 'Others'].map((item, index) => (
-              <button type="button" className={`chip ${index === 0 ? 'active' : ''}`} key={item}>{item}</button>
+
+          <div className="chip-row">
+            {availableCategories.map((item) => (
+              <button
+                type="button"
+                className={`chip ${item === activeFilter ? 'active' : ''}`}
+                key={item}
+                onClick={() => setActiveFilter(item)}
+              >
+                {item}
+              </button>
             ))}
-          </div> */}
+          </div>
 
           <section className="panel">
             <div className="panel-header">
               <span aria-hidden="true"></span>
+              <div className="right">
+                <div className="view-toggle">
+                  <button onClick={() => setViewMode('grid')} className={viewMode === 'grid' ? 'active' : ''}><LayoutGrid size={16} /></button>
+                  <button onClick={() => setViewMode('list')} className={viewMode === 'list' ? 'active' : ''}><List size={16} /></button>
+                </div>
+              </div>
             </div>
 
-            <div className="list-view">
+            <div className={viewMode === 'list' ? 'list-view-linear' : 'list-view'}>
               {isLoadingLinks ? (
                 <div className="service-card empty-state" style={{ gridColumn: '1 / -1' }}>
                   Loading links from MongoDB...
@@ -1422,29 +1868,88 @@ export default function DashboardPage({ onBack }) {
                   {linksError}
                 </div>
               ) : filteredLinks.length === 0 ? (
-                <div className="service-card empty-state" style={{ gridColumn: '1 / -1' }}>
-                  <img src="/assets/empty/checklist.svg" alt="Empty favorites" />
-                  <span>
+                <div className="dashboard-empty-container">
+                  <div className="dashboard-empty-animation">
+                    <img
+                      src={
+                        activeNav === 'Favorites'
+                          ? '/assets/empty/no-favorites.svg'
+                          : activeNav === 'Saved'
+                            ? '/assets/empty/checklist.svg'
+                            : activeNav === 'Read Later'
+                              ? '/assets/empty/announcement.svg'
+                              : '/assets/empty/no-data.svg'
+                      }
+                      alt="Empty state"
+                      style={{ width: '180px', height: '140px', objectFit: 'contain' }}
+                    />
+                  </div>
+                  <h3 className="dashboard-empty-title">
                     {activeNav === 'Favorites'
-                      ? 'No favorites links found.'
-                      : activeNav === 'All Links' || activeNav === 'Dashboard'
-                        ? 'No links saved in MongoDB yet.'
-                        : `No ${activeNav.toLowerCase()} links found.`}
-                  </span>
+                      ? 'No favorite links saved yet'
+                      : activeNav === 'Read Later'
+                        ? 'No links marked for read later'
+                        : `No ${activeNav.toLowerCase()} links found`}
+                  </h3>
+                  <p className="dashboard-empty-subtitle">
+                    Keep your favorite websites, tools, and research documents organized in your Nexio workspace.
+                  </p>
+                  <button
+                    type="button"
+                    className="dashboard-empty-add-btn"
+                    onClick={() => {
+                      setEditingItem(null)
+                      setIsModalOpen(true)
+                    }}
+                  >
+                    <Plus size={16} />
+                    <span>Add New Link</span>
+                  </button>
                 </div>
               ) : visibleLinks.map((item) => (
                 <article key={item.id} className="service-card">
                   <div className="service-preview" style={{ '--dot-color': item.accent }}>
                     <img
-                      src={`https://api.microlink.io/?url=${encodeURIComponent(item.url)}&screenshot=true&meta=false&embed=screenshot.url`}
-                      alt={`${item.title} preview`}
-                      onError={(event) => {
-                        event.currentTarget.style.display = 'none'
-                        event.currentTarget.nextElementSibling.style.display = 'grid'
+                      src={`https://image.thum.io/get/width/600/crop/400/${item.url.startsWith('http') ? item.url : 'https://' + item.url}`}
+                      alt="preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const url = item.url.startsWith('http') ? item.url : 'https://' + item.url;
+                        if (!target.dataset.triedSecondary) {
+                          target.dataset.triedSecondary = 'true';
+                          target.src = `https://api.microlink.io?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
+                        } else if (!target.dataset.triedTertiary) {
+                          target.dataset.triedTertiary = 'true';
+                          target.src = `https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=600&h=380`;
+                        } else {
+                          target.style.display = 'none';
+                          if (target.nextElementSibling) target.nextElementSibling.style.display = 'flex';
+                        }
                       }}
                     />
-                    <div className="service-preview-fallback">
-                      <item.icon size={34} />
+                    <div className="link-banner-brand-container" style={{ display: 'none', zIndex: 1 }}>
+                      <img
+                        src={`https://logo.clearbit.com/${getHostname(item.url)}`}
+                        alt={`${item.title} logo`}
+                        className="link-banner-brand-logo"
+                        onError={(event) => {
+                          const target = event.currentTarget;
+                          const fallbackUrl = getFaviconUrl(item.url);
+                          if (!target.dataset.triedFallback && fallbackUrl) {
+                            target.dataset.triedFallback = 'true';
+                            target.src = fallbackUrl;
+                          } else {
+                            target.style.display = 'none';
+                            if (target.nextElementSibling) {
+                              target.nextElementSibling.style.display = 'flex';
+                            }
+                          }
+                        }}
+                      />
+                      <span className="link-banner-letter" style={{ display: 'none' }}>
+                        {item.title ? item.title.charAt(0).toUpperCase() : '🔗'}
+                      </span>
                     </div>
                     <span className="service-category">{item.category}</span>
                   </div>
@@ -1466,12 +1971,12 @@ export default function DashboardPage({ onBack }) {
                     <div className="service-card-actions">
                       <button
                         type="button"
-                        className={`save-action ${item.collection === 'Inbox' ? 'saved' : ''} ${savePulseId === item.id ? 'vibrate' : ''}`}
-                        aria-label={item.collection === 'Inbox' ? `Remove ${item.title} from Saved` : `Save ${item.title}`}
-                        title={item.collection === 'Inbox' ? 'Saved' : 'Save link'}
-                        onClick={() => handleToggleSaved(item.id)}
+                        className={`save-action ${item.favorite ? 'saved' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
+                        aria-label={item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`}
+                        title={item.favorite ? 'Favorited' : 'Add to Favorites'}
+                        onClick={() => handleToggleFavorite(item.id)}
                       >
-                        <Bookmark size={17} fill={item.collection === 'Inbox' ? 'currentColor' : 'none'} />
+                        <Bookmark size={17} fill={item.favorite ? 'currentColor' : 'none'} />
                       </button>
                     </div>
                   </div>
@@ -1498,43 +2003,148 @@ export default function DashboardPage({ onBack }) {
               ))}
             </div>
 
-            <div className="pagination" aria-label="Services pagination">
-              <span className="pagination-info">
-                Showing {filteredLinks.length === 0 ? 0 : (currentPage - 1) * cardsPerPage + 1}-{Math.min(currentPage * cardsPerPage, filteredLinks.length)} of {filteredLinks.length} services
-              </span>
-              <div className="pagination-actions">
-                <button
-                  type="button"
-                  className="page-btn"
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+            {filteredLinks.length > 0 && totalPages > 1 && (
+              <div className="pagination" aria-label="Services pagination">
+                <span className="pagination-info">
+                  Showing {(currentPage - 1) * cardsPerPage + 1}-{Math.min(currentPage * cardsPerPage, filteredLinks.length)} of {filteredLinks.length} services
+                </span>
+                <div className="pagination-actions">
                   <button
                     type="button"
-                    className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    aria-label={`Go to page ${page}`}
+                    className="page-btn"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    disabled={currentPage === 1}
                   >
-                    {page}
+                    Previous
                   </button>
-                ))}
-                <button
-                  type="button"
-                  className="page-btn"
-                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <button
+                      type="button"
+                      className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      aria-label={`Go to page ${page}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="page-btn"
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </section>
         </main>
       </div>
+
+      {itemToDelete && (
+        <div className="delete-modal-backdrop" onClick={() => !isDeleting && setItemToDelete(null)}>
+          <div className="delete-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">
+              <Trash2 size={24} color="#ef4444" />
+            </div>
+            <h3>Delete Link</h3>
+            <p>Are you sure you want to delete <strong>{itemToDelete.title}</strong>? This action cannot be undone.</p>
+            <div className="delete-modal-actions">
+              <button 
+                type="button" 
+                className="cancel-btn" 
+                onClick={() => setItemToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                className="delete-btn" 
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {itemToEdit && (
+        <div className="delete-modal-backdrop" onClick={() => !isEditing && setItemToEdit(null)}>
+          <div className="delete-modal-card edit-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-icon">
+              <Edit2 size={20} />
+            </div>
+            <h3>Edit Link</h3>
+            <form className="edit-modal-form" onSubmit={confirmEdit}>
+              <div className="form-group">
+                <label>Title</label>
+                <input 
+                  type="text" 
+                  value={editForm.title}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                  required
+                  placeholder="Link Title"
+                />
+              </div>
+              <div className="form-group">
+                <label>URL</label>
+                <input 
+                  type="url" 
+                  value={editForm.url}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, url: e.target.value }))}
+                  required
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Category</label>
+                <select 
+                  value={editForm.category}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  <option value="">Select a category</option>
+                  {Array.from(new Set([...PREDEFINED_CATEGORIES, ...availableCategories.filter(c => c !== 'All')])).map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  {editForm.category && !PREDEFINED_CATEGORIES.includes(editForm.category) && !availableCategories.includes(editForm.category) && editForm.category.includes(',') && (
+                    <option value={editForm.category}>{editForm.category}</option>
+                  )}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea 
+                  value={editForm.description}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Add a description..."
+                />
+              </div>
+              <div className="delete-modal-actions" style={{ marginTop: '24px' }}>
+                <button 
+                  type="button" 
+                  className="cancel-btn" 
+                  onClick={() => setItemToEdit(null)}
+                  disabled={isEditing}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="save-btn" 
+                  disabled={isEditing || !editForm.title.trim()}
+                >
+                  {isEditing ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   )
 }

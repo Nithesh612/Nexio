@@ -213,6 +213,13 @@ function downloadBlob(blob, fileName) {
 
 export default function Home() {
   const [view, setView] = useState('landing')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentView', view)
+    }
+  }, [view])
+
   const [links, setLinks] = useState([])
   const [dbLinks, setDbLinks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -275,14 +282,14 @@ export default function Home() {
               source: normalizeUrl(item.url).split('/')[0].replace(/^www\./, ''),
               type: item.category || 'UI/UX',
               category: item.category || 'UI/UX',
-              collection: 'Inbox',
+              collection: item.collection || 'All Links',
               description: smartDesc,
               tags: [item.category ? item.category.toLowerCase() : 'ui/ux'],
               color: '#def7ec',
               letter: item.title.charAt(0).toUpperCase(),
               saved: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
-              favorite: false,
-              readLater: true,
+              favorite: Boolean(item.favorite),
+              readLater: Boolean(item.readLater),
             }
           })
           setDbLinks(formatted)
@@ -394,8 +401,9 @@ export default function Home() {
         body: JSON.stringify({
           title: derivedTitle,
           url: cleanUrl,
-          category: selectedCategory,
+          category: selectedCategory.replace('Saved, ', '').replace(', Saved', '').replace('Saved', '') || 'General',
           description: smartDescription,
+          collection: selectedCategory.includes('Saved') ? 'Inbox' : 'All Links',
         }),
       })
 
@@ -407,7 +415,7 @@ export default function Home() {
           url: savedData.url,
           source: normalizeUrl(savedData.url).split('/')[0].replace(/^www\./, ''),
           type: savedData.category,
-          collection: 'Inbox',
+          collection: savedData.collection || (selectedCategory.includes('Saved') ? 'Inbox' : 'All Links'),
           description: savedData.description || `Saved link for ${savedData.title}`,
           tags: [savedData.category ? savedData.category.toLowerCase() : 'ui/ux'],
           color: '#def7ec',
@@ -525,37 +533,37 @@ export default function Home() {
 
   const selectedUrl = selected ? withProtocol(selected.url) : ''
 
-  if (view === 'landing') {
-    return (
-      <>
-        <Hero
-          setIsAdding={setIsAdding}
-          setView={setView}
-          onImport={handleImportFile}
-          onExport={handleExport}
-        />
-        <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} />
-        <LinksSection savedLinks={dbLinks} onAddLink={() => setIsAdding(true)} />
-        <LatestModels />
-        <AnimatedConnect01 />
-
-        <SaveLinkModal
-          isOpen={isAdding}
-          onClose={() => {
-            setIsAdding(false)
-            setSaveError('')
-          }}
-          onSave={handleSaveLinkModal}
-          saveError={saveError}
-          onClearError={() => setSaveError('')}
-          isSubmitting={isSubmitting}
-        />
-      </>
-    )
-  }
-
   return (
-    <DashboardPage onBack={() => setView('landing')} />
+    <>
+      {view === 'landing' ? (
+        <>
+          <Hero
+            setIsAdding={setIsAdding}
+            setView={setView}
+            onImport={handleImportFile}
+            onExport={handleExport}
+          />
+          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} />
+          <LinksSection savedLinks={dbLinks} onAddLink={() => setIsAdding(true)} />
+          <LatestModels />
+          <AnimatedConnect01 />
+        </>
+      ) : (
+        <DashboardPage onBack={() => setView('landing')} onAddLink={() => setIsAdding(true)} />
+      )}
+
+      <SaveLinkModal
+        isOpen={isAdding}
+        onClose={() => {
+          setIsAdding(false)
+          setSaveError('')
+        }}
+        onSave={handleSaveLinkModal}
+        saveError={saveError}
+        onClearError={() => setSaveError('')}
+        isSubmitting={isSubmitting}
+      />
+    </>
   )
 }
 

@@ -9,7 +9,6 @@ const categoryMap = {
   all: 'All Links',
   uiux: 'UI/UX',
   'ai-agents': 'AI Agents',
-  development: 'Development',
   resources: 'Resources',
   design: 'Design',
   inspiration: 'Inspiration',
@@ -28,8 +27,7 @@ function mapCategoryToId(category) {
   if (!category) return 'all';
   const lower = category.toLowerCase();
   if (lower === 'ui/ux' || lower === 'uiux') return 'uiux';
-  if (lower === 'ai agents' || lower === 'ai-agents') return 'ai-agents';
-  if (lower === 'development' || lower === 'dev') return 'development';
+  if (lower === 'ai agents' || lower === 'ai-agents' || lower === 'ai image & video' || lower === 'ai') return 'ai-agents';
   if (lower === 'resources') return 'resources';
   if (lower === 'inspiration' || lower === 'design') return 'inspiration';
   return 'all';
@@ -40,6 +38,8 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
   const [dbLinks, setDbLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imgErrors, setImgErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 3 columns x 3 rows = 9 items
 
   const categories = [
     {
@@ -52,15 +52,11 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     },
     {
       id: 'ai-agents', label: 'AI Agents',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-6a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/><path d="M9 17h6"/></svg>
-    },
-    {
-      id: 'development', label: 'Development',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
     },
     {
       id: 'resources', label: 'Resources',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/><path d="M6 14h6"/></svg>
     },
     {
       id: 'inspiration', label: 'Inspiration',
@@ -75,13 +71,14 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
 
   async function fetchLinks() {
     try {
+      setLoading(true);
       const res = await fetch(API_URL);
       if (res.ok) {
         const data = await res.json();
         setDbLinks(data);
       }
     } catch (err) {
-      console.error('Failed to fetch links:', err);
+      console.error('Failed to fetch DB links:', err);
     } finally {
       setLoading(false);
     }
@@ -94,11 +91,15 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
       desc: link.description || '',
       url: link.url,
       category: link.category || 'General',
+      collection: link.collection || 'All Links',
       fromDb: true,
     }));
 
     if (catId === 'all') return fromDb;
-    return fromDb.filter((item) => mapCategoryToId(item.category) === catId);
+    return fromDb.filter((item) => {
+      const catList = (item.category || '').toLowerCase().split(',').map(s => s.trim());
+      return catList.some(c => mapCategoryToId(c) === catId) || mapCategoryToId(item.category) === catId;
+    });
   }
 
   const handleCategoryClick = (e, id) => {
@@ -106,7 +107,9 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     setActiveCategory(id);
   };
 
-  const currentItems = getItemsForCategory(activeCategory);
+  const allCategoryItems = getItemsForCategory(activeCategory);
+  // Show only first 9 items (3 rows x 3 columns)
+  const currentItems = allCategoryItems.slice(0, 9);
 
   // Get counts per category
   const getCategoryCount = (catId) => {
@@ -168,7 +171,9 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
                   <div className="feature-text">
                     <div className="feature-title-row">
                       <h3>{item.title}</h3>
-                      <span className="saved-badge">SAVED</span>
+                      {(item.collection === 'Inbox' || item.collection === 'Saved') && (
+                        <span className="saved-badge">SAVED</span>
+                      )}
                     </div>
                     <p>{item.desc}</p>
                   </div>
@@ -179,10 +184,20 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
         ) : (
           <div className="empty-state">
             <div className="empty-illustration">
-              <LottieAnimation
-                animationData={emptyAnimation}
-                width={190}
-                height={190}
+              <img
+                src={
+                  activeCategory === 'inspiration'
+                    ? '/assets/empty/no-results.svg'
+                    : activeCategory === 'resources'
+                      ? '/assets/empty/checklist.svg'
+                      : activeCategory === 'uiux'
+                        ? '/assets/empty/no-data.svg'
+                        : activeCategory === 'ai-agents'
+                          ? '/assets/empty/online-business.svg'
+                          : '/assets/empty/no-data.svg'
+                }
+                alt="No links"
+                className="empty-state-svg"
               />
             </div>
             <h3 className="empty-title">No links saved in {categoryMap[activeCategory] || 'this category'}</h3>

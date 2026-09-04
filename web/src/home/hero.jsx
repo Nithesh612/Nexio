@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
-
-const NAV_LINKS = ['Home', 'Features', 'Pricing', 'Contact']
-
+const NAV_LINKS = ['Home', 'Dashboard', 'Pricing', 'Contact']
 
 
 export default function Hero({ setIsAdding, setView, onImport, onExport }) {
@@ -18,39 +16,9 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
     const video = videoRef.current
     if (!video) return undefined
 
-    const loadVideo = () => {
-      video.src = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_064556_051587f1-74a1-4336-8c05-4dde3594ed05.mp4'
-      video.load()
-      video.play().catch(() => setVideoState('error'))
-    }
-
-    const idleId = window.requestIdleCallback?.(loadVideo, { timeout: 1800 })
-    const timeoutId = idleId === undefined ? window.setTimeout(loadVideo, 900) : undefined
-
-    return () => {
-      if (idleId !== undefined) window.cancelIdleCallback(idleId)
-      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
-    }
-  }, [])
-
-  /* ── Entrance motion ── */
-  useEffect(() => {
-    document.documentElement.classList.add('motion-pending')
-    motionRef.current = setTimeout(
-      () => document.documentElement.classList.remove('motion-pending'),
-      3500,
-    )
-    const card = cardRef.current
-    if (!card) return
-    const done = () => {
-      document.documentElement.classList.remove('motion-pending')
-      clearTimeout(motionRef.current)
-    }
-    card.addEventListener('animationend', done, { once: true })
-    return () => {
-      card.removeEventListener('animationend', done)
-      clearTimeout(motionRef.current)
-    }
+    video.src = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_064556_051587f1-74a1-4336-8c05-4dde3594ed05.mp4'
+    video.load()
+    video.play().catch(() => setVideoState('error'))
   }, [])
 
   /* ── Close mobile menu on outside click ── */
@@ -125,7 +93,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
                   onClick={(e) => {
                     e.preventDefault()
                     setMenuOpen(false)
-                    if (label === 'Services') setView('app')
+                    if (label === 'Dashboard') setView('app')
                   }}
                 >
                   {label}

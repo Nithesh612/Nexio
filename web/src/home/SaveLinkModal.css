@@ -151,20 +151,21 @@
   width: 100%;
   height: 46px;
   padding: 0 14px 0 40px;
-  background: #f8fafc;
-  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 12px;
   font-size: 14px;
   color: #0f172a;
   outline: none;
   transition: all 0.2s ease;
   font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .modern-modal-input:focus {
   background: #ffffff;
-  border-color: #0f172a;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .modern-modal-input::placeholder {
@@ -259,18 +260,81 @@
   white-space: nowrap;
 }
 
-/* Category Section Header */
 .category-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
-.category-section-header label {
+.category-label-left {
+  display: flex;
+  align-items: center;
   font-size: 13px;
   font-weight: 600;
   color: #334155;
+}
+
+.category-section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.multi-select-checkbox-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.multi-select-checkbox-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.multi-select-checkbox-toggle:hover .checkbox-custom-box {
+  border-color: #0f172a;
+}
+
+.multi-select-checkbox-toggle input[type="checkbox"]:checked + .checkbox-custom-box {
+  background: #0f172a;
+  border-color: #0f172a;
+}
+
+.multi-select-checkbox-toggle input[type="checkbox"]:checked + .checkbox-custom-box::after {
+  content: "✓";
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.selected-category-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 260px;
 }
 
 .selected-category-badge {
@@ -279,8 +343,22 @@
   color: #4338ca;
   background: #eef2ff;
   border: 1px solid #c7d2fe;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 999px;
+  white-space: nowrap;
+}
+
+.selected-category-badge-empty {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.chip-check-mark {
+  font-size: 11px;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-left: 2px;
 }
 
 /* Category Chips Grid */

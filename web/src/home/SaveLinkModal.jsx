@@ -13,24 +13,24 @@ import {
   Wrench,
   Folder,
   Layers,
-  Ellipsis
+  Ellipsis,
+  Bookmark
 } from 'lucide-react';
 import './SaveLinkModal.css';
 
 const PRIMARY_CATEGORIES = [
+  { id: 'Saved', label: 'Saved', icon: Bookmark },
   { id: 'UI/UX', label: 'UI/UX', icon: Palette },
   { id: 'AI Image & Video', label: 'AI Image & Video', icon: Video },
   { id: 'AI', label: 'AI', icon: Sparkles },
-  { id: 'Development', label: 'Development', icon: Code },
+  { id: 'Inspiration', label: 'Inspiration', icon: Layers },
   { id: 'Other', label: 'Other', icon: Folder },
 ];
 
 const MORE_CATEGORIES = [
-  { id: 'Inspiration', label: 'Inspiration', icon: Layers },
   { id: 'Wallpaper', label: 'Wallpaper', icon: ImageIcon },
   { id: 'Stock', label: 'Stock', icon: Camera },
   { id: 'Host', label: 'Host', icon: Globe },
-  { id: 'Design', label: 'Design', icon: PenTool },
   { id: 'Article', label: 'Article', icon: FileText },
   { id: 'Research', label: 'Research', icon: FlaskConical },
   { id: 'Tools', label: 'Tools', icon: Wrench },
@@ -59,11 +59,40 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [customTitle, setCustomTitle] = useState(false);
-  const [category, setCategory] = useState('UI/UX');
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const isExtraCategorySelected = MORE_CATEGORIES.some(c => c.id === category);
-  const selectedMoreCat = MORE_CATEGORIES.find(c => c.id === category);
+
+  // Check how many extra categories are selected from "More"
+  const selectedMoreCategories = MORE_CATEGORIES.filter(c => selectedCategories.includes(c.id));
+  const isExtraCategorySelected = selectedMoreCategories.length > 0;
+
+  // Toggle category on/off or single select based on isMultiSelectMode
+  const handleCategoryClick = (catId) => {
+    if (isMultiSelectMode) {
+      setSelectedCategories(prev => {
+        if (prev.includes(catId)) {
+          if (prev.length === 1) return prev; // keep at least 1 selected
+          return prev.filter(id => id !== catId);
+        } else {
+          return [...prev, catId];
+        }
+      });
+    } else {
+      // Single select mode
+      setSelectedCategories([catId]);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  // When multi-select mode is turned off, retain only the first selected category
+  const toggleMultiSelectMode = (checked) => {
+    setIsMultiSelectMode(checked);
+    if (!checked && selectedCategories.length > 1) {
+      setSelectedCategories([selectedCategories[0]]);
+    }
+  };
 
   // Reset form when modal opens
   useEffect(() => {
@@ -71,7 +100,8 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
       setUrl('');
       setTitle('');
       setCustomTitle(false);
-      setCategory('UI/UX');
+      setSelectedCategories([]);
+      setIsMultiSelectMode(false);
       setImgError(false);
       setIsDropdownOpen(false);
     }
@@ -111,13 +141,15 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url.trim()) return;
-    if (!category || !category.trim()) {
+    if (!selectedCategories.length) {
       return;
     }
+    const categoryString = selectedCategories.join(', ');
     onSave({
       url: url.trim(),
       title: title.trim() || formatTitle(url),
-      category: category.trim(),
+      category: categoryString,
+      categories: selectedCategories,
     });
   };
 
@@ -174,7 +206,8 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                 id="modal-url"
                 required
                 type="text"
-                autoFocus
+                autoComplete="off"
+                spellCheck="false"
                 placeholder="https://example.com/article"
                 value={url}
                 onChange={(e) => {
@@ -224,30 +257,54 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
           {/* Category Chips Selector */}
           <div className="modal-input-group">
             <div className="category-section-header">
-              <label>
-                Select Category <span className="required-star">*</span>
+              <label className="category-label-left">
+                <span>Select Category</span>
               </label>
-              <span className="selected-category-badge">{category || 'Select a category'}</span>
+
+              <div className="category-section-header-right">
+                <div className="selected-category-badges-row">
+                  {selectedCategories.length > 0 ? (
+                    selectedCategories.map(catName => (
+                      <span key={catName} className="selected-category-badge">
+                        {catName}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="selected-category-badge-empty">None</span>
+                  )}
+                </div>
+
+                <label className="multi-select-checkbox-toggle" title="Enable multiple category selection">
+                  <input
+                    type="checkbox"
+                    checked={isMultiSelectMode}
+                    onChange={(e) => toggleMultiSelectMode(e.target.checked)}
+                  />
+                  <span className="checkbox-custom-box"></span>
+                </label>
+              </div>
             </div>
+
             <div className="category-chips-grid">
               {PRIMARY_CATEGORIES.map((cat) => {
                 const IconComponent = cat.icon;
-                const isSelected = category === cat.id;
+                const isSelected = selectedCategories.includes(cat.id);
                 return (
                   <button
                     key={cat.id}
                     type="button"
                     className={`category-chip ${isSelected ? 'selected' : ''}`}
-                    onClick={() => setCategory(cat.id)}
+                    onClick={() => handleCategoryClick(cat.id)}
                   >
                     <span className="chip-icon">
                       <IconComponent size={15} />
                     </span>
                     <span className="chip-label">{cat.label}</span>
+                    {isSelected && isMultiSelectMode && <span className="chip-check-mark">✓</span>}
                   </button>
                 );
               })}
-              
+
               {/* More Dropdown */}
               <div className="more-category-wrapper">
                 <button
@@ -256,40 +313,39 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
                   <span className="chip-icon">
-                    {isExtraCategorySelected && selectedMoreCat ? (
-                      (() => {
-                        const SelIcon = selectedMoreCat.icon;
-                        return <SelIcon size={15} />;
-                      })()
-                    ) : (
-                      <Ellipsis size={15} />
-                    )}
+                    <Ellipsis size={15} />
                   </span>
-                  <span className="chip-label">{isExtraCategorySelected ? category : 'More'}</span>
+                  <span className="chip-label">
+                    {selectedMoreCategories.length > 0
+                      ? isMultiSelectMode
+                        ? `${selectedMoreCategories.length} More`
+                        : selectedMoreCategories[0].label
+                      : 'More'}
+                  </span>
                   <svg className={`more-arrow ${isDropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </button>
-                
+
                 <div className={`more-dropdown-menu ${isDropdownOpen ? 'show-dropdown' : ''}`}>
-                  <div className="dropdown-menu-header">More Categories</div>
+                  <div className="dropdown-menu-header">
+                    {isMultiSelectMode ? 'More Categories (Multiple)' : 'More Categories'}
+                  </div>
                   {MORE_CATEGORIES.map(extraCat => {
                     const ExtraIcon = extraCat.icon;
+                    const isExtraSelected = selectedCategories.includes(extraCat.id);
                     return (
                       <button
                         key={extraCat.id}
                         type="button"
-                        className={`dropdown-item ${category === extraCat.id ? 'active' : ''}`}
-                        onClick={() => {
-                          setCategory(extraCat.id);
-                          setIsDropdownOpen(false);
-                        }}
+                        className={`dropdown-item ${isExtraSelected ? 'active' : ''}`}
+                        onClick={() => handleCategoryClick(extraCat.id)}
                       >
                         <span className="dropdown-item-icon">
                           <ExtraIcon size={15} />
                         </span>
                         <span className="dropdown-item-label">{extraCat.label}</span>
-                        {category === extraCat.id && (
+                        {isExtraSelected && (
                           <span className="dropdown-item-check">✓</span>
                         )}
                       </button>
@@ -319,7 +375,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !url.trim()}
+              disabled={isSubmitting || !url.trim() || selectedCategories.length === 0}
               className="modal-submit-btn"
             >
               {isSubmitting ? (

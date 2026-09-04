@@ -145,43 +145,41 @@
   background: #f0efed;
   overflow: hidden;
   flex-shrink: 0;
-}
-
-.link-screenshot {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  display: block;
-}
-
-/* Gradient fallback banner */
-.link-banner-fallback {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.link-banner-favicon {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+.link-card-screenshot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.35s ease;
+  display: block;
+}
+
+.link-card:hover .link-card-screenshot {
+  transform: scale(1.06);
+}
+
+.link-banner-brand-logo {
+  width: 38px;
+  height: 38px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  border-radius: 8px;
 }
 
 .link-banner-letter {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.25);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #0f172a;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 800;
 }
 

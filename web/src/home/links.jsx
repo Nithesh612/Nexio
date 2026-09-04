@@ -14,23 +14,23 @@ import {
   PenTool,
   FileText,
   FlaskConical,
-  Wrench
+  Wrench,
+  Bookmark
 } from 'lucide-react';
 import './links.css';
 
 // Category tab metadata
 const tabMeta = {
   all:               { title: 'All Links',          description: 'Browse all your saved links across every category.' },
+  saved:             { title: 'Saved',              description: 'Links you have saved for later.' },
   'ui/ux':           { title: 'UI/UX',              description: 'Design tools, UI kits, and resources for designers.' },
   'ai-image-video':  { title: 'AI Image & Video',   description: 'Cutting-edge AI image generators and video creation platforms.' },
   ai:                { title: 'AI',                 description: 'Powerful AI assistants, LLMs, and intelligent workflow tools.' },
-  development:       { title: 'Development',        description: 'Developer tools, frameworks, and technical libraries.' },
   other:             { title: 'Other',              description: 'Miscellaneous links and general bookmarks.' },
   inspiration:       { title: 'Inspiration',        description: 'Visual inspiration and creative references for your next project.' },
   wallpaper:         { title: 'Wallpaper',          description: 'High resolution desktop and mobile wallpapers.' },
   stock:             { title: 'Stock',              description: 'Curated stock photos, vectors, 3D assets, and media.' },
   host:              { title: 'Host',               description: 'Hosting services, cloud providers, and deployment platforms.' },
-  design:            { title: 'Design',             description: 'Design systems, typography, icons, and graphic resources.' },
   article:           { title: 'Article',            description: 'Interesting articles, tutorials, and long-form essays.' },
   research:          { title: 'Research',           description: 'Research papers, benchmarks, datasets, and case studies.' },
   tools:             { title: 'Tools',              description: 'Productivity utilities, web apps, and everyday tools.' },
@@ -41,13 +41,11 @@ const categoryColors = {
   'UI/UX':             ['#667eea', '#764ba2'],
   'AI Image & Video':  ['#f093fb', '#f5576c'],
   'AI':                ['#a855f7', '#6366f1'],
-  'Development':       ['#4facfe', '#00f2fe'],
   'Other':             ['#64748b', '#475569'],
   'Inspiration':       ['#fa709a', '#fee140'],
   'Wallpaper':         ['#38ef7d', '#11998e'],
   'Stock':             ['#ff9a9e', '#fecfef'],
   'Host':              ['#2af598', '#009efd'],
-  'Design':            ['#fbc2eb', '#a6c1ee'],
   'Article':           ['#f6d365', '#fda085'],
   'Research':          ['#96fbc4', '#f9f586'],
   'Tools':             ['#c471ed', '#f64f59'],
@@ -58,39 +56,70 @@ function LinkCard({ item }) {
   const [screenshotError, setScreenshotError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
 
-  const screenshotUrl = `https://api.microlink.io/?url=${encodeURIComponent(item.url)}&screenshot=true&meta=false&embed=screenshot.url`;
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${(() => { try { return new URL(item.url).hostname; } catch { return ''; } })()}&sz=64`;
-  const hostname = (() => { try { return new URL(item.url).hostname.replace('www.', ''); } catch { return ''; } })();
+  const cleanUrl = (() => {
+    try {
+      const u = item.url.startsWith('http') ? item.url : `https://${item.url}`;
+      return new URL(u).href;
+    } catch {
+      return item.url;
+    }
+  })();
+
+  const hostname = (() => {
+    try {
+      return new URL(cleanUrl).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  })();
+
+  // Live website screenshot banner (Thum.io live website capture with Microlink & mshots fallbacks)
+  const primaryScreenshot = `https://image.thum.io/get/width/600/crop/400/${cleanUrl}`;
+  const secondaryScreenshot = `https://api.microlink.io?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`;
+  const tertiaryScreenshot = `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=600&h=380`;
+  const [currentScreenshot, setCurrentScreenshot] = useState(primaryScreenshot);
+
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
   const colors = categoryColors[item.category] || categoryColors['default'];
 
   return (
-    <a href={item.url} target="_blank" rel="noopener noreferrer" className="link-card">
-      {/* Screenshot / Preview Banner */}
-      <div className="link-card-banner">
+    <a href={cleanUrl} target="_blank" rel="noopener noreferrer" className="link-card">
+      {/* Live Website Screenshot Banner */}
+      <div
+        className="link-card-banner"
+        style={{
+          background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
+        }}
+      >
         {!screenshotError ? (
           <img
-            src={screenshotUrl}
-            alt={item.title}
-            className="link-screenshot"
-            onError={() => setScreenshotError(true)}
+            src={currentScreenshot}
+            alt={`${item.title} live preview`}
+            className="link-card-screenshot"
+            loading="lazy"
+            onError={() => {
+              if (currentScreenshot === primaryScreenshot) {
+                setCurrentScreenshot(secondaryScreenshot);
+              } else if (currentScreenshot === secondaryScreenshot) {
+                setCurrentScreenshot(tertiaryScreenshot);
+              } else {
+                setScreenshotError(true);
+              }
+            }}
           />
         ) : (
-          <div
-            className="link-banner-fallback"
-            style={{ background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }}
-          >
-            {!faviconError ? (
-              <img
-                src={faviconUrl}
-                alt={item.title}
-                className="link-banner-favicon"
-                onError={() => setFaviconError(true)}
-              />
-            ) : (
-              <span className="link-banner-letter">{item.title.charAt(0)}</span>
-            )}
+          <div className="link-banner-brand-container">
+            <img
+              src={`https://logo.clearbit.com/${hostname}`}
+              alt={item.title}
+              className="link-banner-brand-logo"
+              onError={(e) => {
+                e.currentTarget.src = faviconUrl;
+              }}
+            />
           </div>
         )}
+
         {item.category && (
           <span className="link-category-pill">{item.category}</span>
         )}
@@ -123,16 +152,15 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
 
   const tabs = [
     { id: 'all',              label: 'All Links',         icon: Layers,       categoryVal: 'all' },
+    { id: 'saved',            label: 'Saved',             icon: Bookmark,     categoryVal: 'saved' },
     { id: 'ui/ux',            label: 'UI/UX',             icon: Palette,      categoryVal: 'UI/UX' },
     { id: 'ai-image-video',   label: 'AI Image & Video',  icon: Video,        categoryVal: 'AI Image & Video' },
     { id: 'ai',               label: 'AI',                icon: Sparkles,     categoryVal: 'AI' },
-    { id: 'development',      label: 'Development',       icon: Code,         categoryVal: 'Development' },
     { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
     { id: 'inspiration',      label: 'Inspiration',       icon: Layers,       categoryVal: 'Inspiration' },
     { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
     { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
     { id: 'host',             label: 'Host',              icon: Globe,        categoryVal: 'Host' },
-    { id: 'design',           label: 'Design',            icon: PenTool,      categoryVal: 'Design' },
     { id: 'article',          label: 'Article',           icon: FileText,     categoryVal: 'Article' },
     { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
     { id: 'tools',            label: 'Tools',             icon: Wrench,       categoryVal: 'Tools' },
@@ -147,20 +175,26 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
     desc: link.description || '',
     url: link.url,
     category: link.type || link.category || 'Other',
+    collection: link.collection || 'All Links',
   }));
 
   // Selected tab configuration
   const currentTabConfig = tabs.find(t => t.id === activeTab);
 
-  // Filter by active tab
+  // Filter by active tab (supports single category or multiple comma-separated categories)
   const filteredItems = activeTab === 'all'
     ? mappedLinks
-    : mappedLinks.filter((link) => {
-        if (!currentTabConfig) return true;
-        const targetCategory = currentTabConfig.categoryVal.toLowerCase();
-        const linkCat = (link.category || '').toLowerCase().trim();
-        return linkCat === targetCategory;
-      });
+    : activeTab === 'saved'
+      ? mappedLinks.filter(link => link.collection === 'Inbox')
+      : mappedLinks.filter((link) => {
+          if (!currentTabConfig) return true;
+          const targetCategory = currentTabConfig.categoryVal.toLowerCase();
+          const linkCat = (link.category || '').toLowerCase().trim();
+          
+          // Match exact or inside comma-separated list
+          const categoriesList = linkCat.split(',').map(c => c.trim());
+          return categoriesList.includes(targetCategory) || linkCat === targetCategory;
+        });
 
   // Pagination for 3 rows x 4 columns (12 items per page)
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
@@ -207,10 +241,20 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
             ) : (
               <div className="empty-links-state">
                 <div className="empty-links-lottie">
-                  <LottieAnimation
-                    animationData={emptyAnimation}
-                    width={200}
-                    height={200}
+                  <img
+                    src={
+                      activeTab === 'inspiration'
+                        ? '/assets/empty/no-results.svg'
+                        : activeTab === 'tools' || activeTab === 'resources'
+                          ? '/assets/empty/checklist.svg'
+                          : activeTab === 'research' || activeTab === 'article'
+                            ? '/assets/empty/announcement.svg'
+                            : activeTab.includes('ai')
+                              ? '/assets/empty/online-business.svg'
+                              : '/assets/empty/no-data.svg'
+                    }
+                    alt="No links"
+                    style={{ width: '180px', height: '140px', objectFit: 'contain' }}
                   />
                 </div>
                 <h3 className="empty-links-title">No links saved in {meta.title}</h3>
