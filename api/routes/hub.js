@@ -327,6 +327,7 @@ router.post("/", async (req, res) => {
 
         const normalizedUrl = ensureProtocol(url.trim());
         const cleanRaw = url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+        const escapedRaw = cleanRaw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const smartMeta = analyzeUrlMetadata(normalizedUrl);
         const resolvedCategory = (category && category.trim() !== "General" && category.trim() !== "Imported")
             ? category.trim()
