@@ -366,11 +366,7 @@ router.post("/", async (req, res) => {
 
         const savedLink = await newLink.save();
 
-        res.status(201).json({
-            ...savedLink.toJSON(),
-            docSaved: false,
-            docError: null,
-        });
+        res.status(201).json(savedLink.toJSON());
     } catch (error) {
         console.error("POST /hub error:", error);
         res.status(500).json({ error: "Failed to create link" });

@@ -422,11 +422,6 @@ export default function Home() {
         setDbLinks((current) => [newLink, ...current])
         setSelected(newLink)
 
-        if (savedData.docSaved === false) {
-          setSaveError(`Saved in app, but Google Doc failed: ${savedData.docError || 'Unknown error'}`)
-          return
-        }
-
         setIsAdding(false)
         setRefreshTrigger((prev) => prev + 1)
         setFilter('All links')
