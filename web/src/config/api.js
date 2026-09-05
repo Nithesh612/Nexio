@@ -22,7 +22,7 @@ const getApiBaseUrl = () => {
       window.location.hostname === '127.0.0.1' ||
       window.location.hostname.startsWith('192.168.');
     if (!isLocal) {
-      return 'https://nexio-backend.onrender.com';
+      return 'https://nexio-api-g466.onrender.com';
     }
   }
 
