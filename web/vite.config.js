@@ -9,14 +9,6 @@ export default defineConfig({
     open: true
   },
   build: {
-    chunkSizeWarningLimit: 1600,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          animations: ['lottie-react', 'gsap', 'framer-motion']
-        }
-      }
-    }
+    chunkSizeWarningLimit: 2000
   }
 })
