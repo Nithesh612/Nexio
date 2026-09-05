@@ -18,14 +18,38 @@ app.use((req, res, next) => {
     next();
 });
 
-// CORS Configuration - Allow all origins with credentials & handle preflights
-app.use(cors({
-    origin: true,
+// Allowed Origins
+const allowedOrigins = [
+    "https://nexio-hub.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://127.0.0.1:5173"
+];
+
+// CORS Configuration - Explicitly allows production domain, preview domains, and local dev
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (
+            allowedOrigins.includes(origin) ||
+            origin.endsWith(".vercel.app") ||
+            origin.includes("localhost") ||
+            origin.includes("127.0.0.1")
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
-}));
-app.options("*", cors());
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Body Parsers with safe payload limits
 app.use(express.json({ limit: "10mb" }));
