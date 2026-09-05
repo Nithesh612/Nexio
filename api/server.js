@@ -18,13 +18,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// CORS Configuration
+// CORS Configuration - Allow all origins with credentials & handle preflights
 app.use(cors({
     origin: true,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
 }));
+app.options("*", cors());
 
 // Body Parsers with safe payload limits
 app.use(express.json({ limit: "10mb" }));
