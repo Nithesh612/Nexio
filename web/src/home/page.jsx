@@ -374,6 +374,8 @@ export default function Home() {
     }
     const smartDescription = linkData?.description || categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
 
+    const isSaved = String(selectedCategory || '').toLowerCase().includes('saved')
+
     try {
       // Save directly into MongoDB
       const res = await fetch(API_URL, {
@@ -382,9 +384,10 @@ export default function Home() {
         body: JSON.stringify({
           title: derivedTitle,
           url: cleanUrl,
-          category: selectedCategory.replace('Saved, ', '').replace(', Saved', '').replace('Saved', '') || 'General',
+          category: selectedCategory || 'Saved',
           description: smartDescription,
-          collection: selectedCategory.includes('Saved') ? 'Inbox' : 'All Links',
+          collection: isSaved ? 'Inbox' : 'All Links',
+          readLater: isSaved,
         }),
       })
 
@@ -395,15 +398,16 @@ export default function Home() {
           title: savedData.title,
           url: savedData.url,
           source: normalizeUrl(savedData.url).split('/')[0].replace(/^www\./, ''),
-          type: savedData.category,
-          collection: savedData.collection || (selectedCategory.includes('Saved') ? 'Inbox' : 'All Links'),
+          type: savedData.category || selectedCategory || 'Saved',
+          category: savedData.category || selectedCategory || 'Saved',
+          collection: savedData.collection || (isSaved ? 'Inbox' : 'All Links'),
           description: savedData.description || `Saved link for ${savedData.title}`,
-          tags: [savedData.category ? savedData.category.toLowerCase() : 'ui/ux'],
+          tags: [(savedData.category || selectedCategory || 'saved').toLowerCase()],
           color: '#def7ec',
           letter: savedData.title.charAt(0).toUpperCase(),
           saved: 'Just now',
-          favorite: false,
-          readLater: true,
+          favorite: Boolean(savedData.favorite),
+          readLater: Boolean(savedData.readLater) || isSaved,
         }
 
         setLinks((current) => [newLink, ...current])

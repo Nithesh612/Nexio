@@ -463,7 +463,12 @@ export default function DashboardPage({ onBack, onAddLink }) {
     if (activeNav === 'Favorites') {
       base = base.filter((item) => item.favorite)
     } else if (activeNav === 'Saved') {
-      base = base.filter((item) => item.category && item.category.toLowerCase().includes('saved'))
+      base = base.filter((item) => 
+        (item.category && item.category.toLowerCase().includes('saved')) ||
+        item.collection === 'Inbox' ||
+        item.readLater === true ||
+        (item.meta && item.meta.some(m => m && m.toLowerCase().includes('saved')))
+      )
     }
 
     if (activeFilter !== 'All') {
@@ -499,7 +504,12 @@ export default function DashboardPage({ onBack, onAddLink }) {
   const isDashboardView = activeNav === 'Dashboard'
 
   const liveStats = useMemo(() => {
-    const savedCount = liveLinks.filter((item) => item.category && item.category.toLowerCase().includes('saved')).length
+    const savedCount = liveLinks.filter((item) => 
+      (item.category && item.category.toLowerCase().includes('saved')) ||
+      item.collection === 'Inbox' ||
+      item.readLater === true ||
+      (item.meta && item.meta.some(m => m && m.toLowerCase().includes('saved')))
+    ).length
     const favoriteCount = liveLinks.filter((item) => item.favorite).length
     const totalCount = liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
@@ -1918,7 +1928,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                 <article key={item.id} className="service-card">
                   <div className="service-preview" style={{ '--dot-color': item.accent }}>
                     <img
-                      src={`https://image.thum.io/get/width/600/crop/400/${item.url.startsWith('http') ? item.url : 'https://' + item.url}`}
+                      src={`https://api.microlink.io?url=${encodeURIComponent(item.url.startsWith('http') ? item.url : 'https://' + item.url)}&screenshot=true&meta=false&embed=screenshot.url`}
                       alt="preview"
                       style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
                       onError={(e) => {
@@ -1926,9 +1936,6 @@ export default function DashboardPage({ onBack, onAddLink }) {
                         const url = item.url.startsWith('http') ? item.url : 'https://' + item.url;
                         if (!target.dataset.triedSecondary) {
                           target.dataset.triedSecondary = 'true';
-                          target.src = `https://api.microlink.io?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
-                        } else if (!target.dataset.triedTertiary) {
-                          target.dataset.triedTertiary = 'true';
                           target.src = `https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=600&h=380`;
                         } else {
                           target.style.display = 'none';

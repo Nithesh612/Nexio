@@ -107,7 +107,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
       setCustomTitle(false);
       setCustomDescription(false);
       setDetectedTag(null);
-      setSelectedCategories([]);
+      setSelectedCategories(['Saved']);
       setIsMultiSelectMode(false);
       setImgError(false);
       setIsDropdownOpen(false);
@@ -144,9 +144,6 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
       if (!customDescription) {
         setDescription(analysis.description || '');
       }
-      if (selectedCategories.length === 0 && analysis.category) {
-        setSelectedCategories([analysis.category]);
-      }
     } else {
       setDetectedTag(null);
       if (!customTitle) {
@@ -171,15 +168,13 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url.trim()) return;
-    if (!selectedCategories.length) {
-      return;
-    }
-    const categoryString = selectedCategories.join(', ');
+    const cats = selectedCategories.length ? selectedCategories : ['Saved'];
+    const categoryString = cats.join(', ');
     onSave({
       url: url.trim(),
       title: title.trim() || formatTitle(url),
       category: categoryString,
-      categories: selectedCategories,
+      categories: cats,
       description: description.trim(),
     });
   };
