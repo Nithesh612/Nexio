@@ -7,5 +7,16 @@ export default defineConfig({
   envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   server: {
     open: true
+  },
+  build: {
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          animations: ['lottie-react', 'gsap', 'framer-motion']
+        }
+      }
+    }
   }
 })
