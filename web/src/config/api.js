@@ -32,6 +32,10 @@ const getApiBaseUrl = () => {
 export const API_BASE_URL = getApiBaseUrl();
 export const API_URL = `${API_BASE_URL}/hub`;
 
+if (typeof window !== 'undefined') {
+  console.log('🔗 Nexio Backend Connected to:', API_URL);
+}
+
 export default {
   BASE_URL: API_BASE_URL,
   API_URL,

@@ -431,7 +431,7 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Failed to save to database:', err)
-      setSaveError('Could not reach the backend. Please ensure the server is running.')
+      setSaveError(`Could not reach backend (${API_URL}). Please verify your connection.`)
     } finally {
       setIsSubmitting(false)
     }
