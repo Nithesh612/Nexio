@@ -668,6 +668,41 @@ export default function DashboardPage({ onBack, onAddLink }) {
     }
   }
 
+  // Keyboard navigation for Delete modal (Enter / Delete key to confirm, Escape to cancel)
+  useEffect(() => {
+    if (!itemToDelete) return
+
+    const handleKeyDown = (e) => {
+      if (isDeleting) return
+      if (e.key === 'Enter' || e.key === 'Delete') {
+        e.preventDefault()
+        confirmDelete()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setItemToDelete(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [itemToDelete, isDeleting])
+
+  // Keyboard navigation for Edit modal (Escape to cancel)
+  useEffect(() => {
+    if (!itemToEdit) return
+
+    const handleKeyDown = (e) => {
+      if (isEditing) return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setItemToEdit(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [itemToEdit, isEditing])
+
   const handleExport = (format) => {
     const date = new Date().toISOString().slice(0, 10)
     const rows = filteredLinks.map((item) => ({
@@ -2080,6 +2115,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                 className="delete-btn" 
                 onClick={confirmDelete}
                 disabled={isDeleting}
+                autoFocus
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
