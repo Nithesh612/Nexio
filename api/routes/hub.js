@@ -327,9 +327,15 @@ router.post("/", async (req, res) => {
 
         const normalizedUrl = ensureProtocol(url.trim());
         const cleanRaw = url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
-        const escapedRaw = cleanRaw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const smartMeta = analyzeUrlMetadata(normalizedUrl);
+        const resolvedCategory = (category && category.trim() !== "General" && category.trim() !== "Imported")
+            ? category.trim()
+            : (smartMeta.category || "General");
+        const resolvedDescription = (description && description.trim())
+            ? description.trim()
+            : (smartMeta.description || "");
 
-        // Check if link already exists in database
+        // Check if link already exists in database -> update it seamlessly!
         const existingLink = await Link.findOne({
             $or: [
                 { url: normalizedUrl },
@@ -339,20 +345,15 @@ router.post("/", async (req, res) => {
         });
 
         if (existingLink) {
-            return res.status(409).json({
-                error: "This link is already saved in your hub! Duplicate links cannot be added.",
-                isDuplicate: true,
-                existingLink
-            });
+            existingLink.title = title.trim() || existingLink.title;
+            existingLink.category = resolvedCategory;
+            if (resolvedDescription) existingLink.description = resolvedDescription;
+            if (collection) existingLink.collection = collection.trim();
+            if (favorite !== undefined) existingLink.favorite = Boolean(favorite);
+            if (readLater !== undefined) existingLink.readLater = Boolean(readLater);
+            const updated = await existingLink.save();
+            return res.status(200).json(updated.toJSON());
         }
-
-        const smartMeta = analyzeUrlMetadata(normalizedUrl);
-        const resolvedCategory = (category && category.trim() !== "General" && category.trim() !== "Imported")
-            ? category.trim()
-            : (smartMeta.category || "General");
-        const resolvedDescription = (description && description.trim())
-            ? description.trim()
-            : (smartMeta.description || "");
 
         const newLink = new Link({
             title: title.trim(),

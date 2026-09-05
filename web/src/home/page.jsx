@@ -355,18 +355,6 @@ export default function Home() {
       return
     }
 
-    // Check if link already exists in state
-    const isAlreadySaved = links.some((l) => {
-      const existingClean = normalizeUrl(l.url || '')
-      return existingClean === cleanUrl || existingClean.replace(/^www\./i, '') === cleanUrl.replace(/^www\./i, '')
-    })
-
-    if (isAlreadySaved) {
-      setSaveError('This link is already saved! You cannot add duplicate links.')
-      setIsSubmitting(false)
-      return
-    }
-
     const derivedTitle = linkData?.title || form.title || formatTitleFromUrl(cleanUrl)
     const selectedCategory = linkData?.category || form.type || 'UI/UX'
 
