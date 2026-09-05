@@ -6,8 +6,7 @@ import SaveLinkModal from './SaveLinkModal'
 import DashboardPage from '../dashbord/page'
 import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
 import LatestModels from './LatestModels'
-
-const API_URL = 'http://localhost:5000/hub'
+import { API_URL } from '../config/api'
 
 const initialLinks = [
   {
@@ -212,18 +211,7 @@ function downloadBlob(blob, fileName) {
 }
 
 export default function Home() {
-  const [view, setView] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('currentView') || 'landing'
-    }
-    return 'landing'
-  })
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('currentView', view)
-    }
-  }, [view])
+  const [view, setView] = useState('landing')
 
   const [links, setLinks] = useState([])
   const [dbLinks, setDbLinks] = useState([])
@@ -396,7 +384,7 @@ export default function Home() {
       'Design': 'Design tools and creative assets.',
       'Other': 'Saved bookmark for future reference.'
     }
-    const smartDescription = categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
+    const smartDescription = linkData?.description || categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
 
     try {
       // Save directly into MongoDB

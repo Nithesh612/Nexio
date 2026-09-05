@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
+import { API_URL } from '../config/api';
 import './CategoryNav.css';
-
-const API_URL = 'http://localhost:5000/hub';
 
 const categoryMap = {
   all: 'All Links',

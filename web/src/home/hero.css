@@ -157,11 +157,6 @@
   transition: color 140ms, opacity 140ms;
 }
 
-.v-nav-link:first-child {
-  /* active by default */
-}
-
-
 
 .v-nav-link.active {
   color: #fff;
@@ -788,6 +783,13 @@ a:focus-visible {
     z-index: 20;
   }
 
+  .v-header-right {
+    position: static;
+    transform: none;
+    margin-left: auto;
+    margin-right: 16px;
+  }
+
   .v-header-actions.open {
     opacity: 1;
     visibility: visible;
@@ -892,15 +894,44 @@ a:focus-visible {
     position: static;
     transform: none;
     margin-left: auto;
-    margin-right: 12px;
+    margin-right: 8px;
+    gap: 6px;
   }
 
   .v-search-bar, .v-icon-action {
     display: none;
   }
 
+  .v-header-right .v-primary-cta {
+    width: auto !important;
+    height: 36px !important;
+    padding: 0 10px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+  }
+  
+  .v-header-right .v-primary-cta .v-cta-label {
+    position: static;
+    transform: none;
+    font-size: 12px;
+  }
+
   .v-add-link-btn {
-    padding: 0 12px;
+    padding: 0 10px;
+    height: 36px;
+    font-size: 0; /* Hide text on mobile to save space */
+    border-radius: 999px;
+    width: auto;
+    justify-content: center;
+    gap: 0;
+  }
+  
+  .v-add-link-btn svg {
+    width: 16px;
+    height: 16px;
   }
 
   .v-menu-toggle { display: flex; }

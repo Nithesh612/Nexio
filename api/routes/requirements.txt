@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-motor
-google-api-python-client
-google-auth
-python-dotenv
-pydantic
-certifi

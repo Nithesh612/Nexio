@@ -301,3 +301,18 @@
     padding: 24px;
   }
 }
+
+@media (max-width: 620px) {
+  .category-section {
+    padding: 24px 16px;
+  }
+  .section-main-title {
+    font-size: 28px;
+  }
+  .section-sub-title {
+    font-size: 14px;
+  }
+  .category-content-card {
+    padding: 16px;
+  }
+}

@@ -1,7 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
-const { ensureProtocol, saveLinkToGoogleDoc } = require("./googleDocs");
+
+function ensureProtocol(url) {
+    if (!url) return '';
+    const trimmed = String(url).trim();
+    if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+        return '';
+    }
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
 
 // Hub / Link Schema (No extra models folder needed)
 const linkSchema = new mongoose.Schema({
@@ -47,6 +55,12 @@ const linkSchema = new mongoose.Schema({
     suppressReservedKeysWarning: true
 });
 
+// Indexes for fast querying and indexing at scale
+linkSchema.index({ createdAt: -1 });
+linkSchema.index({ url: 1 });
+linkSchema.index({ category: 1 });
+linkSchema.index({ favorite: 1 });
+
 // Map _id to id
 linkSchema.set('toJSON', {
     transform: (document, returnedObject) => {
@@ -68,14 +82,106 @@ function titleFromUrl(url) {
     }
 }
 
+function analyzeUrlMetadata(rawUrl) {
+    if (!rawUrl) return {};
+    let hostname = '';
+    let pathname = '';
+    try {
+        const parsed = new URL(ensureProtocol(rawUrl));
+        hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
+        pathname = parsed.pathname.toLowerCase();
+    } catch {
+        return {};
+    }
+
+    const fullSearch = `${hostname} ${pathname}`.toLowerCase();
+
+    if (/coolors\.co|colorhunt\.co|realtimecolors\.com|colorsandfonts\.com|khroma\.co|colormind\.io|paletton\.com/i.test(fullSearch)) {
+        return {
+            category: 'UI/UX',
+            description: 'Super fast color palettes generator, contrast tools, and design color resources.'
+        };
+    }
+
+    if (/figma\.com/i.test(fullSearch)) {
+        return {
+            category: 'UI/UX',
+            description: 'Collaborative interface design, prototyping, and design systems platform.'
+        };
+    }
+
+    if (/uiverse\.io|21st\.dev|shadcn|tailwindcss\.com|heroicons\.com|lucide\.dev/i.test(fullSearch)) {
+        return {
+            category: 'UI/UX',
+            description: 'Open-source UI component library, animations, and design system elements.'
+        };
+    }
+
+    if (/dribbble\.com|behance\.net|awwwards\.com|godly\.website|mobbin\.com|lapa\.ninja/i.test(fullSearch)) {
+        return {
+            category: 'Inspiration',
+            description: 'Creative design inspiration, product UI showcases, and portfolio references.'
+        };
+    }
+
+    if (/openai\.com|chatgpt\.com|claude\.ai|anthropic\.com|perplexity\.ai|v0\.dev|cursor\.com|deepseek\.com/i.test(fullSearch)) {
+        return {
+            category: 'AI',
+            description: 'Advanced generative AI, reasoning models, and autonomous agent platform.'
+        };
+    }
+
+    if (/midjourney\.com|runwayml\.com|elevenlabs\.io|pika\.art|suno\.ai|klingai\.com|luma\.ai/i.test(fullSearch)) {
+        return {
+            category: 'AI Image & Video',
+            description: 'Generative AI image creation, video synthesis, and visual creation studio.'
+        };
+    }
+
+    if (/unsplash\.com|pexels\.com|freepik\.com|pixabay\.com/i.test(fullSearch)) {
+        return {
+            category: 'Stock',
+            description: 'High-resolution royalty-free stock photos, illustrations, and media assets.'
+        };
+    }
+
+    if (/github\.com|gitlab\.com|stackoverflow\.com|npmjs\.com|developer\.mozilla\.org/i.test(fullSearch)) {
+        return {
+            category: 'Tools',
+            description: 'Developer code repositories, open-source tools, and programming documentation.'
+        };
+    }
+
+    if (/vercel\.com|netlify\.com|render\.com|railway\.app|supabase\.com|firebase\.google\.com/i.test(fullSearch)) {
+        return {
+            category: 'Host',
+            description: 'Cloud deployment, backend infrastructure, databases, and serverless hosting.'
+        };
+    }
+
+    if (/(color|palette|gradient|hex|theme|tint|shade|pigment|swatch)/i.test(fullSearch)) {
+        return {
+            category: 'UI/UX',
+            description: 'Color palette generator, hex codes, and design color resources.'
+        };
+    }
+
+    return {};
+}
+
 function normalizeImportLink(item) {
     const rawUrl = String(item.url || item.link || item.URL || "").trim();
     if (!rawUrl) return null;
 
     const normalizedUrl = ensureProtocol(rawUrl);
+    const smartMeta = analyzeUrlMetadata(normalizedUrl);
     const title = String(item.title || item.name || item.Title || titleFromUrl(normalizedUrl)).trim();
-    const category = String(item.category || item.type || item.Category || "Imported").trim();
-    const description = String(item.description || item.desc || item.Description || "").trim();
+    const rawCategory = String(item.category || item.type || item.Category || "").trim();
+    const category = (rawCategory && rawCategory !== "Imported" && rawCategory !== "General")
+        ? rawCategory
+        : (smartMeta.category || "Imported");
+    const rawDescription = String(item.description || item.desc || item.Description || "").trim();
+    const description = rawDescription || smartMeta.description || "";
     const collection = String(item.collection || item.Collection || "All Links").trim();
 
     return {
@@ -180,6 +286,8 @@ router.post("/import", async (req, res) => {
 
         const insertedLinks = uniqueLinks.length ? await Link.insertMany(uniqueLinks) : [];
 
+        // Save new links to Google Sheets (removed as per user request)
+
         res.status(201).json({
             imported: insertedLinks.length,
             skipped: normalizedLinks.length - insertedLinks.length,
@@ -218,13 +326,15 @@ router.post("/", async (req, res) => {
         }
 
         const normalizedUrl = ensureProtocol(url.trim());
+        const cleanRaw = url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+        const escapedRaw = cleanRaw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
         // Check if link already exists in database
         const existingLink = await Link.findOne({
             $or: [
                 { url: normalizedUrl },
-                { url: url.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '') },
-                { url: new RegExp(`^https?:\\/\\/(www\\.)?${url.trim().replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '')}\\/?$`, 'i') }
+                { url: cleanRaw },
+                { url: new RegExp(`^https?:\\/\\/(www\\.)?${escapedRaw}\\/?$`, 'i') }
             ]
         });
 
@@ -236,37 +346,30 @@ router.post("/", async (req, res) => {
             });
         }
 
+        const smartMeta = analyzeUrlMetadata(normalizedUrl);
+        const resolvedCategory = (category && category.trim() !== "General" && category.trim() !== "Imported")
+            ? category.trim()
+            : (smartMeta.category || "General");
+        const resolvedDescription = (description && description.trim())
+            ? description.trim()
+            : (smartMeta.description || "");
+
         const newLink = new Link({
             title: title.trim(),
             url: normalizedUrl,
-            category: category ? category.trim() : "General",
-            description: description ? description.trim() : "",
+            category: resolvedCategory,
+            description: resolvedDescription,
             collection: collection ? collection.trim() : "All Links",
             favorite: Boolean(favorite),
             readLater: Boolean(readLater)
         });
 
         const savedLink = await newLink.save();
-        let docSaved = false;
-        let docError = null;
 
-        try {
-            await saveLinkToGoogleDoc({
-                title: savedLink.title,
-                url: savedLink.url,
-                category: savedLink.category,
-                description: savedLink.description,
-            });
-            docSaved = true;
-        } catch (error) {
-            docError = error.message;
-            console.error("Google Docs save failed:", error);
-        }
-
-        res.status(docSaved ? 201 : 207).json({
+        res.status(201).json({
             ...savedLink.toJSON(),
-            docSaved,
-            docError,
+            docSaved: false,
+            docError: null,
         });
     } catch (error) {
         console.error("POST /hub error:", error);

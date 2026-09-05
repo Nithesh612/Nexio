@@ -16,6 +16,7 @@ import {
   Ellipsis,
   Bookmark
 } from 'lucide-react';
+import { analyzeLinkUrl } from '../utils/urlAnalyzer';
 import './SaveLinkModal.css';
 
 const PRIMARY_CATEGORIES = [
@@ -58,7 +59,10 @@ function formatTitle(url) {
 export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onClearError, isSubmitting = false }) {
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [customTitle, setCustomTitle] = useState(false);
+  const [customDescription, setCustomDescription] = useState(false);
+  const [detectedTag, setDetectedTag] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -99,7 +103,10 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
     if (isOpen) {
       setUrl('');
       setTitle('');
+      setDescription('');
       setCustomTitle(false);
+      setCustomDescription(false);
+      setDetectedTag(null);
       setSelectedCategories([]);
       setIsMultiSelectMode(false);
       setImgError(false);
@@ -119,12 +126,35 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
     return () => document.removeEventListener('pointerdown', handleDocumentClick);
   }, [isDropdownOpen]);
 
+  // Live intelligent URL analysis
   useEffect(() => {
-    if (url.trim() && !customTitle) {
-      setTitle(formatTitle(url));
+    if (!url.trim()) {
+      setDetectedTag(null);
+      if (!customTitle) setTitle('');
+      if (!customDescription) setDescription('');
+      return;
+    }
+
+    const analysis = analyzeLinkUrl(url);
+    if (analysis) {
+      setDetectedTag(analysis.tag || analysis.category);
+      if (!customTitle) {
+        setTitle(analysis.title || formatTitle(url));
+      }
+      if (!customDescription) {
+        setDescription(analysis.description || '');
+      }
+      if (selectedCategories.length === 0 && analysis.category) {
+        setSelectedCategories([analysis.category]);
+      }
+    } else {
+      setDetectedTag(null);
+      if (!customTitle) {
+        setTitle(formatTitle(url));
+      }
     }
     setImgError(false);
-  }, [url, customTitle]);
+  }, [url, customTitle, customDescription]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -150,6 +180,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
       title: title.trim() || formatTitle(url),
       category: categoryString,
       categories: selectedCategories,
+      description: description.trim(),
     });
   };
 
@@ -186,7 +217,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
 
         <div className="save-modal-headings">
           <h2>Save a useful link</h2>
-          <p>Add tools, articles, or resources to your central link hub.</p>
+          <p>Add tools, articles, or color & design resources to your central hub.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="save-modal-form">
@@ -208,7 +239,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                 type="text"
                 autoComplete="off"
                 spellCheck="false"
-                placeholder="https://example.com/article"
+                placeholder="https://coolors.co or https://example.com"
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
@@ -218,6 +249,14 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
               />
             </div>
           </div>
+
+          {/* Smart Live Detection Badge */}
+          {detectedTag && (
+            <div className="smart-detection-badge">
+              <span className="smart-tag-sparkle">✨</span>
+              <span className="smart-tag-text">Auto-detected: <strong>{detectedTag}</strong></span>
+            </div>
+          )}
 
           {/* Live Preview Card */}
           {url.trim() && (
@@ -253,6 +292,27 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
               </div>
             </div>
           )}
+
+          {/* Description Input */}
+          <div className="modal-input-group">
+            <label htmlFor="modal-description" className="modal-field-label-sub">
+              <span>Description / Notes</span>
+              <span className="auto-suggest-hint">{detectedTag ? '✨ Smart suggestion' : '(Optional)'}</span>
+            </label>
+            <div className="modal-input-wrapper description-wrapper">
+              <textarea
+                id="modal-description"
+                rows="2"
+                placeholder="Describe this tool, color resource, or reference..."
+                value={description}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  setCustomDescription(true);
+                }}
+                className="modern-modal-textarea"
+              />
+            </div>
+          </div>
 
           {/* Category Chips Selector */}
           <div className="modal-input-group">

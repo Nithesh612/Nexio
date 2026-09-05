@@ -25,9 +25,8 @@ import {
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
+import { API_URL } from '../config/api'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
-
-const API_URL = 'http://localhost:5000/hub'
 
 const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
@@ -188,12 +187,16 @@ function escapePdfText(value) {
 }
 
 function createPdf(links) {
+  const safeLinks = Array.isArray(links) ? links : []
+  const totalPages = Math.max(1, Math.ceil(safeLinks.length / 10))
+
   const columns = [
-    { label: 'TITLE', x: 68, width: 150, key: 'title' },
-    { label: 'CATEGORY', x: 205, width: 120, key: 'category' },
-    { label: 'LINK', x: 330, width: 320, key: 'url' },
-    { label: 'DESCRIPTION', x: 655, width: 125, key: 'description' },
+    { label: 'TITLE', x: 68, width: 140, key: 'title' },
+    { label: 'CATEGORY', x: 215, width: 110, key: 'category' },
+    { label: 'LINK', x: 330, width: 310, key: 'url' },
+    { label: 'DESCRIPTION', x: 645, width: 135, key: 'description' },
   ]
+
   const wrapText = (value, length) => {
     const text = String(value || '-')
     const words = text.split(/\s+/)
@@ -211,50 +214,77 @@ function createPdf(links) {
     return lines.slice(0, 2)
   }
 
-  const commands = [
-    'BT',
-    '/F1 24 Tf',
-    '68 548 Td',
-    '(Nexio Links Export) Tj',
-    '/F1 11 Tf',
-    '0.42 0.46 0.54 rg',
-    '0 -22 Td',
-    '(Your saved links, organized by title and category.) Tj',
-    'ET',
-    'q',
-    '0.94 0.95 0.97 rg',
-    '56 465 730 34 re f',
-    'Q',
-    'BT',
-    '/F1 9 Tf',
-    '0.38 0.42 0.49 rg',
-    ...columns.map((column) => `1 0 0 1 ${column.x} 478 Tm (${column.label}) Tj`),
-    'ET',
-  ]
+  // Generate stream commands for each page
+  const pageStreams = []
+  for (let p = 0; p < totalPages; p++) {
+    const pageLinks = safeLinks.slice(p * 10, (p + 1) * 10)
+    const pageNumber = p + 1
 
-  links.slice(0, 10).forEach((item, rowIndex) => {
-    const y = 445 - rowIndex * 42
-    commands.push('q', '0.88 0.89 0.92 RG', '0.6 w', `56 ${y - 28} 730 42 re S`, 'Q')
-    commands.push('BT', '/F1 9 Tf')
-    columns.forEach((column) => {
-      commands.push(column.key === 'url' ? '0.35 0.31 0.95 rg' : '0.12 0.16 0.22 rg')
-      wrapText(item[column.key], Math.floor(column.width / 6)).forEach((line, lineIndex) => {
-        commands.push(`1 0 0 1 ${column.x} ${y - lineIndex * 12} Tm (${escapePdfText(line)}) Tj`)
+    const commands = [
+      'BT',
+      '/F1 20 Tf',
+      '68 550 Td',
+      `(${escapePdfText('Nexio Links Export')}${totalPages > 1 ? ` - Page ${pageNumber} of ${totalPages}` : ''}) Tj`,
+      '/F1 10 Tf',
+      '0.42 0.46 0.54 rg',
+      '0 -18 Td',
+      '(Your saved links, organized by title and category.) Tj',
+      'ET',
+      'q',
+      '0.94 0.95 0.97 rg',
+      '56 475 730 30 re f',
+      'Q',
+      'BT',
+      '/F1 9 Tf',
+      '0.38 0.42 0.49 rg',
+      ...columns.map((column) => `1 0 0 1 ${column.x} 486 Tm (${column.label}) Tj`),
+      'ET',
+    ]
+
+    pageLinks.forEach((item, rowIndex) => {
+      const y = 450 - rowIndex * 40
+      commands.push('q', '0.88 0.89 0.92 RG', '0.6 w', `56 ${y - 26} 730 40 re S`, 'Q')
+      commands.push('BT', '/F1 9 Tf')
+      columns.forEach((column) => {
+        commands.push(column.key === 'url' ? '0.25 0.25 0.85 rg' : '0.12 0.16 0.22 rg')
+        wrapText(item[column.key], Math.floor(column.width / 6)).forEach((line, lineIndex) => {
+          commands.push(`1 0 0 1 ${column.x} ${y - lineIndex * 12} Tm (${escapePdfText(line)}) Tj`)
+        })
       })
+      commands.push('ET')
     })
-    commands.push('ET')
-  })
 
-  commands.push('BT', '/F1 10 Tf', '0.55 0.58 0.64 rg', `1 0 0 1 68 ${Math.max(40, 420 - links.slice(0, 10).length * 42)} Tm (${links.length} saved link${links.length === 1 ? '' : 's'}) Tj`, 'ET')
+    commands.push(
+      'BT',
+      '/F1 9 Tf',
+      '0.55 0.58 0.64 rg',
+      `1 0 0 1 68 25 Tm (Page ${pageNumber} of ${totalPages}  |  Total: ${safeLinks.length} saved link${safeLinks.length === 1 ? '' : 's'}) Tj`,
+      'ET'
+    )
 
-  const stream = commands.join('\n')
+    pageStreams.push(commands.join('\n'))
+  }
+
+  // Multi-page PDF Object hierarchy
+  const kids = []
+  for (let p = 0; p < totalPages; p++) {
+    kids.push(`${4 + p * 2} 0 R`)
+  }
+
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
-    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${totalPages} >>`,
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
   ]
+
+  for (let p = 0; p < totalPages; p++) {
+    const stream = pageStreams[p]
+    const pageObj = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + p * 2} 0 R >>`
+    const streamObj = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+    objects.push(pageObj)
+    objects.push(streamObj)
+  }
+
   let pdf = '%PDF-1.4\n'
   const offsets = [0]
   objects.forEach((object, index) => {
@@ -375,7 +405,7 @@ const navItems = [
   { label: 'Favorites', icon: Star },
 ]
 
-export default function DashboardPage({ onBack }) {
+export default function DashboardPage({ onBack, onAddLink }) {
   const [activeNav, setActiveNav] = useState('All Links')
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
@@ -433,7 +463,7 @@ export default function DashboardPage({ onBack }) {
     if (activeNav === 'Favorites') {
       base = base.filter((item) => item.favorite)
     } else if (activeNav === 'Saved') {
-      base = base.filter((item) => item.collection === 'Inbox')
+      base = base.filter((item) => item.category && item.category.toLowerCase().includes('saved'))
     }
 
     if (activeFilter !== 'All') {
@@ -469,7 +499,7 @@ export default function DashboardPage({ onBack }) {
   const isDashboardView = activeNav === 'Dashboard'
 
   const liveStats = useMemo(() => {
-    const savedCount = liveLinks.filter((item) => item.collection === 'Inbox').length
+    const savedCount = liveLinks.filter((item) => item.category && item.category.toLowerCase().includes('saved')).length
     const favoriteCount = liveLinks.filter((item) => item.favorite).length
     const totalCount = liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
@@ -1346,7 +1376,31 @@ export default function DashboardPage({ onBack }) {
           color: #16a34a;
           background: rgba(22, 163, 74, 0.1);
         }
-        .save-action.vibrate {
+        .favorite-action {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border: none;
+          border-radius: 12px;
+          background: transparent;
+          color: #94a3b8;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .favorite-action:hover {
+          background: #f1f5f9;
+          color: #64748b;
+        }
+        .favorite-action.active {
+          background: #eef8f2;
+          color: #eab308;
+        }
+        .favorite-action.active:hover {
+          background: #e1f1e7;
+        }
+        .save-action.vibrate, .favorite-action.vibrate {
           animation: save-vibrate 450ms ease-in-out;
         }
         @keyframes save-vibrate {
@@ -1511,7 +1565,12 @@ export default function DashboardPage({ onBack }) {
         }
         @media (max-width: 1100px) {
           .dashboard-shell { flex-direction: column; }
-          .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(15,23,42,0.08); }
+          .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(15,23,42,0.08); padding: 16px; }
+          .nav-list { flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+          .nav-list::-webkit-scrollbar { display: none; }
+          .nav-item { width: auto; white-space: nowrap; padding: 10px 16px; }
+          .new-link-btn { width: max-content; padding: 10px 16px; margin-bottom: 16px; display: inline-flex; }
+          .upgrade-card { display: none; }
           .stats-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
           .topbar { flex-direction: column; align-items: flex-start; }
           .top-actions { width: 100%; justify-content: space-between; }
@@ -1698,7 +1757,7 @@ export default function DashboardPage({ onBack }) {
           )}
 
 
-          <button className="new-link-btn" type="button">
+          <button className="new-link-btn" type="button" onClick={onAddLink}>
             <Plus size={18} />
             Save new link
           </button>
@@ -1849,10 +1908,7 @@ export default function DashboardPage({ onBack }) {
                   <button
                     type="button"
                     className="dashboard-empty-add-btn"
-                    onClick={() => {
-                      setEditingItem(null)
-                      setIsModalOpen(true)
-                    }}
+                    onClick={onAddLink}
                   >
                     <Plus size={16} />
                     <span>Add New Link</span>
@@ -1923,12 +1979,12 @@ export default function DashboardPage({ onBack }) {
                     <div className="service-card-actions">
                       <button
                         type="button"
-                        className={`save-action ${item.favorite ? 'saved' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
+                        className={`favorite-action ${item.favorite ? 'active' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
                         aria-label={item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`}
                         title={item.favorite ? 'Favorited' : 'Add to Favorites'}
                         onClick={() => handleToggleFavorite(item.id)}
                       >
-                        <Bookmark size={17} fill={item.favorite ? 'currentColor' : 'none'} />
+                        <Star size={18} fill={item.favorite ? 'currentColor' : 'none'} strokeWidth={item.favorite ? 0 : 2.5} />
                       </button>
                     </div>
                   </div>

@@ -621,3 +621,71 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Smart Detection Live Badge */
+.smart-detection-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+  border: 1px solid #bfdbfe;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #1e3a8a;
+  margin-top: -6px;
+  margin-bottom: 12px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.smart-tag-sparkle {
+  font-size: 13px;
+  color: #3b82f6;
+}
+
+.smart-tag-text strong {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.modal-field-label-sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.auto-suggest-hint {
+  font-size: 11px;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.description-wrapper {
+  padding: 0;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.modern-modal-textarea {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #1e293b;
+  resize: vertical;
+  min-height: 52px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modern-modal-textarea:focus {
+  background: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+

@@ -225,3 +225,16 @@
     padding: 0 16px;
   }
 }
+
+@media (max-width: 600px) {
+  .latest-models-title {
+    font-size: 26px;
+  }
+  .model-card {
+    width: 135px;
+    height: 135px;
+  }
+  .model-hover-name {
+    font-size: 12px;
+  }
+}

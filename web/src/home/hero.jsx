@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
 
-const NAV_LINKS = ['Home', 'Features', 'Pricing', 'Contact']
+const NAV_LINKS = ['Features', 'Use Cases', 'Extensions', 'Pricing']
 
 
 
