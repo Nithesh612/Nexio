@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Link2,
+  LayoutGrid,
+  Bot,
+  BookOpen,
+  Sparkles,
+  Plus,
+  Palette,
+  Compass,
+  Folder
+} from 'lucide-react';
 import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
 import { API_URL } from '../config/api';
@@ -15,7 +26,7 @@ const categoryMap = {
 
 function getFaviconUrl(url) {
   try {
-    const domain = new URL(url).hostname;
+    const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   } catch {
     return null;
@@ -32,6 +43,15 @@ function mapCategoryToId(category) {
   return 'all';
 }
 
+function getCategoryFallbackIcon(category) {
+  const lower = (category || '').toLowerCase();
+  if (lower.includes('ui') || lower.includes('ux') || lower.includes('design')) return <Palette size={18} />;
+  if (lower.includes('ai') || lower.includes('agent') || lower.includes('bot')) return <Bot size={18} />;
+  if (lower.includes('resource') || lower.includes('doc') || lower.includes('tool')) return <BookOpen size={18} />;
+  if (lower.includes('inspire') || lower.includes('art')) return <Compass size={18} />;
+  return <Link2 size={18} />;
+}
+
 export default function CategoryNav({ refreshTrigger, onAddLink }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [dbLinks, setDbLinks] = useState([]);
@@ -41,26 +61,11 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
   const itemsPerPage = 9; // 3 columns x 3 rows = 9 items
 
   const categories = [
-    {
-      id: 'all', label: 'All Links',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-    },
-    {
-      id: 'uiux', label: 'UI/UX',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-    },
-    {
-      id: 'ai-agents', label: 'AI Agents',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-    },
-    {
-      id: 'resources', label: 'Resources',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/><path d="M6 14h6"/></svg>
-    },
-    {
-      id: 'inspiration', label: 'Inspiration',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>
-    },
+    { id: 'all', label: 'All Links', icon: <Link2 size={15} /> },
+    { id: 'uiux', label: 'UI/UX', icon: <LayoutGrid size={15} /> },
+    { id: 'ai-agents', label: 'AI Agents', icon: <Bot size={15} /> },
+    { id: 'resources', label: 'Resources', icon: <BookOpen size={15} /> },
+    { id: 'inspiration', label: 'Inspiration', icon: <Sparkles size={15} /> },
   ];
 
   // Fetch links from DB
@@ -174,14 +179,14 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
                       />
                     ) : (
                       <span className="favicon-fallback">
-                        {item.title.charAt(0)}
+                        {getCategoryFallbackIcon(item.category)}
                       </span>
                     )}
                   </div>
                   <div className="feature-text">
                     <div className="feature-title-row">
                       <h3>{item.title}</h3>
-                      {(item.collection === 'Inbox' || item.collection === 'Saved') && (
+                      {((item.collection || '').toLowerCase() === 'saved' || (item.category || '').toLowerCase() === 'saved') && (
                         <span className="saved-badge">SAVED</span>
                       )}
                     </div>
@@ -195,18 +200,8 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
           <div className="empty-state">
             <div className="empty-illustration">
               <img
-                src={
-                  activeCategory === 'inspiration'
-                    ? '/assets/empty/no-results.svg'
-                    : activeCategory === 'resources'
-                      ? '/assets/empty/checklist.svg'
-                      : activeCategory === 'uiux'
-                        ? '/assets/empty/no-data.svg'
-                        : activeCategory === 'ai-agents'
-                          ? '/assets/empty/online-business.svg'
-                          : '/assets/empty/no-data.svg'
-                }
-                alt="No links"
+                src="/assets/empty/pixeltrue-website-ranking-improvement-by-collaborative-seo-strategy.svg"
+                alt="No links in category"
                 className="empty-state-svg"
               />
             </div>

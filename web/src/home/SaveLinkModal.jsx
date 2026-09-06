@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Palette,
+  LayoutGrid,
   Video,
-  Sparkles,
-  Code,
+  Bot,
+  Compass,
+  Folder,
   Image as ImageIcon,
   Camera,
-  Globe,
-  PenTool,
+  Server,
   FileText,
   FlaskConical,
   Wrench,
-  Folder,
-  Layers,
   Ellipsis,
   Bookmark
 } from 'lucide-react';
@@ -21,17 +19,17 @@ import './SaveLinkModal.css';
 
 const PRIMARY_CATEGORIES = [
   { id: 'Saved', label: 'Saved', icon: Bookmark },
-  { id: 'UI/UX', label: 'UI/UX', icon: Palette },
+  { id: 'UI/UX', label: 'UI/UX', icon: LayoutGrid },
   { id: 'AI Image & Video', label: 'AI Image & Video', icon: Video },
-  { id: 'AI', label: 'AI', icon: Sparkles },
-  { id: 'Inspiration', label: 'Inspiration', icon: Layers },
+  { id: 'AI', label: 'AI', icon: Bot },
+  { id: 'Inspiration', label: 'Inspiration', icon: Compass },
   { id: 'Other', label: 'Other', icon: Folder },
 ];
 
 const MORE_CATEGORIES = [
   { id: 'Wallpaper', label: 'Wallpaper', icon: ImageIcon },
   { id: 'Stock', label: 'Stock', icon: Camera },
-  { id: 'Host', label: 'Host', icon: Globe },
+  { id: 'Host', label: 'Host', icon: Server },
   { id: 'Article', label: 'Article', icon: FileText },
   { id: 'Research', label: 'Research', icon: FlaskConical },
   { id: 'Tools', label: 'Tools', icon: Wrench },
@@ -244,14 +242,6 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
               />
             </div>
           </div>
-
-          {/* Smart Live Detection Badge */}
-          {detectedTag && (
-            <div className="smart-detection-badge">
-              <span className="smart-tag-sparkle">✨</span>
-              <span className="smart-tag-text">Auto-detected: <strong>{detectedTag}</strong></span>
-            </div>
-          )}
 
           {/* Live Preview Card */}
           {url.trim() && (

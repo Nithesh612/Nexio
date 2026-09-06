@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Plus, Search, Play, ArrowRight } from 'lucide-react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
 
@@ -76,20 +77,10 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
         {/* ── Header ── */}
         <header className={`v-header${menuOpen ? ' menu-open' : ''}`}>
           {/* Brand */}
-          <a className="v-brand" href="#" aria-label="Vantage home">
-            <svg width="25" height="25" viewBox="0 0 25 25" aria-hidden="true">
-              <defs>
-                <clipPath id="vbrand-clip">
-                  <circle cx="12.5" cy="12.5" r="12.5" />
-                </clipPath>
-              </defs>
-              <g clipPath="url(#vbrand-clip)">
-                <rect width="25" height="25" fill="#ededed" />
-                <path d="M12.5 4 L20 19 L5 19 Z" fill="#050606" />
-                <path d="M12.5 4 L20 19 L12.5 13 Z" fill="#737778" />
-                <path d="M12.5 13 L20 19 L5 19 Z" fill="#fafafa" />
-                <path d="M5 19 L12.5 13 L12.5 22 Z" fill="#0a0b0b" />
-              </g>
+          <a className="v-brand" href="#" aria-label="Nexio home">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.08)" />
+              <path d="M9 23V9L23 23V9" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </a>
 
@@ -119,10 +110,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
               type="button"
               onClick={() => setIsAdding(true)}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
+              <Plus size={15} strokeWidth={2.5} />
               Add Link
             </button>
 
@@ -203,24 +191,13 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
             >
               <span className="v-cta-label">Get Started</span>
               <span className="v-arrow-box" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M3 7h8M7 3l4 4-4 4"
-                    stroke="#fff"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowRight size={14} strokeWidth={2} />
               </span>
             </button>
 
             {/* Search bar in hero section */}
             <div className="v-search-bar">
-              <svg className="v-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <Search className="v-search-icon" size={16} strokeWidth={2} aria-hidden="true" />
               <input
                 className="v-search-input"
                 type="search"
@@ -245,9 +222,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
                 type="button"
                 aria-label="Play demo"
               >
-                <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
-                  <path d="M2 1.5l12 7-12 7V1.5z" fill="#fff" />
-                </svg>
+                <Play size={16} fill="#fff" strokeWidth={0} />
               </button>
             </div>
             <button className="v-watch-btn" type="button">

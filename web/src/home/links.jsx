@@ -6,16 +6,18 @@ import {
   Palette,
   Video,
   Sparkles,
-  Code,
+  Bot,
   Folder,
   Image as ImageIcon,
   Camera,
+  Server,
   Globe,
-  PenTool,
   FileText,
   FlaskConical,
   Wrench,
-  Bookmark
+  Bookmark,
+  Compass,
+  LayoutGrid
 } from 'lucide-react';
 import './links.css';
 
@@ -153,14 +155,14 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
   const tabs = [
     { id: 'all',              label: 'All Links',         icon: Layers,       categoryVal: 'all' },
     { id: 'saved',            label: 'Saved',             icon: Bookmark,     categoryVal: 'saved' },
-    { id: 'ui/ux',            label: 'UI/UX',             icon: Palette,      categoryVal: 'UI/UX' },
+    { id: 'ui/ux',            label: 'UI/UX',             icon: LayoutGrid,   categoryVal: 'UI/UX' },
     { id: 'ai-image-video',   label: 'AI Image & Video',  icon: Video,        categoryVal: 'AI Image & Video' },
-    { id: 'ai',               label: 'AI',                icon: Sparkles,     categoryVal: 'AI' },
+    { id: 'ai',               label: 'AI',                icon: Bot,          categoryVal: 'AI' },
     { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
-    { id: 'inspiration',      label: 'Inspiration',       icon: Layers,       categoryVal: 'Inspiration' },
+    { id: 'inspiration',      label: 'Inspiration',       icon: Compass,      categoryVal: 'Inspiration' },
     { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
     { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
-    { id: 'host',             label: 'Host',              icon: Globe,        categoryVal: 'Host' },
+    { id: 'host',             label: 'Host',              icon: Server,       categoryVal: 'Host' },
     { id: 'article',          label: 'Article',           icon: FileText,     categoryVal: 'Article' },
     { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
     { id: 'tools',            label: 'Tools',             icon: Wrench,       categoryVal: 'Tools' },
@@ -185,7 +187,11 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
   const filteredItems = activeTab === 'all'
     ? mappedLinks
     : activeTab === 'saved'
-      ? mappedLinks.filter(link => link.collection === 'Inbox')
+      ? mappedLinks.filter(link => {
+          const cat = (link.category || '').toLowerCase().trim();
+          const col = (link.collection || '').toLowerCase().trim();
+          return cat === 'saved' || col === 'saved';
+        })
       : mappedLinks.filter((link) => {
           if (!currentTabConfig) return true;
           const targetCategory = currentTabConfig.categoryVal.toLowerCase();
@@ -242,19 +248,9 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
               <div className="empty-links-state">
                 <div className="empty-links-lottie">
                   <img
-                    src={
-                      activeTab === 'inspiration'
-                        ? '/assets/empty/no-results.svg'
-                        : activeTab === 'tools' || activeTab === 'resources'
-                          ? '/assets/empty/checklist.svg'
-                          : activeTab === 'research' || activeTab === 'article'
-                            ? '/assets/empty/announcement.svg'
-                            : activeTab.includes('ai')
-                              ? '/assets/empty/online-business.svg'
-                              : '/assets/empty/no-data.svg'
-                    }
-                    alt="No links"
-                    style={{ width: '180px', height: '140px', objectFit: 'contain' }}
+                    src="/assets/empty/pixeltrue-website-ranking-improvement-by-collaborative-seo-strategy.svg"
+                    alt="No links saved"
+                    style={{ width: '220px', height: '170px', objectFit: 'contain' }}
                   />
                 </div>
                 <h3 className="empty-links-title">No links saved in {meta.title}</h3>

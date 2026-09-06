@@ -211,7 +211,55 @@ function downloadBlob(blob, fileName) {
 }
 
 export default function Home() {
-  const [view, setView] = useState('landing')
+  const [view, setView] = useState(() => {
+    try {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#dashboard' || hash === '#app') return 'app';
+      const saved = localStorage.getItem('nexio_current_view');
+      if (saved === 'app') return 'app';
+    } catch {
+      // fallback
+    }
+    return 'landing';
+  });
+
+  const handleSetView = (newView) => {
+    setView(newView);
+    try {
+      localStorage.setItem('nexio_current_view', newView);
+      if (newView === 'app') {
+        if (window.location.hash !== '#dashboard') {
+          window.history.pushState(null, '', '#dashboard');
+        }
+      } else {
+        if (window.location.hash === '#dashboard' || window.location.hash === '#app') {
+          window.history.pushState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+    } catch {
+      // fallback
+    }
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#dashboard' || hash === '#app') {
+        setView('app');
+        localStorage.setItem('nexio_current_view', 'app');
+      } else if (!hash || hash === '#features' || hash === '#use-cases' || hash === '#extensions' || hash === '#integrations') {
+        setView('landing');
+        localStorage.setItem('nexio_current_view', 'landing');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
 
   const [links, setLinks] = useState([])
   const [dbLinks, setDbLinks] = useState([])
@@ -329,8 +377,7 @@ export default function Home() {
       const matchesFilter =
         filter === 'All links' ||
         (filter === 'Favorites' && item.favorite) ||
-        (filter === 'Saved' && item.collection === 'Saved') ||
-        
+        (filter === 'Saved' && (item.collection === 'Saved' || item.category === 'Saved' || item.type === 'Saved')) ||
         filter === item.collection ||
         filter === item.type
 
@@ -451,7 +498,7 @@ export default function Home() {
   function openFromLanding(item) {
     setSelected(item)
     setFilter('All links')
-    setView('app')
+    handleSetView('app')
   }
 
   async function handleImportFile(event) {
@@ -519,7 +566,7 @@ export default function Home() {
         <>
           <Hero
             setIsAdding={setIsAdding}
-            setView={setView}
+            setView={handleSetView}
             onImport={handleImportFile}
             onExport={handleExport}
           />
@@ -529,7 +576,7 @@ export default function Home() {
           <AnimatedConnect01 />
         </>
       ) : (
-        <DashboardPage onBack={() => setView('landing')} onAddLink={() => setIsAdding(true)} />
+        <DashboardPage onBack={() => handleSetView('landing')} onAddLink={() => setIsAdding(true)} />
       )}
 
       <SaveLinkModal

@@ -466,12 +466,11 @@ export default function DashboardPage({ onBack, onAddLink }) {
     if (activeNav === 'Favorites') {
       base = base.filter((item) => item.favorite)
     } else if (activeNav === 'Saved') {
-      base = base.filter((item) => 
-        (item.category && item.category.toLowerCase().includes('saved')) ||
-        item.collection === 'Inbox' ||
-        item.readLater === true ||
-        (item.meta && item.meta.some(m => m && m.toLowerCase().includes('saved')))
-      )
+      base = base.filter((item) => {
+        const cat = (item.category || '').toLowerCase().trim()
+        const col = (item.collection || '').toLowerCase().trim()
+        return cat === 'saved' || col === 'saved'
+      })
     }
 
     if (activeFilter !== 'All') {
@@ -507,12 +506,11 @@ export default function DashboardPage({ onBack, onAddLink }) {
   const isDashboardView = activeNav === 'Dashboard'
 
   const liveStats = useMemo(() => {
-    const savedCount = liveLinks.filter((item) => 
-      (item.category && item.category.toLowerCase().includes('saved')) ||
-      item.collection === 'Inbox' ||
-      item.readLater === true ||
-      (item.meta && item.meta.some(m => m && m.toLowerCase().includes('saved')))
-    ).length
+    const savedCount = liveLinks.filter((item) => {
+      const cat = (item.category || '').toLowerCase().trim()
+      const col = (item.collection || '').toLowerCase().trim()
+      return cat === 'saved' || col === 'saved'
+    }).length
     const favoriteCount = liveLinks.filter((item) => item.favorite).length
     const totalCount = liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
@@ -820,6 +818,18 @@ export default function DashboardPage({ onBack, onAddLink }) {
           display: flex;
           flex-direction: column;
           gap: 16px;
+          position: sticky;
+          top: 0;
+          height: 100vh;
+          height: 100dvh;
+          max-height: 100vh;
+          overflow-y: auto;
+          scrollbar-width: none;
+          flex-shrink: 0;
+          box-sizing: border-box;
+        }
+        .sidebar::-webkit-scrollbar {
+          display: none;
         }
         .brand-row {
           display: flex;
@@ -844,26 +854,37 @@ export default function DashboardPage({ onBack, onAddLink }) {
           letter-spacing: -0.03em;
           color: #2f2a3c;
         }
+        .sidebar-bottom-action {
+          margin-top: auto;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          flex-direction: column;
+        }
         .back-home-btn {
-          align-self: flex-start;
-          margin-bottom: 8px;
-          border: 1px solid rgba(15,23,42,0.1);
-          background: rgba(255,255,255,0.9);
-          border-radius: 10px;
-          padding: 8px 12px;
-          color: #374151;
+          width: 100%;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          border-radius: 12px;
+          padding: 11px 16px;
+          color: #1e3a8a;
           font-weight: 700;
+          font-size: 0.92rem;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
+          text-decoration: none;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
         }
         .back-home-btn:hover {
           background: #ffffff;
-          border-color: rgba(15,23,42,0.22);
-          color: #111827;
-          transform: translateX(-2px);
+          border-color: #cbd5e1;
+          color: #0f172a;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+          transform: translateY(-1px);
         }
         .new-link-btn {
           display: flex;
@@ -1258,7 +1279,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
           grid-template-columns: repeat(4, minmax(0, 1fr));
           justify-content: start;
           gap: 14px;
-          padding: 0 14px 14px;
+          padding: 16px;
         }
         .view-toggle {
           display: flex;
@@ -1813,6 +1834,9 @@ export default function DashboardPage({ onBack, onAddLink }) {
           .list-view { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         @media (max-width: 1024px) {
+          .desktop-only {
+            display: none !important;
+          }
           .mobile-menu-btn {
             display: inline-flex;
           }
@@ -2128,18 +2152,10 @@ export default function DashboardPage({ onBack, onAddLink }) {
             </button>
           </div>
 
-          {onBack && (
-            <button
-              type="button"
-              className="back-home-btn"
-              onClick={() => {
-                setSidebarOpen(false)
-                if (typeof onBack === 'function') onBack()
-              }}
-            >
-              ← Back to home
-            </button>
-          )}
+          <div className="brand-row desktop-only" style={{ padding: '0 0 4px' }}>
+            <div className="brand-mark">N</div>
+            <div className="brand-name">Nexio</div>
+          </div>
 
           <button
             className="new-link-btn"
@@ -2176,6 +2192,21 @@ export default function DashboardPage({ onBack, onAddLink }) {
               ))}
             </div>
           </div>
+
+          {onBack && (
+            <div className="sidebar-bottom-action">
+              <button
+                type="button"
+                className="back-home-btn"
+                onClick={() => {
+                  setSidebarOpen(false)
+                  if (typeof onBack === 'function') onBack()
+                }}
+              >
+                ← Back to home
+              </button>
+            </div>
+          )}
         </aside>
 
         <main className="main-content">
@@ -2266,17 +2297,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
           </div>
 
           <section className="panel">
-            <div className="panel-header">
-              <span aria-hidden="true"></span>
-              <div className="right">
-                <div className="view-toggle">
-                  <button onClick={() => setViewMode('grid')} className={viewMode === 'grid' ? 'active' : ''}><LayoutGrid size={16} /></button>
-                  <button onClick={() => setViewMode('list')} className={viewMode === 'list' ? 'active' : ''}><List size={16} /></button>
-                </div>
-              </div>
-            </div>
-
-            <div className={viewMode === 'list' ? 'list-view-linear' : 'list-view'}>
+            <div className="list-view">
               {isLoadingLinks ? (
                 Array.from({ length: 8 }).map((_, idx) => (
                   <article key={idx} className="service-card skeleton-service-card">
