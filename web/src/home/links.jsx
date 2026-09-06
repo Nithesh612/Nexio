@@ -206,7 +206,7 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
   };
 
   return (
-    <section className="links-section">
+    <section className="links-section" id="use-cases">
       <div className="links-container">
 
         {/* Left Sidebar */}

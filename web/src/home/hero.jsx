@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
 
-const NAV_LINKS = ['Features', 'Use Cases', 'Extensions', 'Pricing']
-
-
+const NAV_LINKS = [
+  { label: 'Features', targetId: 'features' },
+  { label: 'Directory', targetId: 'use-cases' },
+  { label: 'Models', targetId: 'extensions' },
+  { label: 'Integrations', targetId: 'integrations' },
+]
 
 export default function Hero({ setIsAdding, setView, onImport, onExport }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -13,6 +16,15 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
   const videoRef = useRef(null)
   const motionRef = useRef(null)
   const cardRef = useRef(null)
+
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    const el = document.getElementById(targetId)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   useEffect(() => {
     const video = videoRef.current
@@ -87,16 +99,12 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
             id="tablet-navigation"
           >
             <nav className="v-nav" aria-label="Primary">
-              {NAV_LINKS.map((label, i) => (
+              {NAV_LINKS.map(({ label, targetId }, i) => (
                 <a
                   key={label}
-                  href="#"
+                  href={`#${targetId}`}
                   className={`v-nav-link${i === 0 ? ' active' : ''}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setMenuOpen(false)
-                    if (label === 'Services') setView('app')
-                  }}
+                  onClick={(e) => handleNavClick(e, targetId)}
                 >
                   {label}
                 </a>

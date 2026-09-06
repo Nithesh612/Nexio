@@ -114,7 +114,7 @@ export default function LatestModels() {
   const marqueeModels = [...models, ...models, ...models];
 
   return (
-    <section className="latest-models-section">
+    <section className="latest-models-section" id="extensions">
       <div className="latest-models-header">
         <h2 className="latest-models-title">With all the latest models</h2>
         <p className="latest-models-subtitle">

@@ -1832,6 +1832,8 @@ export default function DashboardPage({ onBack, onAddLink }) {
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 6px 0 28px rgba(0, 0, 0, 0.16);
             overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
             gap: 16px;

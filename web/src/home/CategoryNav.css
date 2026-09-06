@@ -278,6 +278,8 @@
   .category-pill-container {
     width: 100%;
     overflow-x: auto;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
     padding: 4px 16px 10px;

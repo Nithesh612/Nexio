@@ -201,7 +201,7 @@ export default function AnimatedConnect01() {
   );
 
   return (
-    <div className="w-full min-h-[520px] sm:min-h-[640px] bg-[#fbfbfa] py-14 sm:py-20 px-3 sm:px-6 lg:px-8 flex flex-col items-center justify-center relative overflow-hidden font-sans">
+    <div id="integrations" className="w-full min-h-[520px] sm:min-h-[640px] bg-[#fbfbfa] py-14 sm:py-20 px-3 sm:px-6 lg:px-8 flex flex-col items-center justify-center relative overflow-hidden font-sans">
       
       {/* Header Badge */}
       <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-2">

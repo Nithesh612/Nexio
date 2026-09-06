@@ -21,8 +21,7 @@
   max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overscroll-behavior: contain;
   background: #ffffff;
   border-radius: 20px;
   padding: 28px;
@@ -31,10 +30,6 @@
     0 0 0 1px rgba(0, 0, 0, 0.05);
   animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: inherit;
-}
-
-.save-modal-card::-webkit-scrollbar {
-  display: none;
 }
 
 @keyframes modalFadeIn {

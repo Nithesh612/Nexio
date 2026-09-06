@@ -116,7 +116,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
   };
 
   return (
-    <div className="category-section">
+    <div className="category-section" id="features">
       <div className="category-pill-container">
         <div className="category-pill">
           {categories.map((cat) => (
