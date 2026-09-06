@@ -12,13 +12,15 @@ import {
   FlaskConical,
   Wrench,
   Ellipsis,
-  Bookmark
+  Bookmark,
+  Zap
 } from 'lucide-react';
 import { analyzeLinkUrl } from '../utils/urlAnalyzer';
 import './SaveLinkModal.css';
 
 const PRIMARY_CATEGORIES = [
   { id: 'Saved', label: 'Saved', icon: Bookmark },
+  { id: 'Quick Assets', label: 'Quick Assets', icon: Zap },
   { id: 'UI/UX', label: 'UI/UX', icon: LayoutGrid },
   { id: 'AI Image & Video', label: 'AI Image & Video', icon: Video },
   { id: 'AI', label: 'AI', icon: Bot },
@@ -168,11 +170,13 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
     if (!url.trim()) return;
     const cats = selectedCategories.length ? selectedCategories : ['Saved'];
     const categoryString = cats.join(', ');
+    const isQuick = cats.includes('Quick Assets') || cats.some(c => String(c).toLowerCase().includes('quick'));
     onSave({
       url: url.trim(),
       title: title.trim() || formatTitle(url),
       category: categoryString,
       categories: cats,
+      collection: isQuick ? 'Quick Assets' : undefined,
       description: description.trim(),
     });
   };

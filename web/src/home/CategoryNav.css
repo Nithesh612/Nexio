@@ -1,6 +1,6 @@
 .category-section {
   width: 100%;
-  padding: 60px 24px;
+  padding: 84px 24px 60px;
   background-color: #f6f5f3; /* off-white matching the screenshot bg */
   display: flex;
   flex-direction: column;
@@ -264,7 +264,7 @@
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .category-section {
-    padding: 48px 20px;
+    padding: 72px 20px 48px;
   }
   .features-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -274,7 +274,7 @@
 
 @media (max-width: 768px) {
   .category-section {
-    padding: 36px 16px;
+    padding: 60px 16px 36px;
   }
   .category-pill-container {
     width: 100%;
@@ -320,7 +320,7 @@
 
 @media (max-width: 480px) {
   .category-section {
-    padding: 28px 12px;
+    padding: 60px 12px 28px;
   }
   .section-main-title {
     font-size: 26px;

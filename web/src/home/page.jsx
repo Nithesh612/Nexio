@@ -4,8 +4,14 @@ import CategoryNav from './CategoryNav'
 import LinksSection from './links'
 import SaveLinkModal from './SaveLinkModal'
 import DashboardPage from '../dashbord/page'
+import DesignPage from '../design/page'
+import AIToolsPage from '../AI-tools/page'
 import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
-import LatestModels from './LatestModels'
+import EssentialAITools from './EssentialAITools'
+import FeaturedQuickAssets from './FeaturedQuickAssets'
+import NewsletterSection from '../components/NewsletterSection'
+import Footer from '../components/Footer'
+import Header from '../components/Header'
 import { API_URL } from '../config/api'
 
 const initialLinks = [
@@ -215,8 +221,12 @@ export default function Home() {
     try {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#dashboard' || hash === '#app') return 'app';
+      if (hash === '#design') return 'design';
+      if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') return 'ai-tools';
       const saved = localStorage.getItem('nexio_current_view');
       if (saved === 'app') return 'app';
+      if (saved === 'design') return 'design';
+      if (saved === 'ai-tools') return 'ai-tools';
     } catch {
       // fallback
     }
@@ -231,8 +241,16 @@ export default function Home() {
         if (window.location.hash !== '#dashboard') {
           window.history.pushState(null, '', '#dashboard');
         }
+      } else if (newView === 'design') {
+        if (window.location.hash !== '#design') {
+          window.history.pushState(null, '', '#design');
+        }
+      } else if (newView === 'ai-tools') {
+        if (window.location.hash !== '#ai-tools') {
+          window.history.pushState(null, '', '#ai-tools');
+        }
       } else {
-        if (window.location.hash === '#dashboard' || window.location.hash === '#app') {
+        if (window.location.hash === '#dashboard' || window.location.hash === '#app' || window.location.hash === '#design' || window.location.hash === '#ai-tools' || window.location.hash === '#ai') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
       }
@@ -247,6 +265,12 @@ export default function Home() {
       if (hash === '#dashboard' || hash === '#app') {
         setView('app');
         localStorage.setItem('nexio_current_view', 'app');
+      } else if (hash === '#design') {
+        setView('design');
+        localStorage.setItem('nexio_current_view', 'design');
+      } else if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') {
+        setView('ai-tools');
+        localStorage.setItem('nexio_current_view', 'ai-tools');
       } else if (!hash || hash === '#features' || hash === '#use-cases' || hash === '#extensions' || hash === '#integrations') {
         setView('landing');
         localStorage.setItem('nexio_current_view', 'landing');
@@ -406,6 +430,7 @@ export default function Home() {
     const selectedCategory = linkData?.category || form.type || 'UI/UX'
 
     const categoryDescriptions = {
+      'Quick Assets': 'Lightweight utility, plugin, or vector asset.',
       'UI/UX': 'Design and interface inspiration.',
       'AI Image & Video': 'AI image generators, video synthesis, and visual creation tools.',
       'AI': 'Artificial intelligence models, chatbots, and autonomous agents.',
@@ -421,6 +446,7 @@ export default function Home() {
     }
     const smartDescription = linkData?.description || categoryDescriptions[selectedCategory] || `Saved bookmark from ${derivedTitle}.`
 
+    const isQuick = String(selectedCategory || '').toLowerCase().includes('quick') || linkData?.collection === 'Quick Assets'
     const isSaved = String(selectedCategory || '').toLowerCase().includes('saved')
 
     try {
@@ -431,9 +457,13 @@ export default function Home() {
         body: JSON.stringify({
           title: derivedTitle,
           url: cleanUrl,
-          category: selectedCategory || 'Saved',
+          category: selectedCategory || (isQuick ? 'Featured Quick Asset' : 'Saved'),
           description: smartDescription,
-          collection: isSaved ? 'Inbox' : 'All Links',
+          collection: isQuick ? 'Quick Assets' : (isSaved ? 'Inbox' : 'All Links'),
+          badge: isQuick ? (linkData?.badge || 'Free') : '',
+          logoUrl: linkData?.logoUrl || '',
+          bannerUrl: linkData?.bannerUrl || '',
+          favorite: false,
           readLater: isSaved,
         }),
       })
@@ -447,7 +477,7 @@ export default function Home() {
           source: normalizeUrl(savedData.url).split('/')[0].replace(/^www\./, ''),
           type: savedData.category || selectedCategory || 'Saved',
           category: savedData.category || selectedCategory || 'Saved',
-          collection: savedData.collection || (isSaved ? 'Inbox' : 'All Links'),
+          collection: savedData.collection || (isQuick ? 'Quick Assets' : (isSaved ? 'Inbox' : 'All Links')),
           description: savedData.description || `Saved link for ${savedData.title}`,
           tags: [(savedData.category || selectedCategory || 'saved').toLowerCase()],
           color: '#def7ec',
@@ -455,6 +485,7 @@ export default function Home() {
           saved: 'Just now',
           favorite: Boolean(savedData.favorite),
           readLater: Boolean(savedData.readLater) || isSaved,
+          kind: isQuick ? 'quick-asset' : 'regular'
         }
 
         setLinks((current) => [newLink, ...current])
@@ -463,6 +494,7 @@ export default function Home() {
 
         setIsAdding(false)
         setRefreshTrigger((prev) => prev + 1)
+        window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
         setFilter('All links')
         setForm({
           title: '',
@@ -564,19 +596,41 @@ export default function Home() {
     <>
       {view === 'landing' ? (
         <>
-          <Hero
-            setIsAdding={setIsAdding}
-            setView={handleSetView}
-            onImport={handleImportFile}
-            onExport={handleExport}
+          <Header
+            currentView="landing"
+            onNavigate={(target) => {
+              if (target === 'landing') window.scrollTo({ top: 0, behavior: 'smooth' })
+              else if (target === 'design') handleSetView('design')
+              else if (target === 'ai-tools') handleSetView('ai-tools')
+              else if (target === 'app') handleSetView('app')
+            }}
+            onAddLink={() => setIsAdding(true)}
           />
-          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} />
+          
+          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} onNavigateToAITools={() => handleSetView('ai-tools')} />
+          <FeaturedQuickAssets />
+          <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />
           <LinksSection savedLinks={dbLinks} onAddLink={() => setIsAdding(true)} />
-          <LatestModels />
           <AnimatedConnect01 />
+          <NewsletterSection />
+          <Footer onNavigate={handleSetView} />
         </>
-      ) : (
+      ) : view === 'app' ? (
         <DashboardPage onBack={() => handleSetView('landing')} onAddLink={() => setIsAdding(true)} />
+      ) : view === 'ai-tools' ? (
+        <AIToolsPage 
+          onBackToHome={() => handleSetView('landing')} 
+          onNavigateToDesign={() => handleSetView('design')}
+          onNavigateToDashboard={() => handleSetView('app')}
+          onAddLink={() => setIsAdding(true)}
+        />
+      ) : (
+        <DesignPage 
+          onBack={() => handleSetView('landing')} 
+          onNavigateToAITools={() => handleSetView('ai-tools')}
+          onNavigateToDashboard={() => handleSetView('app')}
+          onAddLink={() => setIsAdding(true)}
+        />
       )}
 
       <SaveLinkModal

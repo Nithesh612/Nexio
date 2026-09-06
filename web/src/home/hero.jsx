@@ -1,31 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Plus, Search, Play, ArrowRight } from 'lucide-react'
+import { Search, Play, ArrowRight } from 'lucide-react'
 import './hero.css'
 import heroPoster from '../assets/hero.png'
-
-const NAV_LINKS = [
-  { label: 'Features', targetId: 'features' },
-  { label: 'Directory', targetId: 'use-cases' },
-  { label: 'Models', targetId: 'extensions' },
-  { label: 'Integrations', targetId: 'integrations' },
-]
+import Header from '../components/Header'
 
 export default function Hero({ setIsAdding, setView, onImport, onExport }) {
-  const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [videoState, setVideoState] = useState('loading')
   const videoRef = useRef(null)
-  const motionRef = useRef(null)
   const cardRef = useRef(null)
-
-  const handleNavClick = (e, targetId) => {
-    e.preventDefault()
-    setMenuOpen(false)
-    const el = document.getElementById(targetId)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
 
   useEffect(() => {
     const video = videoRef.current
@@ -36,23 +19,15 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
     video.play().catch(() => setVideoState('error'))
   }, [])
 
-  /* ── Close mobile menu on outside click ── */
-  useEffect(() => {
-    if (!menuOpen) return
-    const close = (e) => {
-      if (!e.target.closest('.v-header')) setMenuOpen(false)
-    }
-    document.addEventListener('pointerdown', close)
-    const esc = (e) => e.key === 'Escape' && setMenuOpen(false)
-    document.addEventListener('keydown', esc)
-    return () => {
-      document.removeEventListener('pointerdown', close)
-      document.removeEventListener('keydown', esc)
-    }
-  }, [menuOpen])
-
   return (
     <main className="v-viewport">
+      {/* ── Common Header ── */}
+      <Header
+        currentView="landing"
+        onNavigate={setView}
+        onAddLink={() => setIsAdding(true)}
+      />
+
       <section className="v-screen" id="screen">
         {/* ── Background video ── */}
         <video
@@ -73,95 +48,6 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
         {videoState === 'buffering' && (
           <span className="v-video-status" role="status" aria-label="Video buffering" />
         )}
-
-        {/* ── Header ── */}
-        <header className={`v-header${menuOpen ? ' menu-open' : ''}`}>
-          {/* Brand */}
-          <a className="v-brand" href="#" aria-label="Nexio home">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <rect width="32" height="32" rx="8" fill="rgba(255,255,255,0.08)" />
-              <path d="M9 23V9L23 23V9" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
-
-          {/* Desktop nav + time + sign-up */}
-          <div
-            className={`v-header-actions${menuOpen ? ' open' : ''}`}
-            id="tablet-navigation"
-          >
-            <nav className="v-nav" aria-label="Primary">
-              {NAV_LINKS.map(({ label, targetId }, i) => (
-                <a
-                  key={label}
-                  href={`#${targetId}`}
-                  className={`v-nav-link${i === 0 ? ' active' : ''}`}
-                  onClick={(e) => handleNavClick(e, targetId)}
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
-          </div>
-
-          {/* Add Link button + Dashboard button */}
-          <div className="v-header-right">
-            <button
-              className="v-add-link-btn"
-              type="button"
-              onClick={() => setIsAdding(true)}
-            >
-              <Plus size={15} strokeWidth={2.5} />
-              Add Link
-            </button>
-
-            <button
-              className="v-primary-cta"
-              type="button"
-              onClick={() => setView('app')}
-            >
-              Dashboard
-            </button>
-          </div>
-
-          {/* Hamburger toggle */}
-          <button
-            className="v-menu-toggle"
-            type="button"
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true">
-              <line
-                x1="0"
-                y1="1"
-                x2="18"
-                y2="1"
-                stroke="#fff"
-                strokeWidth="1.5"
-                className="bar top"
-              />
-              <line
-                x1="0"
-                y1="7"
-                x2="18"
-                y2="7"
-                stroke="#fff"
-                strokeWidth="1.5"
-                className="bar mid"
-              />
-              <line
-                x1="0"
-                y1="13"
-                x2="18"
-                y2="13"
-                stroke="#fff"
-                strokeWidth="1.5"
-                className="bar bot"
-              />
-            </svg>
-          </button>
-        </header>
 
         {/* ── Hero section ── */}
         <section className="v-hero">

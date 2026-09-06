@@ -28,6 +28,7 @@ import {
 import LottieAnimation from '../home/LottieAnimation'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 import { API_URL } from '../config/api'
+import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 const stats = [
@@ -38,8 +39,8 @@ const stats = [
 ]
 
 const PREDEFINED_CATEGORIES = [
-  'Saved', 'UI/UX', 'AI Image & Video', 'AI', 'Inspiration', 'Other',
-  'Wallpaper', 'Stock', 'Host', 'Article', 'Research', 'Tools'
+  'Saved', 'Quick Assets', 'UI/UX', 'AI Image & Video', 'AI', 'Inspiration', 'Other',
+  'Wallpaper', 'Stock', 'Host', 'Article', 'Research', 'Tools', 'Featured Quick Asset'
 ]
 
 const recentLinks = [
@@ -371,7 +372,7 @@ function mapLiveLink(item, index) {
     id: item.id || item._id || `live-${index}`,
     title,
     url: item.url,
-    description: getLiveDescription(item, title, category),
+    description: item.description || getLiveDescription(item, title, category),
     meta: [category],
     date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
     accent: category.toLowerCase().includes('design') ? '#f26c5c' : '#6d5df6',
@@ -381,6 +382,10 @@ function mapLiveLink(item, index) {
     favorite: Boolean(item.favorite),
     readLater: Boolean(item.readLater),
     collection: item.collection || 'All Links',
+    badge: item.badge || '',
+    logoUrl: item.logoUrl || '',
+    bannerUrl: item.bannerUrl || '',
+    kind: (item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset') ? 'quick-asset' : (item.kind || 'regular'),
   }
 }
 
@@ -400,12 +405,127 @@ function InboxIcon({ className }) {
   return <div className={className}><Inbox size={18} /></div>
 }
 
+function QuickAssetCard({ item, onOpen, onEdit, onDelete }) {
+  const [bannerError, setBannerError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+  const [bannerFallback, setBannerFallback] = useState(0)
+
+  const cleanUrl = item.url ? (item.url.startsWith('http') ? item.url : `https://${item.url}`) : ''
+  const hostname = getHostname(item.url)
+
+  const getBannerSrc = () => {
+    if (bannerFallback === 0 && item.bannerUrl) return item.bannerUrl
+    if (bannerFallback <= 1) return `https://image.thum.io/get/width/700/crop/480/noanimate/${cleanUrl}`
+    if (bannerFallback === 2) return `https://api.microlink.io/?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`
+    if (bannerFallback === 3) return `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=700&h=450`
+    return null
+  }
+
+  const getLogoSrc = () => {
+    if (logoError) return getFaviconUrl(item.url)
+    return item.logoUrl || getFaviconUrl(item.url)
+  }
+
+  const bannerSrc = getBannerSrc()
+  const logoSrc = getLogoSrc()
+
+  return (
+    <article key={item.id} className="service-card">
+      {/* Live Screen Banner Container */}
+      <div className="service-preview" style={{ '--dot-color': '#6366f1', position: 'relative', overflow: 'hidden' }}>
+        {bannerSrc && !bannerError ? (
+          <img
+            src={bannerSrc}
+            alt={`${item.title} live preview`}
+            onError={() => {
+              if (bannerFallback < 3) {
+                setBannerFallback(prev => prev + 1)
+              } else {
+                setBannerError(true)
+              }
+            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
+            loading="lazy"
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #e0e7ff, #f3e8ff)' }}>
+            <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#4f46e5' }}>{item.title ? item.title.charAt(0) : '⚡'}</span>
+          </div>
+        )}
+        <span className="service-category">{item.category || 'Featured Quick Asset'}</span>
+      </div>
+
+      {/* Live Logo Badge Header */}
+      <div className="service-card-top">
+        <div className="service-icon" style={{ '--dot-color': '#6366f1', background: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden', padding: '3px' }}>
+          <img
+            src={logoSrc}
+            alt={`${item.title} logo`}
+            onError={() => setLogoError(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            loading="lazy"
+          />
+        </div>
+        <div className="service-card-actions">
+          <button
+            type="button"
+            className="favorite-action"
+            aria-label={`Open ${item.title}`}
+            title="Open asset"
+            onClick={() => onOpen(item.url)}
+          >
+            <ArrowUpRight size={18} />
+          </button>
+        </div>
+      </div>
+
+      <div className="link-title">{item.title}</div>
+      <div className="link-description">{item.description}</div>
+      <div className="date">{hostname}</div>
+      <div className="service-footer">
+        <button type="button" className="service-open" onClick={() => onOpen(item.url)}>
+          Open asset <ArrowUpRight size={15} />
+        </button>
+        <div className="card-actions-group">
+          <button type="button" className="card-action edit-action" onClick={() => onEdit(item)}>
+            <Edit2 size={13} /> Edit
+          </button>
+          <button type="button" className="card-action delete-action" onClick={() => onDelete(item)}>
+            <Trash2 size={13} /> Delete
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 const navItems = [
   { label: 'All Links', icon: LayoutGrid },
   { label: 'Dashboard', icon: FolderKanban },
+  { label: 'Quick Assets', icon: Palette },
   { label: 'Saved', icon: Inbox },
   { label: 'Favorites', icon: Star },
 ]
+
+function getDeletedQuickAssets() {
+  try {
+    const raw = localStorage.getItem('nexio_deleted_quick_assets')
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function addDeletedQuickAsset(id, url) {
+  try {
+    const list = getDeletedQuickAssets()
+    if (id && !list.includes(String(id))) list.push(String(id))
+    if (url && !list.includes(String(url))) list.push(String(url))
+    localStorage.setItem('nexio_deleted_quick_assets', JSON.stringify(list))
+  } catch {
+    // Ignore localStorage write error
+  }
+}
 
 export default function DashboardPage({ onBack, onAddLink }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -425,6 +545,23 @@ export default function DashboardPage({ onBack, onAddLink }) {
   const [itemToEdit, setItemToEdit] = useState(null)
   const [editForm, setEditForm] = useState({ title: '', description: '', url: '', category: '' })
   const [isEditing, setIsEditing] = useState(false)
+
+  const quickAssets = useMemo(() => {
+    let list = liveLinks.filter(
+      (item) => item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset'
+    )
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter((item) =>
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.url && item.url.toLowerCase().includes(q)) ||
+        (item.category && item.category.toLowerCase().includes(q))
+      )
+    }
+    return list
+  }, [liveLinks, searchQuery])
+
   const [viewMode, setViewMode] = useState('grid')
   const cardsPerPage = 8
 
@@ -438,9 +575,21 @@ export default function DashboardPage({ onBack, onAddLink }) {
         const response = await fetch(API_URL)
         if (!response.ok) throw new Error('Unable to fetch links')
         const data = await response.json()
-        if (isActive) setLiveLinks(Array.isArray(data) ? data.map(mapLiveLink) : [])
+        const deletedList = getDeletedQuickAssets()
+
+        let loadedLinks = Array.isArray(data) ? data.map(mapLiveLink) : []
+
+        // Filter out any locally deleted assets from loaded links
+        loadedLinks = loadedLinks.filter(
+          (link) => !deletedList.includes(String(link.id)) && !deletedList.includes(String(link._id)) && !deletedList.includes(String(link.url))
+        )
+
+        if (isActive) setLiveLinks(loadedLinks)
       } catch (error) {
-        if (isActive) setLinksError('Could not load live links from MongoDB.')
+        if (isActive) {
+          setLinksError('Could not load live links from MongoDB.')
+          setLiveLinks([])
+        }
       } finally {
         if (isActive) setIsLoadingLinks(false)
       }
@@ -504,6 +653,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
     currentPage * cardsPerPage,
   )
   const isDashboardView = activeNav === 'Dashboard'
+  const isQuickAssetsView = activeNav === 'Quick Assets'
 
   const liveStats = useMemo(() => {
     const savedCount = liveLinks.filter((item) => {
@@ -603,8 +753,8 @@ export default function DashboardPage({ onBack, onAddLink }) {
 
   const handleEditService = (item) => {
     setItemToEdit(item)
-    setEditForm({ 
-      title: item.title || '', 
+    setEditForm({
+      title: item.title || '',
       description: item.description || '',
       url: item.url || '',
       category: item.category || ''
@@ -616,33 +766,72 @@ export default function DashboardPage({ onBack, onAddLink }) {
     if (!itemToEdit || !editForm.title.trim()) return
     setIsEditing(true)
     try {
-      const response = await fetch(`${API_URL}/${itemToEdit.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: editForm.title.trim(),
-          url: editForm.url.trim(),
-          category: editForm.category.trim(),
-          description: editForm.description.trim(),
-          collection: itemToEdit.collection,
-          favorite: itemToEdit.favorite,
-          readLater: itemToEdit.readLater,
-        }),
-      })
-      if (!response.ok) throw new Error('Edit failed')
+      const isQuick = itemToEdit.kind === 'quick-asset' || itemToEdit.collection === 'Quick Assets' || itemToEdit.category === 'Featured Quick Asset'
 
-      setLiveLinks((current) => current.map((link) => (
-        link.id === itemToEdit.id ? { 
-          ...link, 
-          title: editForm.title.trim(), 
-          description: editForm.description.trim(),
-          url: editForm.url.trim(),
-          category: editForm.category.trim()
-        } : link
-      )))
-      setStatus('Link updated successfully.')
+      const payload = {
+        title: editForm.title.trim(),
+        url: editForm.url.trim(),
+        category: editForm.category.trim() || (isQuick ? 'Featured Quick Asset' : 'General'),
+        description: editForm.description.trim(),
+        collection: itemToEdit.collection || (isQuick ? 'Quick Assets' : 'All Links'),
+        favorite: Boolean(itemToEdit.favorite),
+        readLater: Boolean(itemToEdit.readLater),
+        badge: itemToEdit.badge || '',
+        logoUrl: itemToEdit.logoUrl || '',
+        bannerUrl: itemToEdit.bannerUrl || '',
+      }
+
+      let savedData = null
+      const editId = itemToEdit.id || itemToEdit._id
+      const isFallbackId = !editId || String(editId).startsWith('ct') || String(editId).startsWith('preset-') || String(editId).startsWith('live-')
+
+      if (!isFallbackId) {
+        const response = await fetch(`${API_URL}/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (response.ok) {
+          savedData = await response.json()
+        }
+      }
+
+      if (!savedData && !isFallbackId) {
+        const postRes = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (postRes.ok) {
+          savedData = await postRes.json()
+        }
+      }
+
+      if (savedData) {
+        const mapped = mapLiveLink(savedData)
+        setLiveLinks((current) => {
+          const exists = current.some((l) => l.id === editId || l.url === payload.url)
+          if (exists) {
+            return current.map((l) => (l.id === editId || l.url === payload.url ? mapped : l))
+          }
+          return [mapped, ...current]
+        })
+      } else {
+        setLiveLinks((current) => current.map((link) => (
+          (link.id === editId || link.url === itemToEdit.url) ? {
+            ...link,
+            title: payload.title,
+            description: payload.description,
+            url: payload.url,
+            category: payload.category,
+          } : link
+        )))
+      }
+
+      window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
+      setStatus(isQuick ? 'Quick asset saved successfully.' : 'Link updated successfully.')
     } catch {
-      setStatus('Could not update this link in MongoDB.')
+      setStatus('Could not update this link.')
     } finally {
       setIsEditing(false)
       setItemToEdit(null)
@@ -656,13 +845,30 @@ export default function DashboardPage({ onBack, onAddLink }) {
   const confirmDelete = async () => {
     if (!itemToDelete) return
     setIsDeleting(true)
+    const deleteId = itemToDelete.id || itemToDelete._id
+    const deleteUrl = itemToDelete.url
+    const isFallbackId = !deleteId || String(deleteId).startsWith('ct') || String(deleteId).startsWith('preset-') || String(deleteId).startsWith('live-')
     try {
-      const response = await fetch(`${API_URL}/${itemToDelete.id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Delete failed')
-      setLiveLinks((current) => current.filter((link) => link.id !== itemToDelete.id))
-      setStatus('Link deleted successfully.')
+      if (!isFallbackId) {
+        // Has a real MongoDB ObjectId — delete from DB
+        const res = await fetch(`${API_URL}/${deleteId}`, { method: 'DELETE' })
+        if (!res.ok && res.status !== 404) throw new Error('Delete failed')
+      }
+
+      // Track in localStorage so it stays deleted even across refreshes / fallbacks
+      addDeletedQuickAsset(deleteId, deleteUrl)
+
+      // Remove from local state immediately regardless
+      setLiveLinks((current) => current.filter((link) => {
+        if (deleteId && (link.id === deleteId || link._id === deleteId || String(link.id) === String(deleteId))) return false
+        if (deleteUrl && link.url === deleteUrl) return false
+        return true
+      }))
+
+      window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
+      setStatus('Deleted successfully.')
     } catch {
-      setStatus('Could not delete this link from MongoDB.')
+      setStatus('Could not delete this item from MongoDB.')
     } finally {
       setIsDeleting(false)
       setItemToDelete(null)
@@ -2203,7 +2409,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                   if (typeof onBack === 'function') onBack()
                 }}
               >
-                ← Back to home
+                Back to home
               </button>
             </div>
           )}
@@ -2298,7 +2504,39 @@ export default function DashboardPage({ onBack, onAddLink }) {
 
           <section className="panel">
             <div className="list-view">
-              {isLoadingLinks ? (
+              {isQuickAssetsView ? (
+                quickAssets.length === 0 ? (
+                  <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1' }}>
+                    <div className="dashboard-empty-animation">
+                      <img
+                        src="/assets/empty/no-messages.svg"
+                        alt="No quick assets"
+                        style={{ width: '180px', height: '140px', objectFit: 'contain' }}
+                      />
+                    </div>
+                    <h3 className="dashboard-empty-title">No quick assets available</h3>
+                    <p className="dashboard-empty-subtitle">
+                      Add lightweight utilities, plugins, and vector sets to your Quick Assets workspace.
+                    </p>
+                    <button
+                      type="button"
+                      className="dashboard-empty-add-btn"
+                      onClick={onAddLink}
+                    >
+                      <Plus size={16} />
+                      <span>Add Quick Asset</span>
+                    </button>
+                  </div>
+                ) : quickAssets.map((item) => (
+                  <QuickAssetCard
+                    key={item.id}
+                    item={item}
+                    onOpen={handleOpenService}
+                    onEdit={handleEditService}
+                    onDelete={handleDeleteService}
+                  />
+                ))
+              ) : isLoadingLinks ? (
                 Array.from({ length: 8 }).map((_, idx) => (
                   <article key={idx} className="service-card skeleton-service-card">
                     <div className="skeleton-preview" />
@@ -2420,7 +2658,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                         }}
                       />
                       <span className="service-icon-fallback" style={{ display: 'none' }}>
-                        <item.icon size={21} />
+                        {item.icon ? <item.icon size={21} /> : <FileText size={21} />}
                       </span>
                     </div>
                     <div className="service-card-actions">
@@ -2507,17 +2745,17 @@ export default function DashboardPage({ onBack, onAddLink }) {
             <h3>Delete Link</h3>
             <p>Are you sure you want to delete <strong>{itemToDelete.title}</strong>? This action cannot be undone.</p>
             <div className="delete-modal-actions">
-              <button 
-                type="button" 
-                className="cancel-btn" 
+              <button
+                type="button"
+                className="cancel-btn"
                 onClick={() => setItemToDelete(null)}
                 disabled={isDeleting}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                className="delete-btn" 
+              <button
+                type="button"
+                className="delete-btn"
                 onClick={confirmDelete}
                 disabled={isDeleting}
                 autoFocus
@@ -2539,8 +2777,8 @@ export default function DashboardPage({ onBack, onAddLink }) {
             <form className="edit-modal-form" onSubmit={confirmEdit}>
               <div className="form-group">
                 <label>Title</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
                   required
@@ -2549,8 +2787,8 @@ export default function DashboardPage({ onBack, onAddLink }) {
               </div>
               <div className="form-group">
                 <label>URL</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   value={editForm.url}
                   onChange={(e) => setEditForm(prev => ({ ...prev, url: e.target.value }))}
                   required
@@ -2559,7 +2797,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
               </div>
               <div className="form-group">
                 <label>Category</label>
-                <select 
+                <select
                   value={editForm.category}
                   onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
                 >
@@ -2574,24 +2812,24 @@ export default function DashboardPage({ onBack, onAddLink }) {
               </div>
               <div className="form-group">
                 <label>Description</label>
-                <textarea 
+                <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Add a description..."
                 />
               </div>
               <div className="delete-modal-actions" style={{ marginTop: '24px' }}>
-                <button 
-                  type="button" 
-                  className="cancel-btn" 
+                <button
+                  type="button"
+                  className="cancel-btn"
                   onClick={() => setItemToEdit(null)}
                   disabled={isEditing}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  className="save-btn" 
+                <button
+                  type="submit"
+                  className="save-btn"
                   disabled={isEditing || !editForm.title.trim()}
                 >
                   {isEditing ? 'Saving...' : 'Save Changes'}
