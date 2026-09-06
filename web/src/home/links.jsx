@@ -276,42 +276,28 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
 
           {/* Pagination — 4 columns x 3 rows = 12 items per page */}
           {totalPages > 1 && (
-            <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', marginTop:'40px', paddingTop:'24px', borderTop:'1px solid #f1f5f9'}}>
+            <div className="links-pagination">
               {/* Prev */}
               <button
+                type="button"
+                className="links-nav-page-btn"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 18px', borderRadius: '999px',
-                  border: '1.5px solid', fontSize: '13px', fontWeight: 600,
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  background: currentPage === 1 ? '#f8fafc' : '#0f172a',
-                  borderColor: currentPage === 1 ? '#e2e8f0' : '#0f172a',
-                  color: currentPage === 1 ? '#cbd5e1' : '#ffffff',
-                }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
-                Prev
+                <span>Prev</span>
               </button>
 
               {/* Page Numbers */}
-              <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
+              <div className="links-page-numbers">
                 {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
                   <button
                     key={page}
+                    type="button"
+                    className={`links-page-btn ${currentPage === page ? 'active' : ''}`}
                     onClick={() => setCurrentPage(page)}
-                    style={{
-                      width: '36px', height: '36px', borderRadius: '50%',
-                      border: '1.5px solid', fontSize: '13px', fontWeight: 600,
-                      cursor: 'pointer', transition: 'all 0.2s',
-                      background: currentPage === page ? '#0f172a' : 'transparent',
-                      borderColor: currentPage === page ? '#0f172a' : '#e2e8f0',
-                      color: currentPage === page ? '#ffffff' : '#64748b',
-                    }}
                   >
                     {page}
                   </button>
@@ -320,20 +306,12 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
 
               {/* Next */}
               <button
+                type="button"
+                className="links-nav-page-btn"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 18px', borderRadius: '999px',
-                  border: '1.5px solid', fontSize: '13px', fontWeight: 600,
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s',
-                  background: currentPage === totalPages ? '#f8fafc' : '#0f172a',
-                  borderColor: currentPage === totalPages ? '#e2e8f0' : '#0f172a',
-                  color: currentPage === totalPages ? '#cbd5e1' : '#ffffff',
-                }}
               >
-                Next
+                <span>Next</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>

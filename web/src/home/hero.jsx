@@ -27,7 +27,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
   useEffect(() => {
     if (!menuOpen) return
     const close = (e) => {
-      if (!e.target.closest('.header')) setMenuOpen(false)
+      if (!e.target.closest('.v-header')) setMenuOpen(false)
     }
     document.addEventListener('pointerdown', close)
     const esc = (e) => e.key === 'Escape' && setMenuOpen(false)

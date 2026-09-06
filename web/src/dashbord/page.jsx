@@ -16,12 +16,14 @@ import {
   Link2,
   LayoutGrid,
   List,
+  Menu,
   Palette,
   Plus,
   Search,
   Star,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
@@ -406,6 +408,7 @@ const navItems = [
 ]
 
 export default function DashboardPage({ onBack, onAddLink }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('All Links')
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
@@ -782,6 +785,32 @@ export default function DashboardPage({ onBack, onAddLink }) {
           display: flex;
           background: #f3f1ee;
           zoom: 1;
+          position: relative;
+        }
+        .mobile-menu-btn {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          border: 1px solid rgba(15,23,42,0.12);
+          background: #ffffff;
+          color: #1e293b;
+          cursor: pointer;
+          flex-shrink: 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          transition: all 0.2s ease;
+        }
+        .mobile-menu-btn:hover {
+          background: #f8fafc;
+          border-color: rgba(15,23,42,0.2);
+        }
+        .sidebar-backdrop {
+          display: none;
+        }
+        .sidebar-mobile-header {
+          display: none;
         }
         .sidebar {
           width: 250px;
@@ -815,6 +844,27 @@ export default function DashboardPage({ onBack, onAddLink }) {
           letter-spacing: -0.03em;
           color: #2f2a3c;
         }
+        .back-home-btn {
+          align-self: flex-start;
+          margin-bottom: 8px;
+          border: 1px solid rgba(15,23,42,0.1);
+          background: rgba(255,255,255,0.9);
+          border-radius: 10px;
+          padding: 8px 12px;
+          color: #374151;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .back-home-btn:hover {
+          background: #ffffff;
+          border-color: rgba(15,23,42,0.22);
+          color: #111827;
+          transform: translateX(-2px);
+        }
         .new-link-btn {
           display: flex;
           align-items: center;
@@ -828,6 +878,12 @@ export default function DashboardPage({ onBack, onAddLink }) {
           color: white;
           font-weight: 700;
           box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .new-link-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
         }
         .side-section-label {
           display: none;
@@ -855,9 +911,18 @@ export default function DashboardPage({ onBack, onAddLink }) {
           border: none;
           text-align: left;
           width: 100%;
+          cursor: pointer;
+          transition: background-color 0.18s ease, color 0.18s ease;
+        }
+        .nav-item:hover {
+          background: rgba(15, 23, 42, 0.05);
         }
         .nav-item.active {
           background: #17211c;
+          color: #ffffff;
+        }
+        .nav-item.active .counter {
+          background: rgba(255, 255, 255, 0.2);
           color: #ffffff;
         }
         .nav-item .counter {
@@ -1568,6 +1633,130 @@ export default function DashboardPage({ onBack, onAddLink }) {
           object-fit: contain;
           opacity: 0.86;
         }
+        /* ============================================================
+           DASHBOARD SKELETON SHIMMER LOADING
+           ============================================================ */
+        .skeleton-service-card {
+          pointer-events: none;
+          cursor: default;
+          overflow: hidden;
+        }
+        .skeleton-preview {
+          width: 100%;
+          height: 154px;
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .skeleton-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .skeleton-badge {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .skeleton-body {
+          padding: 12px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .skeleton-line {
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          border-radius: 4px;
+        }
+        .skeleton-card-title {
+          height: 15px;
+          width: 75%;
+          margin-bottom: 2px;
+        }
+        .skeleton-card-desc {
+          height: 11px;
+          width: 95%;
+        }
+        .skeleton-card-desc-short {
+          height: 11px;
+          width: 65%;
+        }
+        .skeleton-tags {
+          display: flex;
+          gap: 6px;
+          margin-top: 4px;
+        }
+        .skeleton-tag {
+          width: 48px;
+          height: 18px;
+          border-radius: 999px;
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .skeleton-footer {
+          margin-top: auto;
+          padding: 12px 16px;
+          border-top: 1px solid #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .skeleton-url {
+          height: 12px;
+          width: 35%;
+        }
+        .skeleton-action-icons {
+          display: flex;
+          gap: 6px;
+        }
+        .skeleton-circle {
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background-size: 200% 100%;
+          animation: skeletonShimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Responsive Linear Skeleton */
+        .list-view-linear .skeleton-service-card {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          height: 104px;
+        }
+        .list-view-linear .skeleton-preview {
+          width: 140px;
+          height: 100%;
+          flex-shrink: 0;
+        }
+        .list-view-linear .skeleton-body {
+          flex: 1;
+          padding: 10px 16px;
+        }
+        .list-view-linear .skeleton-footer {
+          margin-top: 0;
+          border-top: none;
+          border-left: 1px solid #f1f5f9;
+          height: 100%;
+          padding: 0 16px;
+          flex-direction: column;
+          justify-content: center;
+          gap: 8px;
+        }
+        @keyframes skeletonShimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
         .pagination {
           display: flex;
           align-items: center;
@@ -1608,30 +1797,139 @@ export default function DashboardPage({ onBack, onAddLink }) {
           cursor: not-allowed;
           opacity: 0.45;
         }
-        @media (max-width: 1100px) {
-          .dashboard-shell { flex-direction: column; }
-          .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(15,23,42,0.08); padding: 16px; }
-          .nav-list { flex-direction: row; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-          .nav-list::-webkit-scrollbar { display: none; }
-          .nav-item { width: auto; white-space: nowrap; padding: 10px 16px; }
-          .new-link-btn { width: max-content; padding: 10px 16px; margin-bottom: 16px; display: inline-flex; }
-          .upgrade-card { display: none; }
-          .stats-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
-          .topbar { flex-direction: column; align-items: flex-start; }
-          .top-actions { width: 100%; justify-content: space-between; }
-          .search-input-wrap { flex: 1; }
+        @media (max-width: 1200px) {
+          .list-view { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
-        @media (max-width: 700px) {
-          .main-content { padding: 20px 16px 24px; }
-          .greeting { font-size: 1.7rem; }
-          .stats-grid { grid-template-columns: 1fr; }
-          .tool-row { flex-direction: column; align-items: stretch; }
-          .selector { min-width: 0; }
-          .list-view { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (max-width: 1024px) {
+          .mobile-menu-btn {
+            display: inline-flex;
+          }
+          .sidebar-backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(4px);
+            z-index: 998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+          }
+          .sidebar-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+          }
+          .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 85vw;
+            background: #ffffff;
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 6px 0 28px rgba(0, 0, 0, 0.16);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px 16px;
+          }
+          .sidebar.open {
+            transform: translateX(0);
+          }
+          .sidebar-mobile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(15,23,42,0.08);
+          }
+          .sidebar-close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(15,23,42,0.1);
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .sidebar-close-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+          }
+          .main-content {
+            width: 100%;
+            min-width: 0;
+            padding: 16px 16px 24px;
+          }
+          .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+          }
+          .list-view {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .topbar {
+            gap: 12px;
+          }
+        }
+        @media (max-width: 768px) {
+          .main-content { padding: 14px 12px 24px; }
+          .greeting { font-size: 1.5rem; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .stat-card { padding: 12px 14px; }
+          .stat-value { font-size: 1.4rem; }
+          .stat-icon { width: 36px; height: 36px; }
+          .tool-row { flex-direction: column; align-items: stretch; gap: 10px; }
+          .selector { min-width: 0; width: 100%; }
+          .chip-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; margin-bottom: 16px; -ms-overflow-style: none; scrollbar-width: none; }
+          .chip-row::-webkit-scrollbar { display: none; }
+          .chip { white-space: nowrap; padding: 6px 14px; font-size: 0.85rem; }
+          .action-row { justify-content: stretch; margin: 10px 0 14px; }
+          .action-buttons { flex-wrap: wrap; gap: 8px; }
+          .ghost-btn { padding: 8px 10px; font-size: 0.82rem; }
+          .list-view-linear .service-card {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+          }
+          .list-view-linear .service-preview {
+            height: 140px;
+            border-right: none;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .list-view-linear .service-card-top { padding: 14px 16px 0; }
+          .list-view-linear .link-title { margin: 10px 16px 4px; }
+          .list-view-linear .link-description { margin: 0 16px 8px; }
+          .list-view-linear .meta-tags { margin: 0 16px; }
+          .list-view-linear .service-footer {
+            border-left: none;
+            border-top: 1px solid #f1f5f9;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 12px 16px;
+          }
+        }
+        @media (max-width: 640px) {
+          .list-view { grid-template-columns: 1fr; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+          .top-actions { width: 100%; justify-content: space-between; }
+          .pagination { align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
+          .pagination-actions { flex-wrap: wrap; justify-content: center; }
         }
         @media (max-width: 480px) {
-          .list-view { grid-template-columns: 1fr; }
-          .pagination { align-items: flex-start; flex-direction: column; }
+          .topbar { flex-direction: column; align-items: stretch; gap: 10px; }
+          .topbar-main-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+          .topbar-main-row .search-input-wrap { flex: 1; min-width: 0; }
+          .top-actions { width: 100%; justify-content: space-between; }
         }
         .delete-modal-backdrop {
           position: fixed;
@@ -1642,16 +1940,30 @@ export default function DashboardPage({ onBack, onAddLink }) {
           align-items: center;
           justify-content: center;
           z-index: 1000;
+          padding: 16px;
           animation: modalFadeIn 0.2s ease-out;
         }
         .delete-modal-card {
           background: white;
-          width: 90%;
-          max-width: 400px;
+          width: min(400px, 100%);
+          max-height: calc(100vh - 32px);
+          max-height: calc(100dvh - 32px);
+          overflow-y: auto;
           border-radius: 16px;
           padding: 24px;
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           text-align: center;
+          animation: modalScaleUp 0.2s ease-out;
+        }
+        .edit-modal-card {
+          background: white;
+          width: min(460px, 100%);
+          max-height: calc(100vh - 32px);
+          max-height: calc(100dvh - 32px);
+          overflow-y: auto;
+          border-radius: 16px;
+          padding: 24px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           animation: modalScaleUp 0.2s ease-out;
         }
         .delete-modal-icon {
@@ -1780,29 +2092,49 @@ export default function DashboardPage({ onBack, onAddLink }) {
       `}</style>
 
       <div className="dashboard-shell">
-        <aside className="sidebar">
+        <div
+          className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden={!sidebarOpen}
+        />
+
+        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-mobile-header">
+            <div className="brand-row" style={{ padding: 0 }}>
+              <div className="brand-mark">N</div>
+              <div className="brand-name">Nexio</div>
+            </div>
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
           {onBack && (
             <button
               type="button"
-              onClick={onBack}
-              style={{
-                alignSelf: 'flex-start',
-                marginBottom: '8px',
-                border: '1px solid rgba(15,23,42,0.08)',
-                background: 'rgba(255,255,255,0.8)',
-                borderRadius: '10px',
-                padding: '8px 12px',
-                color: '#374151',
-                fontWeight: 700,
-                cursor: 'pointer',
+              className="back-home-btn"
+              onClick={() => {
+                setSidebarOpen(false)
+                if (typeof onBack === 'function') onBack()
               }}
             >
               ← Back to home
             </button>
           )}
 
-
-          <button className="new-link-btn" type="button" onClick={onAddLink}>
+          <button
+            className="new-link-btn"
+            type="button"
+            onClick={() => {
+              setSidebarOpen(false)
+              if (typeof onAddLink === 'function') onAddLink()
+            }}
+          >
             <Plus size={18} />
             Save new link
           </button>
@@ -1814,27 +2146,43 @@ export default function DashboardPage({ onBack, onAddLink }) {
                   key={label}
                   type="button"
                   className={`nav-item ${activeNav === label ? 'active' : ''}`}
-                  onClick={() => setActiveNav(label)}
+                  onClick={() => {
+                    setActiveNav(label)
+                    setActiveFilter('All')
+                    setCurrentPage(1)
+                    setSidebarOpen(false)
+                  }}
                 >
                   <Icon size={18} />
-                  {label}
+                  <span>{label}</span>
+                  {label === 'All Links' && <span className="counter">{liveLinks.length}</span>}
+                  {label === 'Favorites' && <span className="counter">{liveStats[3]?.value || 0}</span>}
+                  {label === 'Saved' && <span className="counter">{liveStats[1]?.value || 0}</span>}
                 </button>
               ))}
             </div>
           </div>
-
-
         </aside>
 
         <main className="main-content">
           <header className="topbar">
-            <div className="search-input-wrap">
-              <Search size={16} />
-              <input
-                placeholder="Search links, tags, notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="topbar-main-row">
+              <button
+                type="button"
+                className="mobile-menu-btn"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sidebar menu"
+              >
+                <Menu size={20} />
+              </button>
+              <div className="search-input-wrap">
+                <Search size={16} />
+                <input
+                  placeholder="Search links, tags, notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="top-actions">
@@ -1916,9 +2264,31 @@ export default function DashboardPage({ onBack, onAddLink }) {
 
             <div className={viewMode === 'list' ? 'list-view-linear' : 'list-view'}>
               {isLoadingLinks ? (
-                <div className="service-card empty-state" style={{ gridColumn: '1 / -1' }}>
-                  Loading links from MongoDB...
-                </div>
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <article key={idx} className="service-card skeleton-service-card">
+                    <div className="skeleton-preview" />
+                    <div className="service-card-top" style={{ padding: '14px 16px 0' }}>
+                      <div className="skeleton-avatar" />
+                      <div className="skeleton-badge" />
+                    </div>
+                    <div className="skeleton-body">
+                      <div className="skeleton-line skeleton-card-title" />
+                      <div className="skeleton-line skeleton-card-desc" />
+                      <div className="skeleton-line skeleton-card-desc-short" />
+                      <div className="skeleton-tags">
+                        <div className="skeleton-tag" />
+                        <div className="skeleton-tag" />
+                      </div>
+                    </div>
+                    <div className="skeleton-footer">
+                      <div className="skeleton-line skeleton-url" />
+                      <div className="skeleton-action-icons">
+                        <div className="skeleton-circle" />
+                        <div className="skeleton-circle" />
+                      </div>
+                    </div>
+                  </article>
+                ))
               ) : linksError ? (
                 <div className="service-card empty-state" style={{ gridColumn: '1 / -1', color: '#b45309' }}>
                   {linksError}

@@ -135,7 +135,18 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
 
       <div className="category-content-card">
         {loading ? (
-          <div className="empty-state">Loading links...</div>
+          <div className="features-grid">
+            {Array.from({ length: 9 }).map((_, idx) => (
+              <div key={idx} className="feature-item skeleton-feature-item">
+                <div className="feature-icon skeleton-box skeleton-icon-box" />
+                <div className="feature-text skeleton-text-col">
+                  <div className="skeleton-box skeleton-title-line" />
+                  <div className="skeleton-box skeleton-desc-line" />
+                  <div className="skeleton-box skeleton-desc-line skeleton-desc-line-short" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : currentItems.length > 0 ? (
           <div className="features-grid">
             {currentItems.map((item, idx) => {

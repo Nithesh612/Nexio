@@ -360,12 +360,13 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                 );
               })}
 
-              {/* More Dropdown */}
+              {/* More Toggle Button */}
               <div className="more-category-wrapper">
                 <button
                   type="button"
                   className={`category-chip more-chip ${isExtraCategorySelected ? 'selected active-more' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}`}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  aria-expanded={isDropdownOpen}
                 >
                   <span className="chip-icon">
                     <Ellipsis size={15} />
@@ -381,11 +382,16 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </button>
+              </div>
+            </div>
 
-                <div className={`more-dropdown-menu ${isDropdownOpen ? 'show-dropdown' : ''}`}>
-                  <div className="dropdown-menu-header">
-                    {isMultiSelectMode ? 'More Categories (Multiple)' : 'More Categories'}
-                  </div>
+            {/* In-flow Expandable More Categories Panel */}
+            {isDropdownOpen && (
+              <div className="more-categories-expanded-panel">
+                <div className="dropdown-menu-header">
+                  {isMultiSelectMode ? 'More Categories (Multi-select)' : 'More Categories'}
+                </div>
+                <div className="more-categories-grid">
                   {MORE_CATEGORIES.map(extraCat => {
                     const ExtraIcon = extraCat.icon;
                     const isExtraSelected = selectedCategories.includes(extraCat.id);
@@ -408,7 +414,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                   })}
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Error Message */}
