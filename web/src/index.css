@@ -672,48 +672,6 @@ button {
   text-transform: uppercase;
 }
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 38px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 8px;
-  color: #4d554c;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 700;
-  text-align: left;
-}
-
-.nav-item span,
-.nav-item i {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  color: #17201b;
-  background: #ffffff;
-  font-size: 12px;
-  font-style: normal;
-}
-
-.nav-item i {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #6aa388;
-}
-
-.nav-item.active,
-.nav-item:hover {
-  color: #17201b;
-  background: #ffffff;
-}
-
 .sidebar-footer {
   gap: 10px;
   margin-top: auto;

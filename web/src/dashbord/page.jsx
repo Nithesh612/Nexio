@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { GlobalWorkerOptions, getDocument } from 'pdfjs-dist'
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import {
-  ArrowLeft,
   ArrowUpRight,
   Bell,
   BookmarkCheck,
@@ -32,10 +31,10 @@ import { API_URL } from '../config/api'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
 const stats = [
-  { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#2563eb', bg: 'rgba(37, 99, 235, 0.1)', icon: Link2 },
-  { label: 'Saved', value: '24', delta: '+ 8%', accent: '#d97706', bg: 'rgba(217, 119, 6, 0.1)', icon: Bookmark },
-  { label: 'Type', value: '0', delta: '+ 15%', accent: '#059669', bg: 'rgba(5, 150, 105, 0.1)', icon: LayoutGrid },
-  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#db2777', bg: 'rgba(219, 39, 119, 0.1)', icon: Star },
+  { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
+  { label: 'Saved', value: '24', delta: '+ 8%', accent: '#f4c849', icon: Bookmark },
+  { label: 'Type', value: '0', delta: '+ 15%', accent: '#57c89d', icon: LayoutGrid },
+  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f4c849', icon: Star },
 ]
 
 const PREDEFINED_CATEGORIES = [
@@ -847,42 +846,23 @@ export default function DashboardPage({ onBack, onAddLink }) {
         }
         .back-home-btn {
           align-self: flex-start;
-          margin-bottom: 12px;
-          border: 1px solid rgba(15, 23, 42, 0.1);
-          background: #ffffff;
-          border-radius: 12px;
-          padding: 8px 14px 8px 10px;
-          color: #334155;
-          font-size: 0.88rem;
+          margin-bottom: 8px;
+          border: 1px solid rgba(15,23,42,0.1);
+          background: rgba(255,255,255,0.9);
+          border-radius: 10px;
+          padding: 8px 12px;
+          color: #374151;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.2s ease;
           display: inline-flex;
           align-items: center;
-          gap: 9px;
-          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+          gap: 6px;
         }
         .back-home-btn:hover {
           background: #ffffff;
-          border-color: rgba(37, 99, 235, 0.35);
-          color: #0f172a;
-          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-          transform: translateY(-1px);
-        }
-        .back-home-icon-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 26px;
-          height: 26px;
-          border-radius: 8px;
-          background: #f1f5f9;
-          color: #475569;
-          transition: all 0.2s ease;
-        }
-        .back-home-btn:hover .back-home-icon-wrap {
-          background: #eff6ff;
-          color: #2563eb;
+          border-color: rgba(15,23,42,0.22);
+          color: #111827;
           transform: translateX(-2px);
         }
         .new-link-btn {
@@ -937,6 +917,17 @@ export default function DashboardPage({ onBack, onAddLink }) {
         .nav-item:hover {
           background: rgba(15, 23, 42, 0.05);
         }
+        .nav-item .nav-label {
+          flex: 1;
+          display: inline-block;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: inherit;
+          background: transparent;
+          width: auto;
+          height: auto;
+          line-height: normal;
+        }
         .nav-item.active {
           background: #17211c;
           color: #ffffff;
@@ -949,10 +940,11 @@ export default function DashboardPage({ onBack, onAddLink }) {
           margin-left: auto;
           background: rgba(148, 163, 184, 0.18);
           color: #667085;
-          padding: 3px 7px;
+          padding: 3px 8px;
           border-radius: 999px;
-          font-size: 0.72rem;
+          font-size: 0.75rem;
           font-weight: 700;
+          line-height: 1;
         }
         .upgrade-card {
           margin-top: auto;
@@ -1115,80 +1107,51 @@ export default function DashboardPage({ onBack, onAddLink }) {
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(140px, 1fr));
-          gap: 16px;
-          margin-bottom: 22px;
+          gap: 14px;
+          margin-bottom: 18px;
         }
         .stat-card {
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.07);
-          border-radius: 18px;
-          padding: 18px 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          overflow: hidden;
-        }
-        .stat-card:hover {
-          transform: translateY(-3px);
-          border-color: rgba(37, 99, 235, 0.22);
-          box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-        }
-        .stat-card-top-row {
+          background: rgba(255,255,255,0.5);
+          border: 1px solid rgba(15,23,42,0.08);
+          border-radius: 16px;
+          padding: 16px 18px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          width: 100%;
+          gap: 12px;
         }
         .stat-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 13px;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
           display: grid;
           place-items: center;
           color: var(--icon-color, #2563eb);
-          background: var(--icon-bg, rgba(37, 99, 235, 0.1));
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
-          transition: transform 0.2s ease;
+          background: rgba(37, 99, 235, 0.09);
         }
-        .stat-card:hover .stat-icon {
-          transform: scale(1.06);
+        .stat-value {
+          font-size: 1.85rem;
+          font-weight: 800;
+          letter-spacing: -0.06em;
+          line-height: 1;
         }
-        .stat-delta-badge {
+        .stat-label {
+          color: #64748b;
+          font-size: 0.92rem;
+          margin-top: 4px;
+        }
+        .stat-delta {
+          color: #16a34a;
+          font-size: 0.76rem;
+          font-weight: 700;
           display: inline-flex;
           align-items: center;
-          gap: 3px;
-          padding: 3px 8px;
-          border-radius: 999px;
-          background: rgba(22, 163, 74, 0.09);
-          border: 1px solid rgba(22, 163, 74, 0.18);
-          color: #15803d;
-          font-size: 0.73rem;
-          font-weight: 700;
-          letter-spacing: -0.01em;
+          gap: 4px;
         }
         .stat-main {
           display: flex;
           flex-direction: column;
           gap: 2px;
           min-width: 0;
-        }
-        .stat-value {
-          font-size: 2rem;
-          font-weight: 800;
-          letter-spacing: -0.04em;
-          line-height: 1;
-          color: #0f172a;
-        }
-        .stat-label {
-          color: #64748b;
-          font-size: 0.88rem;
-          font-weight: 600;
-          margin-top: 4px;
-          letter-spacing: -0.01em;
         }
         .tool-row {
           display: flex;
@@ -1936,9 +1899,9 @@ export default function DashboardPage({ onBack, onAddLink }) {
           .main-content { padding: 14px 12px 24px; }
           .greeting { font-size: 1.5rem; }
           .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-          .stat-card { padding: 14px; gap: 10px; }
-          .stat-value { font-size: 1.6rem; }
-          .stat-icon { width: 38px; height: 38px; }
+          .stat-card { padding: 12px 14px; }
+          .stat-value { font-size: 1.4rem; }
+          .stat-icon { width: 36px; height: 36px; }
           .tool-row { flex-direction: column; align-items: stretch; gap: 10px; }
           .selector { min-width: 0; width: 100%; }
           .chip-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; margin-bottom: 16px; -ms-overflow-style: none; scrollbar-width: none; }
@@ -2174,10 +2137,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                 if (typeof onBack === 'function') onBack()
               }}
             >
-              <span className="back-home-icon-wrap">
-                <ArrowLeft size={16} />
-              </span>
-              <span>Back to home</span>
+              ← Back to home
             </button>
           )}
 
@@ -2208,7 +2168,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
                   }}
                 >
                   <Icon size={18} />
-                  <span>{label}</span>
+                  <span className="nav-label">{label}</span>
                   {label === 'All Links' && <span className="counter">{liveLinks.length}</span>}
                   {label === 'Favorites' && <span className="counter">{liveStats[3]?.value || 0}</span>}
                   {label === 'Saved' && <span className="counter">{liveStats[1]?.value || 0}</span>}
@@ -2277,19 +2237,15 @@ export default function DashboardPage({ onBack, onAddLink }) {
           )}
 
           <div className="stats-grid">
-            {liveStats.map(({ label, value, delta, accent, bg, icon: Icon }) => (
+            {liveStats.map(({ label, value, delta, accent, icon: Icon }) => (
               <div className="stat-card" key={label}>
-                <div className="stat-card-top-row">
-                  <div className="stat-icon" style={{ '--icon-color': accent, '--icon-bg': bg }}>
-                    <Icon size={20} />
-                  </div>
-                  <span className="stat-delta-badge">
-                    <span>↑</span> {delta}
-                  </span>
+                <div className="stat-icon" style={{ '--icon-color': accent }}>
+                  <Icon className="" />
                 </div>
                 <div className="stat-main">
                   <div className="stat-value">{value}</div>
                   <div className="stat-label">{label}</div>
+                  <div className="stat-delta">↑ {delta}</div>
                 </div>
               </div>
             ))}
