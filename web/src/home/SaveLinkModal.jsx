@@ -1,40 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutGrid,
-  Video,
+  Sparkles,
   Bot,
-  Compass,
-  Folder,
-  Image as ImageIcon,
+  Lightbulb,
+  Archive,
+  Monitor,
   Camera,
   Server,
-  FileText,
-  FlaskConical,
-  Wrench,
-  Ellipsis,
+  Search,
+  PenTool,
   Bookmark,
   Zap
 } from 'lucide-react';
 import { analyzeLinkUrl } from '../utils/urlAnalyzer';
 import './SaveLinkModal.css';
 
-const PRIMARY_CATEGORIES = [
+const CATEGORIES = [
   { id: 'Saved', label: 'Saved', icon: Bookmark },
   { id: 'Quick Assets', label: 'Quick Assets', icon: Zap },
   { id: 'UI/UX', label: 'UI/UX', icon: LayoutGrid },
-  { id: 'AI Image & Video', label: 'AI Image & Video', icon: Video },
-  { id: 'AI', label: 'AI', icon: Bot },
-  { id: 'Inspiration', label: 'Inspiration', icon: Compass },
-  { id: 'Other', label: 'Other', icon: Folder },
-];
-
-const MORE_CATEGORIES = [
-  { id: 'Wallpaper', label: 'Wallpaper', icon: ImageIcon },
+  { id: 'AI Image & Video', label: 'AI Image & Video', icon: Sparkles },
+  { id: 'AI Tools', label: 'AI Tools', icon: Bot },
+  { id: 'Inspiration', label: 'Inspiration', icon: Lightbulb },
+  { id: 'Other', label: 'Other', icon: Archive },
+  { id: 'Wallpaper', label: 'Wallpaper', icon: Monitor },
   { id: 'Stock', label: 'Stock', icon: Camera },
   { id: 'Host', label: 'Host', icon: Server },
-  { id: 'Article', label: 'Article', icon: FileText },
-  { id: 'Research', label: 'Research', icon: FlaskConical },
-  { id: 'Tools', label: 'Tools', icon: Wrench },
+  { id: 'Research', label: 'Research', icon: Search },
+  { id: 'Tools', label: 'Tools', icon: PenTool },
 ];
 
 function getFavicon(url) {
@@ -66,11 +60,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Check how many extra categories are selected from "More"
-  const selectedMoreCategories = MORE_CATEGORIES.filter(c => selectedCategories.includes(c.id));
-  const isExtraCategorySelected = selectedMoreCategories.length > 0;
 
   // Toggle category on/off or single select based on isMultiSelectMode
   const handleCategoryClick = (catId) => {
@@ -86,7 +76,6 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
     } else {
       // Single select mode
       setSelectedCategories([catId]);
-      setIsDropdownOpen(false);
     }
   };
 
@@ -110,21 +99,10 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
       setSelectedCategories(['Saved']);
       setIsMultiSelectMode(false);
       setImgError(false);
-      setIsDropdownOpen(false);
     }
   }, [isOpen]);
 
-  // Close dropdown on click outside
-  useEffect(() => {
-    if (!isDropdownOpen) return;
-    const handleDocumentClick = (e) => {
-      if (!e.target.closest('.more-category-wrapper')) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', handleDocumentClick);
-    return () => document.removeEventListener('pointerdown', handleDocumentClick);
-  }, [isDropdownOpen]);
+
 
   // Live intelligent URL analysis
   useEffect(() => {
@@ -335,7 +313,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
             </div>
 
             <div className="category-chips-grid">
-              {PRIMARY_CATEGORIES.map((cat) => {
+              {CATEGORIES.map((cat) => {
                 const IconComponent = cat.icon;
                 const isSelected = selectedCategories.includes(cat.id);
                 return (
@@ -353,62 +331,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
                   </button>
                 );
               })}
-
-              {/* More Toggle Button */}
-              <div className="more-category-wrapper">
-                <button
-                  type="button"
-                  className={`category-chip more-chip ${isExtraCategorySelected ? 'selected active-more' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}`}
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  aria-expanded={isDropdownOpen}
-                >
-                  <span className="chip-icon">
-                    <Ellipsis size={15} />
-                  </span>
-                  <span className="chip-label">
-                    {selectedMoreCategories.length > 0
-                      ? isMultiSelectMode
-                        ? `${selectedMoreCategories.length} More`
-                        : selectedMoreCategories[0].label
-                      : 'More'}
-                  </span>
-                  <svg className={`more-arrow ${isDropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-              </div>
             </div>
-
-            {/* In-flow Expandable More Categories Panel */}
-            {isDropdownOpen && (
-              <div className="more-categories-expanded-panel">
-                <div className="dropdown-menu-header">
-                  {isMultiSelectMode ? 'More Categories (Multi-select)' : 'More Categories'}
-                </div>
-                <div className="more-categories-grid">
-                  {MORE_CATEGORIES.map(extraCat => {
-                    const ExtraIcon = extraCat.icon;
-                    const isExtraSelected = selectedCategories.includes(extraCat.id);
-                    return (
-                      <button
-                        key={extraCat.id}
-                        type="button"
-                        className={`dropdown-item ${isExtraSelected ? 'active' : ''}`}
-                        onClick={() => handleCategoryClick(extraCat.id)}
-                      >
-                        <span className="dropdown-item-icon">
-                          <ExtraIcon size={15} />
-                        </span>
-                        <span className="dropdown-item-label">{extraCat.label}</span>
-                        {isExtraSelected && (
-                          <span className="dropdown-item-check">✓</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Error Message */}

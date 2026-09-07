@@ -426,6 +426,14 @@ export default function Home() {
       return
     }
 
+    // Prevent saving duplicate links
+    const isDuplicate = links.some((link) => normalizeUrl(link.url) === cleanUrl)
+    if (isDuplicate) {
+      setSaveError('This link has already been saved.')
+      setIsSubmitting(false)
+      return
+    }
+
     const derivedTitle = linkData?.title || form.title || formatTitleFromUrl(cleanUrl)
     const selectedCategory = linkData?.category || form.type || 'UI/UX'
 

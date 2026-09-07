@@ -26,6 +26,7 @@ import {
   X,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
+import GlobalSearchModal from './GlobalSearchModal'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 import { API_URL } from '../config/api'
 import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
@@ -529,6 +530,7 @@ function addDeletedQuickAsset(id, url) {
 
 export default function DashboardPage({ onBack, onAddLink }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('All Links')
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
@@ -1244,18 +1246,19 @@ export default function DashboardPage({ onBack, onAddLink }) {
           padding: 10px 18px;
           color: #64748b;
           box-shadow: 0 2px 8px rgba(15,23,42,0.02);
-          transition: box-shadow 0.2s, border-color 0.2s;
+          transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+          cursor: pointer;
         }
-        .search-input-wrap:focus-within {
+        .search-input-wrap:hover {
           box-shadow: 0 4px 14px rgba(37,99,235,0.08);
           border-color: rgba(37,99,235,0.3);
+          background: #f8fafc;
         }
-        .search-input-wrap input {
-          border: none;
-          background: transparent;
-          outline: none;
-          width: 100%;
-          color: #111827;
+        .search-input-wrap span.placeholder {
+          color: #9ca3af;
+          font-size: 0.95rem;
+          flex: 1;
+          text-align: left;
         }
         .mini-avatar {
           width: 36px;
@@ -2426,14 +2429,14 @@ export default function DashboardPage({ onBack, onAddLink }) {
               >
                 <Menu size={20} />
               </button>
-              <div className="search-input-wrap">
+              <button 
+                type="button" 
+                className="search-input-wrap"
+                onClick={() => setIsSearchModalOpen(true)}
+              >
                 <Search size={16} />
-                <input
-                  placeholder="Search links, tags, notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+                <span className="placeholder">Search links, tags, notes...</span>
+              </button>
             </div>
 
             <div className="top-actions">
@@ -2839,6 +2842,13 @@ export default function DashboardPage({ onBack, onAddLink }) {
           </div>
         </div>
       )}
+
+      <GlobalSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        links={liveLinks}
+        onOpenLink={handleOpenService}
+      />
     </>
   )
 }

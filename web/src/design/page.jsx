@@ -48,21 +48,15 @@ const CATEGORIES = [
   { id: 'ai', name: 'AI Tools', icon: Sparkles, url: 'https://www.toools.design/ai-design-tools' },
   { id: 'inspiration', name: 'Inspiration', icon: Flame, url: 'https://www.toools.design/ui-web-design-inspiration-websites' },
   { id: 'icons', name: 'Icons', icon: Layers, url: 'https://www.toools.design/free-open-source-icon-libraries' },
-  { id: 'illustrations', name: 'Illustrations', icon: ImageIcon, url: 'https://www.toools.design/free-open-source-illustrations' },
-  { id: 'uikits', name: 'Mocks + UI Kits', icon: Smartphone, url: 'https://www.toools.design/mockups-ui-kits-and-freebies' },
+  { id: 'illustrations', name: 'Illustrations & SVG', icon: ImageIcon, url: 'https://www.toools.design/free-open-source-illustrations' },
   { id: 'stock', name: 'Stock Photos', icon: Camera, url: 'https://www.toools.design/free-stock-images-videos' },
   { id: 'learning', name: 'Learning', icon: BookOpen, url: 'https://www.toools.design/learn-ui-ux-design' },
   { id: 'community', name: 'Community', icon: Users, url: 'https://www.toools.design/design-communities' },
   { id: 'blogs', name: 'Blogs & Mags', icon: Newspaper, url: 'https://www.toools.design/best-design-blogs-and-magazines' },
-  { id: 'podcasts', name: 'Podcasts', icon: Headphones, url: 'https://www.toools.design/best-design-podcasts' },
   { id: 'books', name: 'Books', icon: Book, url: 'https://www.toools.design/books-for-designers' },
-  { id: 'productivity', name: 'Productivity', icon: Zap, url: 'https://www.toools.design/productivity-tools-for-design-and-poduct-teams' },
-  { id: 'design-tools', name: 'Design Tools', icon: PenTool, url: 'https://www.toools.design/best-design-tools' },
   { id: 'ux-tools', name: 'UX Tools', icon: Monitor, url: 'https://www.toools.design/best-ux-tools' },
   { id: 'colors', name: 'Color Tools', icon: Palette, url: 'https://www.toools.design/best-color-inspiration-tools' },
   { id: 'fonts', name: 'Typography', icon: Type, url: 'https://www.toools.design/font-library-and-inspiration' },
-  { id: 'marketing', name: 'Marketing', icon: TrendingUp, url: 'https://www.toools.design/marketing-tools' },
-  { id: 'web-builders', name: 'Web Builders', icon: Globe, url: 'https://www.toools.design/best-no-code-website-builders' },
 ]
 
 function matchCategory(link, catId) {
@@ -74,60 +68,45 @@ function matchCategory(link, catId) {
   const url = (link.url || '').toLowerCase()
   const allText = `${cat} ${collection} ${desc} ${title} ${url}`
 
-  if (catId === 'all') return true
+  if (catId === 'all') {
+    const designKeywords = ['ai', 'inspiration', 'icon', 'illustration', 'svg', 'stock', 'learn', 'community', 'blog', 'book', 'ux', 'ui', 'color', 'font', 'design']
+    return designKeywords.some(keyword => cat.includes(keyword) || allText.includes(keyword))
+  }
   if (catId === 'ai') {
-    return cat.includes('ai') || allText.includes('ai') || allText.includes('gpt') || allText.includes('bot') || allText.includes('agent')
+    return cat.includes('ai') || allText.includes('ai')
   }
   if (catId === 'inspiration') {
-    return cat.includes('inspiration') || allText.includes('inspiration') || allText.includes('dribbble') || allText.includes('behance') || allText.includes('awwwards') || allText.includes('showcase')
+    return cat.includes('inspiration') || allText.includes('inspiration')
   }
   if (catId === 'icons') {
-    return cat.includes('icon') || allText.includes('icon') || allText.includes('lucide') || allText.includes('heroicon') || allText.includes('svg')
+    return cat.includes('icon') || allText.includes('icon')
   }
   if (catId === 'illustrations') {
-    return cat.includes('illustration') || allText.includes('illustration') || allText.includes('vector') || allText.includes('draw')
-  }
-  if (catId === 'uikits') {
-    return cat.includes('ui') || cat.includes('ux') || allText.includes('uikit') || allText.includes('mockup') || allText.includes('framer') || allText.includes('figma') || allText.includes('component')
+    return cat.includes('illustration') || allText.includes('illustration') || allText.includes('svg')
   }
   if (catId === 'stock') {
-    return cat.includes('stock') || allText.includes('photo') || allText.includes('unsplash') || allText.includes('pexels') || allText.includes('image')
+    return cat.includes('stock') || allText.includes('stock')
   }
   if (catId === 'learning') {
-    return cat.includes('learn') || cat.includes('research') || cat.includes('article') || allText.includes('course') || allText.includes('tutorial') || allText.includes('docs')
+    return cat.includes('learn') || allText.includes('learn')
   }
   if (catId === 'community') {
-    return cat.includes('community') || allText.includes('community') || allText.includes('discord') || allText.includes('forum') || allText.includes('group')
+    return cat.includes('community') || allText.includes('community')
   }
   if (catId === 'blogs') {
-    return cat.includes('blog') || cat.includes('article') || cat.includes('mag') || allText.includes('medium') || allText.includes('news') || allText.includes('read')
-  }
-  if (catId === 'podcasts') {
-    return cat.includes('podcast') || allText.includes('podcast') || allText.includes('audio') || allText.includes('spotify') || allText.includes('listen')
+    return cat.includes('blog') || allText.includes('blog')
   }
   if (catId === 'books') {
-    return cat.includes('book') || allText.includes('book') || allText.includes('ebook') || allText.includes('read')
-  }
-  if (catId === 'productivity') {
-    return cat.includes('productivity') || cat.includes('tool') || allText.includes('notion') || allText.includes('organizer') || allText.includes('work')
-  }
-  if (catId === 'design-tools') {
-    return cat.includes('design') || cat.includes('tool') || allText.includes('editor') || allText.includes('craft') || allText.includes('canva')
+    return cat.includes('book') || allText.includes('book')
   }
   if (catId === 'ux-tools') {
-    return cat.includes('ux') || cat.includes('ui') || allText.includes('user') || allText.includes('wireframe') || allText.includes('prototype')
+    return cat.includes('ux') || cat.includes('ui') || allText.includes('ux') || allText.includes('ui')
   }
   if (catId === 'colors') {
-    return cat.includes('color') || allText.includes('color') || allText.includes('palette') || allText.includes('gradient') || allText.includes('coolors')
+    return cat.includes('color') || allText.includes('color')
   }
   if (catId === 'fonts') {
-    return cat.includes('font') || cat.includes('typography') || cat.includes('type') || allText.includes('typeface') || allText.includes('google font')
-  }
-  if (catId === 'marketing') {
-    return cat.includes('market') || allText.includes('market') || allText.includes('seo') || allText.includes('growth') || allText.includes('ad')
-  }
-  if (catId === 'web-builders') {
-    return cat.includes('web') || cat.includes('host') || cat.includes('builder') || allText.includes('builder') || allText.includes('framer') || allText.includes('webflow') || allText.includes('site') || allText.includes('vercel')
+    return cat.includes('font') || allText.includes('font')
   }
   return false
 }
@@ -723,7 +702,9 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
   // Calculate real-time live counts per category from MongoDB
   const categoryCounts = useMemo(() => {
     const counts = {}
-    counts['all'] = dbLinks.length > 0 ? dbLinks.length : LATEST_RESOURCES.length
+    counts['all'] = dbLinks.length > 0 
+      ? dbLinks.filter(item => matchCategory(item, 'all')).length 
+      : LATEST_RESOURCES.filter(item => matchCategory(item, 'all')).length
 
     CATEGORIES.forEach(cat => {
       if (cat.id === 'all') return
