@@ -11,6 +11,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+::selection {
+  background-color: #f43f5e; /* Tailwind's rose-500 */
+  color: #ffffff;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;

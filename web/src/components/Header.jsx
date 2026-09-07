@@ -6,7 +6,7 @@ const NAV_LINKS = [
   { label: 'Home', targetView: 'landing', hash: '#home' },
   { label: 'Design', targetView: 'design', hash: '#design' },
   { label: 'AI Tools', targetView: 'ai-tools', hash: '#ai-tools' },
-  { label: 'Blog', targetView: 'blog', hash: '#blog' },
+  { label: 'Editing', targetView: 'editing', hash: '#editing' },
 ]
 
 export default function Header({ currentView = 'landing', onNavigate, onAddLink, user, onLogin, onLogout }) {
@@ -16,7 +16,7 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
     e.preventDefault()
     setMenuOpen(false)
     if (onNavigate) {
-      if (targetView === 'landing' || targetView === 'design' || targetView === 'ai-tools') {
+      if (targetView === 'landing' || targetView === 'design' || targetView === 'ai-tools' || targetView === 'editing') {
         onNavigate(targetView)
         return
       }

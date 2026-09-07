@@ -29,7 +29,7 @@ import {
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
-import { API_URL } from '../config/api'
+import { API_BASE_URL, API_URL } from '../config/api'
 import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
@@ -807,9 +807,210 @@ const navItems = [
   { label: 'All Links', icon: LayoutGrid },
   { label: 'Dashboard', icon: FolderKanban },
   { label: 'Quick Assets', icon: Palette },
+  { label: 'AI Tools', icon: Code2 },
+  { label: 'Editing', icon: Edit2 },
   { label: 'Saved', icon: Inbox },
   { label: 'Favorites', icon: Star },
 ]
+
+function AIToolsManager() {
+  const emptyForm = {
+    toolId: '', name: '', desc: '', tag: '', pricing: '', url: '', bannerType: '', bannerUrl: '', isPartner: false, showInEssential: false,
+  }
+  const [tools, setTools] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [form, setForm] = useState(emptyForm)
+  const [editingId, setEditingId] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState('')
+
+  const fetchTools = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ai-tools`)
+      const data = await response.json().catch(() => [])
+      if (!response.ok) throw new Error(data.message || data.error || 'Could not load AI tools.')
+      setTools(Array.isArray(data) ? data : Array.isArray(data?.tools) ? data.tools : [])
+    } catch (loadError) {
+      setError(loadError.message || 'Could not load AI tools.')
+      setTools([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTools()
+    
+    const handleUpdate = () => {
+      fetchTools()
+    }
+    
+    window.addEventListener('nexio_ai_tools_updated', handleUpdate)
+    return () => {
+      window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
+    }
+  }, [])
+
+  const updateForm = (event) => {
+    const { name, value, type, checked } = event.target
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }))
+  }
+
+  const openCreateForm = () => {
+    setEditingId(null)
+    setForm(emptyForm)
+    setError('')
+    setShowForm(true)
+  }
+
+  const openEditForm = (tool) => {
+    setEditingId(tool._id)
+    setForm({ ...emptyForm, ...tool })
+    setError('')
+    setShowForm(true)
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError('')
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/ai-tools${editingId ? `/${editingId}` : ''}`,
+        {
+          method: editingId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        },
+      )
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.message || data.error || 'Could not save AI tool.')
+      setShowForm(false)
+      setEditingId(null)
+      setForm(emptyForm)
+      await fetchTools()
+      window.dispatchEvent(new Event('nexio_ai_tools_updated'))
+    } catch (saveError) {
+      setError(saveError.message || 'Could not save AI tool.')
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this AI tool?')) return
+    setError('')
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ai-tools/${id}`, { method: 'DELETE' })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.message || data.error || 'Could not delete AI tool.')
+      await fetchTools()
+      window.dispatchEvent(new Event('nexio_ai_tools_updated'))
+    } catch (deleteError) {
+      setError(deleteError.message || 'Could not delete AI tool.')
+    }
+  }
+
+  const toggleEssential = async (tool) => {
+    setError('')
+    const nextValue = !tool.showInEssential
+    setTools((current) => current.map((item) => item._id === tool._id ? { ...item, showInEssential: nextValue } : item))
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/ai-tools/${tool._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...tool, showInEssential: nextValue }),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.message || data.error || 'Could not update home visibility.')
+      window.dispatchEvent(new Event('nexio_ai_tools_updated'))
+    } catch (toggleError) {
+      setTools((current) => current.map((item) => item._id === tool._id ? { ...item, showInEssential: !nextValue } : item))
+      setError(toggleError.message || 'Could not update home visibility.')
+    }
+  }
+
+  return (
+    <section className="panel" aria-label="AI Tools management">
+      <div className="panel-header">
+        <div>
+          <h2>AI Tools</h2>
+          <p>Manage the tools shown in the AI Tools collection.</p>
+        </div>
+      </div>
+
+      {showForm && (
+        <form className="ai-tools-form" onSubmit={handleSubmit}>
+          <div className="ai-tools-form-grid">
+            {[
+              ['toolId', 'Tool ID'], ['name', 'Name'], ['desc', 'Description'], ['tag', 'Tag'],
+              ['pricing', 'Pricing'], ['url', 'URL'], ['bannerType', 'Banner type'], ['bannerUrl', 'Banner image URL'],
+            ].map(([name, label]) => (
+              <label key={name} className={name === 'desc' || name === 'url' || name === 'bannerUrl' ? 'wide' : ''}>
+                <span>{label}{name !== 'bannerUrl' ? ' *' : ''}</span>
+                <input name={name} value={form[name]} onChange={updateForm} required={name !== 'bannerUrl'} />
+              </label>
+            ))}
+          </div>
+          <label className="ai-tools-checkbox">
+            <input type="checkbox" name="isPartner" checked={form.isPartner} onChange={updateForm} />
+            Partner tool
+          </label>
+          <label className="ai-tools-checkbox">
+            <input type="checkbox" name="showInEssential" checked={form.showInEssential} onChange={updateForm} />
+            Show on Home
+          </label>
+          {error && <p className="ai-tools-error" role="alert">{error}</p>}
+          <div className="ai-tools-form-actions">
+            <button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>Cancel</button>
+            <button type="submit" className="primary-btn">{editingId ? 'Update tool' : 'Save tool'}</button>
+          </div>
+        </form>
+      )}
+
+      {!showForm && error && <p className="ai-tools-error" role="alert">{error}</p>}
+      <div className="modern-ai-tools-grid">
+        {loading ? (
+          <div className="loading-state">Loading AI tools...</div>
+        ) : tools.length === 0 ? (
+          <div className="empty-state">No AI tools found. Save one from the "Save new link" modal!</div>
+        ) : (
+          tools.map((tool) => (
+            <div key={tool._id} className="modern-ai-card">
+              <div className="card-header">
+                <div>
+                  <h3>{tool.name}</h3>
+                  <span className="tool-tag">{tool.tag}</span>
+                </div>
+                <div className="ai-tools-actions">
+                  <button
+                    type="button"
+                    className={`icon-btn ${tool.showInEssential ? 'saved' : ''}`}
+                    onClick={() => toggleEssential(tool)}
+                    title={tool.showInEssential ? "Hide from home" : "Show on home"}
+                  >
+                    {tool.showInEssential ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+                  </button>
+                  <button type="button" className="icon-btn" onClick={() => openEditForm(tool)} title="Edit">
+                    <Edit2 size={14} />
+                  </button>
+                  <button type="button" className="icon-btn danger" onClick={() => handleDelete(tool._id)} title="Delete">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <p className="card-desc">{tool.desc}</p>
+              <div className="card-footer">
+                <span className="pricing-badge">{tool.pricing}</span>
+                {tool.url && (
+                  <a href={tool.url} target="_blank" rel="noreferrer" className="visit-link">Visit →</a>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  )
+}
 
 function getDeletedQuickAssets() {
   try {
@@ -831,15 +1032,17 @@ function addDeletedQuickAsset(id, url) {
   }
 }
 
-export default function DashboardPage({ onBack, onAddLink, onLogout }) {
+export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateToEditing }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('All Links')
   const [currentPage, setCurrentPage] = useState(1)
   const [status, setStatus] = useState('')
   const [liveLinks, setLiveLinks] = useState([])
+  const [walletTotalCount, setWalletTotalCount] = useState(null)
   const [isLoadingLinks, setIsLoadingLinks] = useState(true)
   const [linksError, setLinksError] = useState('')
+  const [quickAssets, setQuickAssets] = useState([])
   const [savePulseId, setSavePulseId] = useState(null)
   const [favoritePulseId, setFavoritePulseId] = useState(null)
   const [exportOpen, setExportOpen] = useState(false)
@@ -851,10 +1054,8 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
   const [editForm, setEditForm] = useState({ title: '', description: '', url: '', category: '' })
   const [isEditing, setIsEditing] = useState(false)
 
-  const quickAssets = useMemo(() => {
-    let list = liveLinks.filter(
-      (item) => item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset'
-    )
+  const filteredQuickAssets = useMemo(() => {
+    let list = quickAssets
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
       list = list.filter((item) =>
@@ -865,7 +1066,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
       )
     }
     return list
-  }, [liveLinks, searchQuery])
+  }, [quickAssets, searchQuery])
 
   const [viewMode, setViewMode] = useState('grid')
   const cardsPerPage = 9
@@ -882,7 +1083,22 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
         const data = await response.json()
         const deletedList = getDeletedQuickAssets()
 
+        const [aiToolsResult, editingResult] = await Promise.allSettled([
+          fetch(`${API_BASE_URL}/api/ai-tools`).then((result) => result.ok ? result.json() : []),
+          fetch(`${API_BASE_URL}/api/editing`).then((result) => result.ok ? result.json() : []),
+        ])
+        const aiTools = aiToolsResult.status === 'fulfilled' && Array.isArray(aiToolsResult.value)
+          ? aiToolsResult.value
+          : []
+        const editingItems = editingResult.status === 'fulfilled' && Array.isArray(editingResult.value)
+          ? editingResult.value
+          : []
+
         let loadedLinks = Array.isArray(data) ? data.map(mapLiveLink) : []
+
+        if (isActive) {
+          setWalletTotalCount(loadedLinks.length + aiTools.length + editingItems.length)
+        }
 
         // Filter out any locally deleted assets from loaded links
         loadedLinks = loadedLinks.filter(
@@ -901,6 +1117,49 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
     }
 
     loadLiveLinks()
+    return () => { isActive = false }
+  }, [])
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadQuickAssets() {
+      try {
+        const response = await fetch(`${API_URL}/quickassets`)
+        if (!response.ok) throw new Error('Unable to fetch quick assets')
+        const data = await response.json()
+        let assets = Array.isArray(data) ? data : []
+
+        // Older deployments expose quick assets through the combined hub endpoint.
+        if (assets.length === 0) {
+          const fallbackResponse = await fetch(API_URL)
+          const fallbackData = await fallbackResponse.json()
+          assets = Array.isArray(fallbackData)
+            ? fallbackData.filter((item) => (
+              item.collection === 'Quick Assets' ||
+              item.category === 'Quick Assets' ||
+              item.category === 'Featured Quick Asset' ||
+              item.kind === 'quick-asset'
+            ))
+            : []
+        }
+
+        if (isActive) setQuickAssets(assets.map(mapLiveLink))
+      } catch {
+        try {
+          const fallbackResponse = await fetch(API_URL)
+          const fallbackData = await fallbackResponse.json()
+          const assets = Array.isArray(fallbackData)
+            ? fallbackData.filter((item) => item.collection === 'Quick Assets' || item.category === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset')
+            : []
+          if (isActive) setQuickAssets(assets.map(mapLiveLink))
+        } catch {
+          if (isActive) setQuickAssets([])
+        }
+      }
+    }
+
+    loadQuickAssets()
     return () => { isActive = false }
   }, [])
 
@@ -967,14 +1226,14 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
       return cat === 'saved' || col === 'saved'
     }).length
     const favoriteCount = liveLinks.filter((item) => item.favorite).length
-    const totalCount = liveLinks.length
+    const totalCount = walletTotalCount ?? liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
 
     return stats.map((stat, index) => ({
       ...stat,
       value: String(index === 0 ? totalCount : index === 1 ? savedCount : index === 2 ? typeCount : favoriteCount),
     }))
-  }, [liveLinks])
+  }, [liveLinks, walletTotalCount])
 
   const handleToggleSaved = async (linkId) => {
     const selectedLink = liveLinks.find((item) => item.id === linkId)
@@ -1843,6 +2102,180 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
           color: #4b5563;
           font-size: 0.86rem;
           font-weight: 700;
+        }
+        .panel-header h2 {
+          margin: 0;
+          font-size: 1.15rem;
+        }
+        .panel-header p {
+          margin: 4px 0 0;
+          color: #64748b;
+          font-size: 0.82rem;
+          font-weight: 500;
+        }
+        .primary-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border: 0;
+          border-radius: 8px;
+          padding: 9px 13px;
+          background: #2563eb;
+          color: #fff;
+          font-size: 0.82rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .primary-btn:hover { background: #1d4ed8; }
+        .ai-tools-form {
+          margin: 0 18px 18px;
+          padding: 16px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          background: #fff;
+        }
+        .ai-tools-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .ai-tools-form-grid label {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          color: #475569;
+          font-size: 0.78rem;
+          font-weight: 700;
+        }
+        .ai-tools-form-grid label.wide { grid-column: 1 / -1; }
+        .ai-tools-form-grid input {
+          min-width: 0;
+          border: 1px solid #cbd5e1;
+          border-radius: 7px;
+          padding: 9px 10px;
+          color: #0f172a;
+          background: #fff;
+          outline: none;
+        }
+        .ai-tools-form-grid input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+        .ai-tools-checkbox {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          margin-top: 14px;
+          color: #475569;
+          font-size: 0.82rem;
+          font-weight: 600;
+        }
+        .ai-tools-form-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+          margin-top: 16px;
+        }
+        .ai-tools-error {
+          margin: 12px 18px;
+          color: #b91c1c;
+          font-size: 0.82rem;
+          font-weight: 600;
+        }
+        .modern-ai-tools-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          margin-top: 15px;
+        }
+        .modern-ai-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .modern-ai-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .modern-ai-card .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        .modern-ai-card h3 {
+          margin: 0 0 4px 0;
+          font-size: 1.1rem;
+          color: #0f172a;
+        }
+        .modern-ai-card .tool-tag {
+          font-size: 0.75rem;
+          background: #f1f5f9;
+          color: #475569;
+          padding: 2px 8px;
+          border-radius: 12px;
+          display: inline-block;
+        }
+        .modern-ai-card .card-desc {
+          font-size: 0.85rem;
+          color: #64748b;
+          line-height: 1.4;
+          margin: 0;
+          flex-grow: 1;
+        }
+        .modern-ai-card .card-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: auto;
+          padding-top: 12px;
+          border-top: 1px solid #f1f5f9;
+        }
+        .modern-ai-card .pricing-badge {
+          font-size: 0.7rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          color: #10b981;
+        }
+        .modern-ai-card .visit-link {
+          font-size: 0.8rem;
+          color: #2563eb;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        .modern-ai-card .visit-link:hover {
+          text-decoration: underline;
+        }
+        .loading-state, .empty-state {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 40px;
+          color: #64748b;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px dashed #cbd5e1;
+        }
+        .ai-tools-actions { display: flex; gap: 6px; }
+        .icon-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          border: 1px solid #dbeafe;
+          border-radius: 7px;
+          background: #eff6ff;
+          color: #2563eb;
+          cursor: pointer;
+        }
+        .icon-btn.danger { border-color: #fee2e2; background: #fef2f2; color: #dc2626; }
+        .icon-btn.saved { border-color: #fef3c7; background: #fffbeb; color: #d97706; }
+        @media (max-width: 680px) {
+          .ai-tools-form-grid { grid-template-columns: 1fr; }
+          .ai-tools-form-grid label.wide { grid-column: auto; }
+          .panel-header { align-items: flex-start; flex-direction: column; }
         }
         .list-view {
           display: grid;
@@ -2716,6 +3149,11 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
                   type="button"
                   className={`nav-item ${activeNav === label ? 'active' : ''}`}
                   onClick={() => {
+                    if (label === 'Editing' && typeof onNavigateToEditing === 'function') {
+                      setSidebarOpen(false)
+                      onNavigateToEditing()
+                      return
+                    }
                     setActiveNav(label)
                     setActiveFilter('All')
                     setCurrentPage(1)
@@ -2724,7 +3162,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
                 >
                   <Icon size={18} />
                   <span className="nav-label">{label}</span>
-                  {label === 'All Links' && <span className="counter">{liveLinks.length}</span>}
+                  {label === 'All Links' && <span className="counter">{walletTotalCount ?? liveLinks.length}</span>}
                   {label === 'Favorites' && <span className="counter">{liveStats[3]?.value || 0}</span>}
                   {label === 'Saved' && <span className="counter">{liveStats[1]?.value || 0}</span>}
                 </button>
@@ -2820,6 +3258,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
             </div>
           )}
 
+          {activeNav === 'AI Tools' ? <AIToolsManager /> : <>
           <div className="stats-grid">
             {liveStats.map(({ label, value, delta, accent, icon: Icon }) => (
               <div className="stat-card" key={label}>
@@ -2874,7 +3313,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
           <section className="panel">
             <div className="list-view">
               {isQuickAssetsView ? (
-                quickAssets.length === 0 ? (
+                  filteredQuickAssets.length === 0 ? (
                   <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1' }}>
                     <div className="dashboard-empty-animation">
                       <img
@@ -2896,7 +3335,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
                       <span>Add Quick Asset</span>
                     </button>
                   </div>
-                ) : quickAssets.map((item) => (
+                ) : filteredQuickAssets.map((item) => (
                   <QuickAssetCard
                     key={item.id}
                     item={item}
@@ -3022,6 +3461,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout }) {
               </div>
             )}
           </section>
+          </>}
         </main>
       </div>
 

@@ -160,7 +160,7 @@ quickAssetSchema.set('toJSON', {
     }
 });
 
-const QuickAsset = mongoose.models.QuickAsset || mongoose.model("QuickAsset", quickAssetSchema, "Quick-assets");
+const QuickAsset = mongoose.models.QuickAsset || mongoose.model("quickAsset", quickAssetSchema, "quick-assets");
 
 const DEFAULT_QUICK_ASSETS = [
     {

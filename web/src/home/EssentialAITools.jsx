@@ -1,175 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
-
-const ESSENTIAL_AI_TOOLS = [
-  {
-    id: 'lovable',
-    name: 'Lovable',
-    desc: 'Create apps and websites by chatting with AI.',
-    tag: 'AI Engineer',
-    pricing: 'FREE TRIAL',
-    isPartner: true,
-    url: 'https://lovablelabs.pxf.io/4aoVMo',
-    bannerType: 'lovable',
-    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/673dc05e197d0263be45cb97_lovable-ai-thumb.webp'
-  },
-  {
-    id: 'firefly',
-    name: 'Adobe Firefly',
-    desc: 'A suite of generative AI models and tools by Adobe.',
-    tag: 'Graphic AI',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://www.adobe.com/products/firefly.html',
-    bannerType: 'firefly'
-  },
-  {
-    id: 'bolt',
-    name: 'Bolt',
-    desc: 'Create stunning apps and websites by chatting with AI.',
-    tag: 'Fullstack AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://bolt.new/?ref=toools',
-    bannerType: 'bolt'
-  },
-  {
-    id: 'webflow-ai',
-    name: 'Webflow AI',
-    desc: "Build websites even faster with Webflow's new AI tools.",
-    tag: 'Visual Dev',
-    pricing: 'FREEMIUM',
-    isPartner: true,
-    url: 'https://try.webflow.com/via-toools',
-    bannerType: 'webflow',
-    bannerUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'figma-ai',
-    name: 'Figma AI',
-    desc: "Figma's built-in AI features for faster design workflows.",
-    tag: 'UI Design',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://www.figma.com/ai/?via=toools',
-    bannerType: 'figma',
-    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'krea',
-    name: 'Krea',
-    desc: 'An easy way to generate images, video and sound with AI.',
-    tag: 'Realtime AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://www.krea.ai/?via=toools',
-    bannerType: 'krea'
-  },
-  {
-    id: 'claude',
-    name: 'Claude',
-    desc: 'The AI for problem solvers.',
-    tag: 'LLM Model',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://claude.ai/?via=toools',
-    bannerType: 'claude'
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini',
-    desc: 'Unlock multimodal creativity for the next generation of visual apps.',
-    tag: 'Multimodal AI',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://gemini.google.com/?via=toools',
-    bannerType: 'gemini'
-  },
-  {
-    id: 'spline-ai',
-    name: 'Spline AI',
-    desc: 'Generate objects, animations, and textures using prompts.',
-    tag: '3D & Motion',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://spline.design/ai?via=toools',
-    bannerType: 'spline',
-    bannerUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'framer-ai',
-    name: 'Framer AI',
-    desc: 'Design websites faster with intelligent tools.',
-    tag: 'Site Builder',
-    pricing: 'FREEMIUM',
-    isPartner: true,
-    url: 'https://framer.link/toools',
-    bannerType: 'framer',
-    bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'chatgpt',
-    name: 'ChatGPT',
-    desc: 'Get answers, find inspiration and be more productive.',
-    tag: 'AI Chatbot',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://chat.openai.com/?via=toools',
-    bannerType: 'chatgpt'
-  },
-  {
-    id: 'v0',
-    name: 'v0',
-    desc: 'Generative UI system powered by AI from Vercel.',
-    tag: 'Frontend AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://v0.dev/?via=toools',
-    bannerType: 'v0'
-  },
-  {
-    id: 'cursor',
-    name: 'Cursor',
-    desc: 'AI-powered code editor built for extraordinary productivity.',
-    tag: 'Code Editor',
-    pricing: 'FREE TRIAL',
-    isPartner: false,
-    url: 'https://www.cursor.com/?via=toools',
-    bannerType: 'cursor',
-    bannerUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    id: 'recraft',
-    name: 'Recraft',
-    desc: 'Generate consistent vectors, 3D graphics, and style palettes.',
-    tag: 'Vector AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://www.recraft.ai/?via=toools',
-    bannerType: 'recraft'
-  },
-  {
-    id: 'relume',
-    name: 'Relume',
-    desc: 'Generate websites, sitemaps, and wireframes with AI in seconds.',
-    tag: 'Wireframe AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://www.relume.io/?via=toools',
-    bannerType: 'relume'
-  },
-  {
-    id: 'midjourney',
-    name: 'Midjourney',
-    desc: 'State of the art generative visual creation platform.',
-    tag: 'Image AI',
-    pricing: 'PAID',
-    isPartner: false,
-    url: 'https://www.midjourney.com/?via=toools',
-    bannerType: 'midjourney',
-    bannerUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop'
-  }
-];
+import { API_BASE_URL } from '../config/api';
 
 const ToolBanner = ({ tool, renderGraphic }) => {
   const [screenshotError, setScreenshotError] = useState(false);
@@ -213,6 +44,30 @@ const ToolBanner = ({ tool, renderGraphic }) => {
 
 export default function EssentialAITools({ onNavigateToDesign }) {
   const sliderRef = useRef(null);
+  const [tools, setTools] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/ai-tools`)
+      .then(res => res.json())
+      .then(data => {
+        const nextTools = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.tools)
+            ? data.tools
+            : [];
+        let essential = nextTools.filter((tool) => tool.showInEssential === true);
+        if (essential.length === 0 && nextTools.length > 0) {
+          essential = nextTools.slice(0, 6); // Fallback if none are marked
+        }
+        setTools(essential);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching AI Tools:', err);
+        setLoading(false);
+      });
+  }, []);
 
   const scroll = (direction) => {
     if (!sliderRef.current) return;
@@ -532,13 +387,15 @@ export default function EssentialAITools({ onNavigateToDesign }) {
           Essential AI Tools
         </h2>
         
-        <button 
-          onClick={onNavigateToDesign}
-          className="group flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-black transition-colors cursor-pointer"
-        >
-          <span>More AI Tools</span>
-          <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={onNavigateToDesign}
+            className="group flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-black transition-colors cursor-pointer"
+          >
+            <span>More AI Tools</span>
+            <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+          </button>
+        </div>
       </div>
 
       <div
@@ -546,46 +403,54 @@ export default function EssentialAITools({ onNavigateToDesign }) {
         className="flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory no-scrollbar scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {ESSENTIAL_AI_TOOLS.map((tool) => (
-          <a
-            key={tool.id}
-            href={tool.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-[280px] sm:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] shrink-0 snap-start bg-white rounded-3xl p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group"
-          >
-            <div>
-              <div className="relative mb-5">
-                <ToolBanner tool={tool} renderGraphic={renderBannerGraphic} />
-                <div className="absolute -bottom-2 -right-1 w-10 h-10 rounded-full bg-white shadow-md border-2 border-white flex items-center justify-center p-1 z-10">
-                  {renderLogoBadge(tool)}
+        {!loading && tools.length === 0 ? (
+          <div className="w-full py-10 flex flex-col items-center justify-center text-center">
+            <img src="/assets/empty/no-results.svg" alt="No tools found" className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">No essential tools found</h3>
+            <p className="text-xs sm:text-sm text-gray-500">Check back later for curated essential tools.</p>
+          </div>
+        ) : (
+          tools.map((tool) => (
+            <a
+              key={tool._id || tool.toolId}
+              href={tool.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-[280px] sm:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] shrink-0 snap-start bg-white rounded-3xl p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group"
+            >
+              <div>
+                <div className="relative mb-5">
+                  <ToolBanner tool={tool} renderGraphic={renderBannerGraphic} />
+                  <div className="absolute -bottom-2 -right-1 w-10 h-10 rounded-full bg-white shadow-md border-2 border-white flex items-center justify-center p-1 z-10">
+                    {renderLogoBadge(tool)}
+                  </div>
                 </div>
+
+                <h3 className="font-extrabold text-[17px] text-gray-950 mb-1 group-hover:text-indigo-600 transition-colors">
+                  {tool.name}
+                </h3>
+                <p className="text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
+                  {tool.desc}
+                </p>
               </div>
 
-              <h3 className="font-extrabold text-[17px] text-gray-950 mb-1 group-hover:text-indigo-600 transition-colors">
-                {tool.name}
-              </h3>
-              <p className="text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
-                {tool.desc}
-              </p>
-            </div>
-
-            <div className="mt-4 pt-3 flex items-center justify-between">
-              <span className="text-[11.5px] font-medium text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                {tool.tag || 'AI Tool'}
-              </span>
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                tool.pricing?.includes('TRIAL') 
-                  ? 'bg-[#ffedd5] text-[#9a3412]' 
-                  : tool.pricing?.includes('PAID') 
-                    ? 'bg-[#fee2e2] text-[#991b1b]' 
-                    : 'bg-[#fef9c3] text-[#854d0e]'
-              }`}>
-                {tool.pricing || 'FREEMIUM'}
-              </span>
-            </div>
-          </a>
-        ))}
+              <div className="mt-4 pt-3 flex items-center justify-between">
+                <span className="text-[11.5px] font-medium text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                  {tool.tag || 'AI Tool'}
+                </span>
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                  tool.pricing?.includes('TRIAL') 
+                    ? 'bg-[#ffedd5] text-[#9a3412]' 
+                    : tool.pricing?.includes('PAID') 
+                      ? 'bg-[#fee2e2] text-[#991b1b]' 
+                      : 'bg-[#fef9c3] text-[#854d0e]'
+                }`}>
+                  {tool.pricing || 'FREEMIUM'}
+                </span>
+              </div>
+            </a>
+          ))
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2.5 mt-4">

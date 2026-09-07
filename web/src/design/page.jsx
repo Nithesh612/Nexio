@@ -805,7 +805,7 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fc] text-[#111827] font-sans antialiased selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-[#f8f9fc] text-[#111827] font-sans antialiased">
 
       {/* Universal Common Header */}
       <Header

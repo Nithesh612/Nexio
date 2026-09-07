@@ -444,18 +444,15 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
 
   const tabs = [
     { id: 'all',              label: 'All Links',         icon: Layers,       categoryVal: 'all' },
+    { id: 'ai',               label: 'AI Tools',          icon: Bot,          categoryVal: 'AI Tools' },
     { id: 'saved',            label: 'Saved',             icon: Bookmark,     categoryVal: 'saved' },
     { id: 'ui/ux',            label: 'UI/UX',             icon: LayoutGrid,   categoryVal: 'UI/UX' },
     { id: 'ai-image-video',   label: 'AI Image & Video',  icon: Video,        categoryVal: 'AI Image & Video' },
-    { id: 'ai',               label: 'AI',                icon: Bot,          categoryVal: 'AI' },
-    { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
     { id: 'inspiration',      label: 'Inspiration',       icon: Compass,      categoryVal: 'Inspiration' },
     { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
     { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
-    { id: 'host',             label: 'Host',              icon: Server,       categoryVal: 'Host' },
-    { id: 'article',          label: 'Article',           icon: FileText,     categoryVal: 'Article' },
     { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
-    { id: 'tools',            label: 'Tools',             icon: Wrench,       categoryVal: 'Tools' },
+    { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
   ];
 
   const meta = tabMeta[activeTab] || tabMeta.all;

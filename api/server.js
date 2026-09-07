@@ -6,6 +6,7 @@ require("./db");
 
 const hubRoutes = require("./routes/hub");
 const userRoutes = require("./routes/users");
+const editingRoutes = require("./routes/editing/editing");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -129,6 +130,9 @@ app.get("/health", (req, res) => {
 app.use("/hub", hubRoutes);
 app.use("/books", hubRoutes); // backward compatibility alias
 app.use("/users", userRoutes);
+app.use("/editing", editingRoutes);
+app.use("/api/editing", editingRoutes);
+app.use("/api/ai-tools", require("./routes/aiTools"));
 
 // 404 handler
 app.use((req, res) => {

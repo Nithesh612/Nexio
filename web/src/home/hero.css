@@ -346,6 +346,15 @@
   top: 1px;
 }
 
+.v-menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  margin: 2px 0;
+  border-radius: 999px;
+  background: currentColor;
+}
+
 /* ============================================================
    HERO SECTION
    ============================================================ */
@@ -1056,5 +1065,16 @@ a:focus-visible {
   .v-menu-toggle {
     width: 36px;
     height: 36px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .v-header-actions .v-nav-link {
+    color: rgba(255, 255, 255, .86);
+  }
+
+  .v-header-actions .v-nav-link:hover,
+  .v-header-actions .v-nav-link.active {
+    color: #fff;
   }
 }

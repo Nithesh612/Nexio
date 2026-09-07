@@ -19,7 +19,7 @@ const categoryMap = {
   all: 'All Links',
   uiux: 'UI/UX',
   'ai-agents': 'AI Agents',
-  resources: 'Resources',
+  'editing': 'Editing',
   design: 'Design',
   inspiration: 'Inspiration',
 };
@@ -38,7 +38,7 @@ function mapCategoryToId(category) {
   const lower = category.toLowerCase();
   if (lower === 'ui/ux' || lower === 'uiux') return 'uiux';
   if (lower === 'ai agents' || lower === 'ai-agents' || lower === 'ai image & video' || lower === 'ai') return 'ai-agents';
-  if (lower === 'resources') return 'resources';
+  if (lower === 'editing') return 'editing';
   if (lower === 'inspiration' || lower === 'design') return 'inspiration';
   return 'all';
 }
@@ -64,7 +64,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     { id: 'all', label: 'All Links', icon: <Link2 size={15} /> },
     { id: 'uiux', label: 'UI/UX', icon: <LayoutGrid size={15} /> },
     { id: 'ai-agents', label: 'AI Agents', icon: <Bot size={15} /> },
-    { id: 'resources', label: 'Resources', icon: <BookOpen size={15} /> },
+    { id: 'editing', label: 'Editing', icon: <BookOpen size={15} /> },
     { id: 'inspiration', label: 'Inspiration', icon: <Sparkles size={15} /> },
   ];
 

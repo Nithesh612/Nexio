@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import Header from '../components/Header'
 import NewsletterSection from '../components/NewsletterSection'
 import Footer from '../components/Footer'
-import { API_URL } from '../config/api'
+import { API_URL, API_BASE_URL } from '../config/api'
 
 import {
   ArrowLeft,
@@ -52,39 +52,39 @@ const AI_CATEGORIES = [
 // Top Featured Spotlight Tools
 const FEATURED_AI_HERO = [
   {
-    id: 'readymag',
-    title: 'Readymag',
-    desc: 'Create all kinds of websites with flexibility and complete creative freedom.',
-    url: 'https://readymag.com/?utm_source=toools&utm_medium=partnership_website&utm_campaign=main',
-    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a85732e62373e8fdd649f78_readymag-website-builder.gif',
-    logoUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a857854796820f3bb34f62e_logo-readymag.svg',
-    category: 'ui-web',
-    tag: 'Web Builder',
-    pricing: 'Freemium',
-    isPartner: true
+    id: 'hermes-agent',
+    title: 'Hermes Agent',
+    desc: 'Research-driven AI agent for focused reasoning, analysis, and task execution.',
+    url: 'https://hermes-agent.nousresearch.com/',
+    bannerUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=hermes-agent.nousresearch.com&sz=128',
+    category: 'copy-llm',
+    tag: 'AI Agent',
+    pricing: 'FREE',
+    isPartner: false
   },
   {
-    id: 'designlab',
-    title: 'AI Product Design Certification',
-    desc: 'A new AI certification from Designlab where you learn from practitioners at VP and Principal level.',
-    url: 'https://designlab.com/advanced/ai-product-design-certification?discount=AI$200&irclickid=SZRzXDWvcxyZRytSIpXgH18mUkr2Q2yYO3u2zE0&irgwc=1&afsrc=1&utm_content=3704448&utm_campaign=%22Affiliates%22&utm_source=impact&utm_medium=affiliate',
-    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a7df979a29a8d282393119e_ai-product-design-course-designlab-a.gif',
-    logoUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a7df5c45121ae9788dc3bea_logo-designlab.svg',
+    id: 'openclaw',
+    title: 'OpenClaw',
+    desc: 'Open and flexible AI agent framework for building autonomous workflows.',
+    url: 'https://openclaw.ai/',
+    bannerUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=1200&auto=format&fit=crop',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=openclaw.ai&sz=128',
     category: 'workflow',
-    tag: 'Learning',
-    pricing: 'Paid',
-    isPartner: true
+    tag: 'AI Agent',
+    pricing: 'FREE',
+    isPartner: false
   },
   {
-    id: 'mobbin-mcp',
-    title: 'Mobbin MCP',
-    desc: 'Mobbin MCP connects your AI agents to 600,000+ real product screens.',
-    url: 'https://mobbin.com/mcp?via=toools',
-    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a38fe7685c2bc351f24dc21_mobbin-mcp-connectors.webp',
-    logoUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a38fd1bfbf903a6ea1b8fae_icon-mobbin.svg',
-    category: 'workflow',
-    tag: 'AI Tools',
-    pricing: 'Paid',
+    id: 'claude',
+    title: 'Claude',
+    desc: 'AI assistant for writing, coding, research, and high-context reasoning.',
+    url: 'https://claude.ai/',
+    bannerUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1200&auto=format&fit=crop',
+    logoUrl: 'https://www.google.com/s2/favicons?domain=claude.ai&sz=128',
+    category: 'copy-llm',
+    tag: 'LLM',
+    pricing: 'FREEMIUM',
     isPartner: false
   }
 ]
@@ -478,6 +478,8 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedPricing, setSelectedPricing] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12 // 3 rows on lg screens (4 columns)
   const [dbLinks, setDbLinks] = useState([])
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -492,7 +494,7 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
   useEffect(() => {
     const fetchDbLinks = async () => {
       try {
-        const res = await fetch(API_URL)
+        const res = await fetch(`${API_BASE_URL}/api/ai-tools`)
         if (res.ok) {
           const data = await res.json()
           if (Array.isArray(data)) {
@@ -513,43 +515,18 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
       const next = { ...prev, [id]: !prev[id] }
       try {
         localStorage.setItem('nexio_ai_favorites', JSON.stringify(next))
-      } catch {}
+      } catch { }
       return next
     })
   }
 
-  // Combine live database AI bookmarks with static directory
+  // The AI Tools page is backed by the API collection.
   const combinedTools = useMemo(() => {
-    const aiDbItems = dbLinks
-      .filter(item => {
-        const cat = (item.category || '').toLowerCase()
-        const col = (item.collection || '').toLowerCase()
-        const title = (item.title || '').toLowerCase()
-        return cat.includes('ai') || col.includes('ai') || title.includes('ai') || cat.includes('bot') || cat.includes('model')
-      })
-      .map((item, idx) => ({
-        id: item.id || item._id || `db-ai-${idx}`,
-        name: item.title,
-        desc: item.description || `AI-powered creative tool and intelligent model.`,
-        category: (item.category || '').toLowerCase().includes('image') || (item.category || '').toLowerCase().includes('video')
-          ? 'art-images'
-          : (item.category || '').toLowerCase().includes('copy') || (item.category || '').toLowerCase().includes('llm')
-          ? 'copy-llm'
-          : (item.category || '').toLowerCase().includes('3d') || (item.category || '').toLowerCase().includes('motion')
-          ? '3d-motion'
-          : 'ui-web',
-        pricing: item.badge ? String(item.badge).toUpperCase() : 'FREEMIUM',
-        isPartner: false,
-        url: item.url,
-        logoUrl: item.logoUrl,
-        bannerUrl: item.bannerUrl,
-        bannerType: 'dynamic-db'
-      }))
-
-    const staticUrls = new Set(AI_TOOLS_DIRECTORY.map(t => (t.url || '').toLowerCase()))
-    const uniqueDbItems = aiDbItems.filter(item => item.url && !staticUrls.has(item.url.toLowerCase()))
-
-    return [...uniqueDbItems, ...AI_TOOLS_DIRECTORY]
+    return dbLinks.map(tool => ({
+      ...tool,
+      category: tool.category || 'ui-web', // Default category if not present
+      id: tool.toolId || tool._id || tool.id
+    }))
   }, [dbLinks])
 
   // Filter tools based on search, category and pricing
@@ -564,6 +541,19 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
       return matchesCategory && matchesPricing && matchesSearch
     })
   }, [combinedTools, selectedCategory, selectedPricing, searchQuery])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedCategory, selectedPricing, searchQuery])
+
+  // Paginate tools
+  const paginatedTools = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    return filteredTools.slice(startIndex, startIndex + itemsPerPage)
+  }, [filteredTools, currentPage])
+
+  const totalPages = Math.ceil(filteredTools.length / itemsPerPage)
 
   // Render Exact Vector Logo Banner
   const renderBannerGraphic = (tool) => {
@@ -884,9 +874,51 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
     }
   };
 
+  const renderFeaturedBanner = (item) => {
+    const fallbackStyle = item.bannerFallback || 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 35%, #f5f3ff 100%)'
+
+    return (
+      <div className="relative h-44 sm:h-52 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-gray-100 mb-3 sm:mb-4 border border-gray-100" style={{ background: fallbackStyle }}>
+        <img
+          src={item.bannerUrl}
+          alt={item.title}
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+            const fallback = e.currentTarget.parentElement?.querySelector('[data-banner-fallback]')
+            if (fallback) fallback.style.display = 'flex'
+          }}
+        />
+
+        <div
+          data-banner-fallback
+          className="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-violet-100 p-4"
+          style={{ display: 'none' }}
+        >
+          <div className="flex items-center gap-3 rounded-full border border-white/80 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm">
+            <img
+              src={item.logoUrl}
+              alt={item.title}
+              className="w-7 h-7 object-contain rounded-md"
+              loading="lazy"
+            />
+            <span className="text-sm font-black text-gray-900 tracking-tight">{item.title}</span>
+          </div>
+        </div>
+
+        {item.isPartner && (
+          <span className="absolute bottom-2 sm:bottom-2.5 right-2.5 sm:right-3 text-[8.5px] sm:text-[9px] font-extrabold tracking-wider uppercase text-white/90 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">
+            PARTNER*
+          </span>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-[#fcfbf9] text-[#111827] font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 pb-20">
-      
+    <div className="min-h-screen bg-[#fcfbf9] text-[#111827] font-sans antialiased pb-20">
+
       {/* Universal Common Header */}
       <Header
         currentView="ai-tools"
@@ -914,12 +946,65 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
           </div>
 
           <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#111827] tracking-tight mb-3 sm:mb-4">
-            Best AI Design Tools
+            AI Tools
           </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-gray-600 font-normal max-w-3xl leading-relaxed">
+          {/* <p className="text-sm sm:text-base lg:text-lg text-gray-600 font-normal max-w-3xl leading-relaxed">
             A growing curated collection of the best AI tools for creating UI designs, generating generative images, 3D assets, copywriting, animations, and automating design workflows. Updated weekly.
-          </p>
+          </p> */}
         </section>
+
+        {/* Featured Live Screen Banners Showcase */}
+        {selectedCategory === 'all' && !searchQuery && (
+          <section className="mb-10 sm:mb-14">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <h2 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight flex items-center gap-2">
+                <Flame className="text-orange-500" size={20} />
+                <span>Featured Live AI Screen Previews</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {FEATURED_AI_HERO.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-gray-100/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group block no-underline text-inherit"
+                >
+                  <div>
+                    {renderFeaturedBanner(item)}
+
+                    <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
+                      <img
+                        src={item.logoUrl}
+                        alt={item.title}
+                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain rounded-md"
+                        loading="lazy"
+                      />
+                      <h3 className="font-extrabold text-base sm:text-lg text-gray-950 group-hover:text-indigo-600 transition-colors truncate">
+                        {item.title}
+                      </h3>
+                    </div>
+
+                    <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal leading-relaxed line-clamp-2">
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 sm:mt-5 pt-3 border-t border-gray-50 flex items-center justify-between">
+                    <span className="text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#fef9c3] text-[#854d0e] rounded-md tracking-wider uppercase">
+                      {item.pricing}
+                    </span>
+                    <span className="text-xs font-bold text-indigo-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      Visit Tool <ArrowUpRight size={13} />
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Search & Filter Bar */}
         <section className="mb-8 sm:mb-10 bg-white rounded-2xl p-3.5 sm:p-5 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col md:flex-row gap-3 sm:gap-4 items-stretch md:items-center justify-between">
@@ -946,8 +1031,8 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
                 key={p}
                 onClick={() => setSelectedPricing(p)}
                 className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${selectedPricing === p
-                    ? 'bg-black text-white shadow-xs'
-                    : 'bg-gray-100/80 text-gray-600 hover:bg-gray-200/80'
+                  ? 'bg-black text-white shadow-xs'
+                  : 'bg-gray-100/80 text-gray-600 hover:bg-gray-200/80'
                   }`}
               >
                 {p}
@@ -970,8 +1055,8 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${isActive
-                      ? 'bg-indigo-600 text-white shadow-[0_4px_14px_rgba(79,70,229,0.3)] scale-[1.02]'
-                      : 'bg-white text-gray-700 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50'
+                    ? 'bg-indigo-600 text-white shadow-[0_4px_14px_rgba(79,70,229,0.3)] scale-[1.02]'
+                    : 'bg-white text-gray-700 border border-gray-200/80 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                 >
                   <Icon size={14} className={isActive ? 'text-white' : 'text-gray-500'} />
@@ -985,79 +1070,11 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
           </div>
         </section>
 
-        {/* Featured Live Screen Banners Showcase (Top 3) */}
-        {selectedCategory === 'all' && !searchQuery && (
-          <section className="mb-10 sm:mb-14">
-            <div className="flex items-center justify-between mb-4 sm:mb-5">
-              <h2 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight flex items-center gap-2">
-                <Flame className="text-orange-500" size={20} />
-                <span>Featured Live AI Screen Previews</span>
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {FEATURED_AI_HERO.map((item) => (
-                <a
-                  key={item.id}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-gray-100/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group block no-underline text-inherit"
-                >
-                  <div>
-                    {/* Live Preview Screen Banner */}
-                    <div className="relative h-44 sm:h-52 w-full rounded-xl sm:rounded-2xl overflow-hidden bg-gray-100 mb-3 sm:mb-4 border border-gray-100">
-                      <img
-                        src={item.bannerUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                      {item.isPartner && (
-                        <span className="absolute bottom-2 sm:bottom-2.5 right-2.5 sm:right-3 text-[8.5px] sm:text-[9px] font-extrabold tracking-wider uppercase text-white/90 bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">
-                          PARTNER*
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Logo & Name */}
-                    <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
-                      <img
-                        src={item.logoUrl}
-                        alt={item.title}
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain rounded-md"
-                        loading="lazy"
-                      />
-                      <h3 className="font-extrabold text-base sm:text-lg text-gray-950 group-hover:text-indigo-600 transition-colors truncate">
-                        {item.title}
-                      </h3>
-                    </div>
-
-                    <p className="text-xs sm:text-[13.5px] text-gray-500 font-normal leading-relaxed line-clamp-2">
-                      {item.desc}
-                    </p>
-                  </div>
-
-                  {/* Badge & Visit CTA */}
-                  <div className="mt-4 sm:mt-5 pt-3 border-t border-gray-50 flex items-center justify-between">
-                    <span className="text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#fef9c3] text-[#854d0e] rounded-md tracking-wider uppercase">
-                      {item.pricing}
-                    </span>
-                    <span className="text-xs font-bold text-indigo-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      Visit Tool <ArrowUpRight size={13} />
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* All Tools Grid */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-5 sm:mb-6">
             <h2 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight">
-              {selectedCategory === 'all' ? 'All AI Tools & Resources' : AI_CATEGORIES.find(c => c.id === selectedCategory)?.name}
+              {selectedCategory === 'all' ? 'AI Tools' : AI_CATEGORIES.find(c => c.id === selectedCategory)?.name}
             </h2>
             <span className="text-xs font-semibold text-gray-500">
               Showing {filteredTools.length} tools
@@ -1066,7 +1083,7 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
 
           {filteredTools.length === 0 ? (
             <div className="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border border-gray-100 shadow-xs">
-              <Search className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
+              <img src="/assets/empty/no-results.svg" alt="No tools found" className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4" />
               <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">No AI tools found</h3>
               <p className="text-xs sm:text-sm text-gray-500">Try adjusting your search keywords or clear filters.</p>
               <button
@@ -1077,48 +1094,79 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
-              {filteredTools.map((tool) => (
-                <a
-                  key={tool.id}
-                  href={tool.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group relative"
-                >
-                  <div>
-                    {/* Live Graphic Banner */}
-                    <div className="mb-3 sm:mb-4">
-                      {renderBannerGraphic(tool)}
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
+                {paginatedTools.map((tool) => (
+                  <a
+                    key={tool.id}
+                    href={tool.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group relative"
+                  >
+                    <div>
+                      {/* Live Graphic Banner */}
+                      <div className="mb-3 sm:mb-4">
+                        {renderBannerGraphic(tool)}
+                      </div>
+
+                      {/* Title & Description */}
+                      <h3 className="font-bold text-base sm:text-[17px] text-gray-950 mb-1 group-hover:text-indigo-600 transition-colors truncate">
+                        {tool.name}
+                      </h3>
+                      <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
+                        {tool.desc}
+                      </p>
                     </div>
 
-                    {/* Title & Description */}
-                    <h3 className="font-bold text-base sm:text-[17px] text-gray-950 mb-1 group-hover:text-indigo-600 transition-colors truncate">
-                      {tool.name}
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
-                      {tool.desc}
-                    </p>
-                  </div>
+                    {/* Pricing Tag & Bookmark */}
+                    <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-gray-50 flex items-center justify-between">
+                      <button
+                        onClick={(e) => toggleFavorite(tool.id, e)}
+                        className={`p-1.5 rounded-full transition-colors cursor-pointer ${favorites[tool.id] ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-gray-50'
+                          }`}
+                        aria-label="Bookmark"
+                      >
+                        <Heart size={15} className={favorites[tool.id] ? 'fill-rose-500' : ''} />
+                      </button>
 
-                  {/* Pricing Tag & Bookmark */}
-                  <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-gray-50 flex items-center justify-between">
-                    <button
-                      onClick={(e) => toggleFavorite(tool.id, e)}
-                      className={`p-1.5 rounded-full transition-colors cursor-pointer ${favorites[tool.id] ? 'text-rose-500 bg-rose-50' : 'text-gray-400 hover:text-rose-500 hover:bg-gray-50'
-                        }`}
-                      aria-label="Bookmark"
-                    >
-                      <Heart size={15} className={favorites[tool.id] ? 'fill-rose-500' : ''} />
-                    </button>
+                      <span className="text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#fef9c3] text-[#854d0e] rounded-md tracking-wider uppercase">
+                        {tool.pricing}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
 
-                    <span className="text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#fef9c3] text-[#854d0e] rounded-md tracking-wider uppercase">
-                      {tool.pricing}
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-10 flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => {
+                      setCurrentPage(p => Math.max(1, p - 1))
+                      window.scrollTo({ top: 400, behavior: 'smooth' })
+                    }}
+                    disabled={currentPage === 1}
+                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl disabled:opacity-40 hover:bg-gray-50 font-bold text-[13px] transition-all cursor-pointer shadow-xs"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-[13px] font-extrabold text-gray-600 bg-gray-100/80 px-4 py-2.5 rounded-xl">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setCurrentPage(p => Math.min(totalPages, p + 1))
+                      window.scrollTo({ top: 400, behavior: 'smooth' })
+                    }}
+                    disabled={currentPage === totalPages}
+                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl disabled:opacity-40 hover:bg-gray-50 font-bold text-[13px] transition-all cursor-pointer shadow-xs"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 

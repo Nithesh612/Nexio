@@ -6,6 +6,7 @@ import SaveLinkModal from './SaveLinkModal'
 import DashboardPage from '../dashbord/page'
 import DesignPage from '../design/page'
 import AIToolsPage from '../AI-tools/page'
+import EditingPage from '../Editing/editing'
 import LoginPage from '../login/page'
 import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
 import EssentialAITools from './EssentialAITools'
@@ -13,7 +14,7 @@ import FeaturedQuickAssets from './FeaturedQuickAssets'
 import NewsletterSection from '../components/NewsletterSection'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
-import { API_URL } from '../config/api'
+import { API_URL, API_BASE_URL } from '../config/api'
 
 const initialLinks = [
   {
@@ -277,13 +278,15 @@ export default function Home() {
       }
       const hash = window.location.hash.toLowerCase();
       if (hash === '#dashboard' || hash === '#app') return currentUser ? 'app' : 'login';
-      if (hash === '#design') return 'design';
+      if (hash === '#design') return currentUser ? 'design' : 'login';
       if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') return 'ai-tools';
+      if (hash === '#editing') return 'editing';
       if (hash === '#login') return 'login';
       const saved = localStorage.getItem('nexio_current_view');
       if (saved === 'app') return currentUser ? 'app' : 'login';
-      if (saved === 'design') return 'design';
+      if (saved === 'design') return currentUser ? 'design' : 'login';
       if (saved === 'ai-tools') return 'ai-tools';
+      if (saved === 'editing') return 'editing';
     } catch {
       // fallback
     }
@@ -291,7 +294,7 @@ export default function Home() {
   });
 
   const handleSetView = (newView) => {
-    if (newView === 'app' && !user) {
+    if ((newView === 'app' || newView === 'design') && !user) {
       setView('login');
       window.history.pushState(null, '', '#login');
       return;
@@ -311,10 +314,14 @@ export default function Home() {
         if (window.location.hash !== '#ai-tools') {
           window.history.pushState(null, '', '#ai-tools');
         }
+      } else if (newView === 'editing') {
+        if (window.location.hash !== '#editing') {
+          window.history.pushState(null, '', '#editing');
+        }
       } else if (newView === 'login') {
         window.history.pushState(null, '', '#login');
       } else {
-        if (window.location.hash === '#dashboard' || window.location.hash === '#app' || window.location.hash === '#design' || window.location.hash === '#ai-tools' || window.location.hash === '#ai' || window.location.hash === '#login') {
+        if (window.location.hash === '#dashboard' || window.location.hash === '#app' || window.location.hash === '#design' || window.location.hash === '#ai-tools' || window.location.hash === '#ai' || window.location.hash === '#editing' || window.location.hash === '#login') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
       }
@@ -343,11 +350,19 @@ export default function Home() {
           localStorage.setItem('nexio_current_view', 'app');
         }
       } else if (hash === '#design') {
-        setView('design');
-        localStorage.setItem('nexio_current_view', 'design');
+        if (!user) {
+          setView('login');
+          window.history.pushState(null, '', '#login');
+        } else {
+          setView('design');
+          localStorage.setItem('nexio_current_view', 'design');
+        }
       } else if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') {
         setView('ai-tools');
         localStorage.setItem('nexio_current_view', 'ai-tools');
+      } else if (hash === '#editing') {
+        setView('editing');
+        localStorage.setItem('nexio_current_view', 'editing');
       } else if (hash === '#login') {
         setView('login');
       } else if (!hash || hash === '#features' || hash === '#use-cases' || hash === '#extensions' || hash === '#integrations') {
@@ -387,9 +402,15 @@ export default function Home() {
   const fetchLinks = async () => {
     try {
       setLoading(true)
-      const res = await fetch(API_URL)
+      const [res, aiRes] = await Promise.all([
+        fetch(API_URL).catch(() => ({ ok: false })),
+        fetch(`${API_BASE_URL}/api/ai-tools`).catch(() => ({ ok: false }))
+      ])
+      
+      let allLinks = []
+      
       if (res.ok) {
-        const data = await res.json()
+        const data = await res.json().catch(() => [])
         if (Array.isArray(data) && data.length > 0) {
           const formatted = data.map((item) => {
             // Smart description from URL keywords
@@ -436,13 +457,40 @@ export default function Home() {
               readLater: Boolean(item.readLater),
             }
           })
-          setDbLinks(formatted)
-          setLinks([...formatted, ...initialLinks])
-          setSelected(formatted[0])
-        } else {
-          setLinks(initialLinks)
-          setSelected(initialLinks[0])
+          allLinks = [...allLinks, ...formatted]
         }
+      }
+
+      if (aiRes.ok) {
+        const aiData = await aiRes.json().catch(() => [])
+        const toolsArr = Array.isArray(aiData) ? aiData : (Array.isArray(aiData?.tools) ? aiData.tools : [])
+        if (toolsArr.length > 0) {
+          const formattedAi = toolsArr.map(item => ({
+            id: item._id || item.toolId,
+            title: item.name,
+            url: item.url,
+            source: normalizeUrl(item.url).split('/')[0].replace(/^www\./, ''),
+            type: 'AI Tools',
+            category: 'AI Tools',
+            collection: 'AI Tools',
+            description: item.desc || item.name,
+            tags: ['ai tools'],
+            color: '#def7ec',
+            letter: item.name.charAt(0).toUpperCase(),
+            saved: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
+            favorite: false,
+            readLater: false,
+            bannerUrl: item.bannerUrl || '',
+            logoUrl: '' 
+          }))
+          allLinks = [...allLinks, ...formattedAi]
+        }
+      }
+      
+      if (allLinks.length > 0) {
+        setDbLinks(allLinks)
+        setLinks([...allLinks, ...initialLinks])
+        setSelected(allLinks[0])
       } else {
         setLinks(initialLinks)
         setSelected(initialLinks[0])
@@ -458,6 +506,15 @@ export default function Home() {
 
   useEffect(() => {
     fetchLinks()
+
+    const handleUpdate = () => {
+      fetchLinks()
+    }
+
+    window.addEventListener('nexio_ai_tools_updated', handleUpdate)
+    return () => {
+      window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
+    }
   }, [])
 
   const displayedLinks = useMemo(() => {
@@ -535,8 +592,45 @@ export default function Home() {
 
     const isQuick = String(selectedCategory || '').toLowerCase().includes('quick') || linkData?.collection === 'Quick Assets'
     const isSaved = String(selectedCategory || '').toLowerCase().includes('saved')
+    const isAITool = String(selectedCategory || '').toLowerCase().includes('ai tool') || (linkData?.categories || []).includes('AI Tools')
 
     try {
+      if (isAITool) {
+        // Automatically add to global AI Tools directory as well
+        const baseId = derivedTitle.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'ai-tool'
+        const toolId = `${baseId}-${Date.now().toString().slice(-4)}`
+        
+        try {
+          const aiRes = await fetch(`${API_BASE_URL}/api/ai-tools`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toolId,
+              name: derivedTitle,
+              url: cleanUrl,
+              desc: smartDescription,
+              category: 'ai-tools',
+              tag: 'AI Tool',
+              pricing: 'FREEMIUM',
+              bannerType: 'image',
+              bannerUrl: linkData?.bannerUrl || '',
+              isPartner: false,
+              showInEssential: false
+            })
+          })
+          
+          if (!aiRes.ok) {
+            const errData = await aiRes.text();
+            console.error('AI Tools Sync Error:', errData);
+          } else {
+            // Tell AIToolsManager to refresh
+            window.dispatchEvent(new CustomEvent('nexio_ai_tools_updated'));
+          }
+        } catch (err) {
+          console.error('Failed to sync with global AI Tools directory:', err)
+        }
+      }
+
       // Save directly into MongoDB
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -694,6 +788,7 @@ export default function Home() {
               if (target === 'landing') window.scrollTo({ top: 0, behavior: 'smooth' })
               else if (target === 'design') handleSetView('design')
               else if (target === 'ai-tools') handleSetView('ai-tools')
+              else if (target === 'editing') handleSetView('editing')
               else if (target === 'app') handleSetView('app')
             }}
             onAddLink={handleAddLink}
@@ -711,11 +806,24 @@ export default function Home() {
           <Footer onNavigate={handleSetView} />
         </>
       ) : view === 'app' ? (
-        <DashboardPage onBack={() => handleSetView('landing')} onAddLink={handleAddLink} onLogout={handleLogout} />
+        <DashboardPage
+          onBack={() => handleSetView('landing')}
+          onAddLink={handleAddLink}
+          onLogout={handleLogout}
+          onNavigateToEditing={() => handleSetView('editing')}
+        />
       ) : view === 'ai-tools' ? (
         <AIToolsPage 
           onBackToHome={() => handleSetView('landing')} 
           onNavigateToDesign={() => handleSetView('design')}
+          onNavigateToDashboard={() => handleSetView('app')}
+          onAddLink={handleAddLink}
+        />
+      ) : view === 'editing' ? (
+        <EditingPage
+          onBack={() => handleSetView('landing')}
+          onNavigateToDesign={() => handleSetView('design')}
+          onNavigateToAITools={() => handleSetView('ai-tools')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
         />
