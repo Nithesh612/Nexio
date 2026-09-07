@@ -232,6 +232,7 @@
   margin: 0 !important;
   background: #111;
   color: #fff;
+  box-shadow: none !important;
 }
 
 .v-header-right .v-primary-cta .v-cta-label {

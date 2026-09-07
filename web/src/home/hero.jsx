@@ -4,11 +4,16 @@ import './hero.css'
 import heroPoster from '../assets/hero.png'
 import Header from '../components/Header'
 
-export default function Hero({ setIsAdding, setView, onImport, onExport }) {
+export default function Hero({ setIsAdding, setView, onImport, onExport, onAddLink }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [videoState, setVideoState] = useState('loading')
   const videoRef = useRef(null)
   const cardRef = useRef(null)
+
+  const handleAdd = () => {
+    if (onAddLink) onAddLink()
+    else if (setIsAdding) setIsAdding(true)
+  }
 
   useEffect(() => {
     const video = videoRef.current
@@ -25,7 +30,7 @@ export default function Hero({ setIsAdding, setView, onImport, onExport }) {
       <Header
         currentView="landing"
         onNavigate={setView}
-        onAddLink={() => setIsAdding(true)}
+        onAddLink={handleAdd}
       />
 
       <section className="v-screen" id="screen">

@@ -24,6 +24,7 @@ import {
   Trash2,
   Upload,
   X,
+  LogOut,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
@@ -830,7 +831,7 @@ function addDeletedQuickAsset(id, url) {
   }
 }
 
-export default function DashboardPage({ onBack, onAddLink }) {
+export default function DashboardPage({ onBack, onAddLink, onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [activeNav, setActiveNav] = useState('All Links')
@@ -2733,6 +2734,20 @@ export default function DashboardPage({ onBack, onAddLink }) {
 
           {onBack && (
             <div className="sidebar-bottom-action">
+              {onLogout && (
+                <button
+                  type="button"
+                  className="back-home-btn"
+                  onClick={() => {
+                    setSidebarOpen(false)
+                    if (typeof onLogout === 'function') onLogout()
+                  }}
+                  style={{ marginBottom: '8px', color: '#ef4444', borderColor: '#fee2e2', backgroundColor: '#fef2f2' }}
+                >
+                  <LogOut size={16} style={{ marginRight: '8px' }} />
+                  Logout
+                </button>
+              )}
               <button
                 type="button"
                 className="back-home-btn"

@@ -222,7 +222,15 @@ export default function Home() {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem('nexio_auth')
-      return stored ? JSON.parse(stored) : null
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
+          localStorage.removeItem('nexio_auth')
+          return null
+        }
+        return parsed
+      }
+      return null
     } catch {
       return null
     }
@@ -239,15 +247,41 @@ export default function Home() {
     handleSetView('landing')
   }
 
+  useEffect(() => {
+    if (!user || !user.expiresAt) return
+
+    const timeRemaining = user.expiresAt - Date.now()
+    if (timeRemaining <= 0) {
+      handleLogout()
+      return
+    }
+
+    // Set a timeout to auto logout. Use max 32-bit integer for setTimeout limit, though 1 day fits.
+    // 24 hours = 86400000 ms, which is < 2147483647 ms
+    const timer = setTimeout(() => {
+      handleLogout()
+    }, timeRemaining)
+
+    return () => clearTimeout(timer)
+  }, [user])
+
   const [view, setView] = useState(() => {
     try {
+      const stored = localStorage.getItem('nexio_auth');
+      let currentUser = null;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (!parsed.expiresAt || Date.now() <= parsed.expiresAt) {
+          currentUser = parsed;
+        }
+      }
       const hash = window.location.hash.toLowerCase();
-      if (hash === '#dashboard' || hash === '#app') return 'app';
+      if (hash === '#dashboard' || hash === '#app') return currentUser ? 'app' : 'login';
       if (hash === '#design') return 'design';
       if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') return 'ai-tools';
       if (hash === '#login') return 'login';
       const saved = localStorage.getItem('nexio_current_view');
-      if (saved === 'app') return 'app';
+      if (saved === 'app') return currentUser ? 'app' : 'login';
       if (saved === 'design') return 'design';
       if (saved === 'ai-tools') return 'ai-tools';
     } catch {
@@ -257,6 +291,11 @@ export default function Home() {
   });
 
   const handleSetView = (newView) => {
+    if (newView === 'app' && !user) {
+      setView('login');
+      window.history.pushState(null, '', '#login');
+      return;
+    }
     setView(newView);
     try {
       localStorage.setItem('nexio_current_view', newView === 'login' ? 'landing' : newView);
@@ -284,12 +323,25 @@ export default function Home() {
     }
   };
 
+  const handleAddLink = () => {
+    if (!user) {
+      handleSetView('login');
+    } else {
+      setIsAdding(true);
+    }
+  };
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#dashboard' || hash === '#app') {
-        setView('app');
-        localStorage.setItem('nexio_current_view', 'app');
+        if (!user) {
+          setView('login');
+          window.history.pushState(null, '', '#login');
+        } else {
+          setView('app');
+          localStorage.setItem('nexio_current_view', 'app');
+        }
       } else if (hash === '#design') {
         setView('design');
         localStorage.setItem('nexio_current_view', 'design');
@@ -310,7 +362,7 @@ export default function Home() {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('popstate', handleHashChange);
     };
-  }, []);
+  }, [user]);
 
   const [links, setLinks] = useState([])
   const [dbLinks, setDbLinks] = useState([])
@@ -644,35 +696,35 @@ export default function Home() {
               else if (target === 'ai-tools') handleSetView('ai-tools')
               else if (target === 'app') handleSetView('app')
             }}
-            onAddLink={() => setIsAdding(true)}
+            onAddLink={handleAddLink}
             user={user}
             onLogin={() => handleSetView('login')}
             onLogout={handleLogout}
           />
           
-          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} onNavigateToAITools={() => handleSetView('ai-tools')} />
+          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={handleAddLink} onNavigateToAITools={() => handleSetView('ai-tools')} />
           <FeaturedQuickAssets />
           <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />
-          <LinksSection savedLinks={dbLinks} onAddLink={() => setIsAdding(true)} />
+          <LinksSection savedLinks={dbLinks} onAddLink={handleAddLink} />
           <AnimatedConnect01 />
           <NewsletterSection />
           <Footer onNavigate={handleSetView} />
         </>
       ) : view === 'app' ? (
-        <DashboardPage onBack={() => handleSetView('landing')} onAddLink={() => setIsAdding(true)} />
+        <DashboardPage onBack={() => handleSetView('landing')} onAddLink={handleAddLink} onLogout={handleLogout} />
       ) : view === 'ai-tools' ? (
         <AIToolsPage 
           onBackToHome={() => handleSetView('landing')} 
           onNavigateToDesign={() => handleSetView('design')}
           onNavigateToDashboard={() => handleSetView('app')}
-          onAddLink={() => setIsAdding(true)}
+          onAddLink={handleAddLink}
         />
       ) : (
         <DesignPage 
           onBack={() => handleSetView('landing')} 
           onNavigateToAITools={() => handleSetView('ai-tools')}
           onNavigateToDashboard={() => handleSetView('app')}
-          onAddLink={() => setIsAdding(true)}
+          onAddLink={handleAddLink}
         />
       )}
 
