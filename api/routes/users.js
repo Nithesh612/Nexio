@@ -39,8 +39,8 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ error: "Email and password are required." });
         }
 
-        const envUser = process.env.USER;
-        const envPass = process.env.PASSWORD;
+        const envUser = process.env.ADMIN_EMAIL;
+        const envPass = process.env.ADMIN_PASSWORD;
 
         // Direct match with .env admin credentials only
         if (envUser && envPass && email.trim().toLowerCase() === envUser.trim().toLowerCase() && password === envPass) {
