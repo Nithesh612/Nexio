@@ -2365,13 +2365,14 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           gap: 12px;
         }
         .stat-icon {
-          width: 42px;
-          height: 42px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           display: grid;
           place-items: center;
+          flex-shrink: 0;
           color: var(--icon-color, #2563eb);
-          background: rgba(37, 99, 235, 0.09);
+          background: color-mix(in srgb, var(--icon-color, #2563eb) 12%, transparent);
         }
         .stat-value {
           font-size: 1.85rem;
@@ -3350,7 +3351,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
           .stat-card { padding: 12px 14px; }
           .stat-value { font-size: 1.4rem; }
-          .stat-icon { width: 36px; height: 36px; }
+          .stat-icon { width: 28px; height: 28px; }
           .tool-row { flex-direction: column; align-items: stretch; gap: 10px; }
           .selector { min-width: 0; width: 100%; }
           .chip-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; margin-bottom: 16px; -ms-overflow-style: none; scrollbar-width: none; }
@@ -3716,7 +3717,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
             {liveStats.map(({ label, value, delta, accent, icon: Icon }) => (
               <div className="stat-card" key={label}>
                 <div className="stat-icon" style={{ '--icon-color': accent }}>
-                  <Icon className="" />
+                  <Icon size={16} strokeWidth={2.2} />
                 </div>
                 <div className="stat-main">
                   <div className="stat-value">{value}</div>
