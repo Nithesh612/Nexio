@@ -78,6 +78,7 @@ export default function FeaturedQuickAssets() {
         const quick = data.filter(
           (item) =>
             (item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.category === 'Quick Assets' || item.kind === 'quick-asset') &&
+            item.favorite === true &&
             !deletedList.includes(String(item.id)) &&
             !deletedList.includes(String(item._id)) &&
             !deletedList.includes(String(item.url))

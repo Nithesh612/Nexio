@@ -390,7 +390,7 @@ export default function EssentialAITools({ onNavigateToDesign }) {
         <div className="flex items-center gap-4">
           <button 
             onClick={onNavigateToDesign}
-            className="group flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-black transition-colors cursor-pointer"
+            className="group flex items-center gap-1 text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
           >
             <span>More AI Tools</span>
             <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />

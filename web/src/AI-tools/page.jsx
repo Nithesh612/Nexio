@@ -938,28 +938,13 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
       {/* Main Container */}
       <main className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
 
-        {/* Hero Section */}
-        <section className="mb-8 sm:mb-10 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-3 sm:mb-4 uppercase tracking-wider">
-            <Sparkles size={13} className="text-indigo-600 animate-pulse" />
-            <span>AI Design Directory • {combinedTools.length}+ Best Tools</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#111827] tracking-tight mb-3 sm:mb-4">
-            AI Tools
-          </h1>
-          {/* <p className="text-sm sm:text-base lg:text-lg text-gray-600 font-normal max-w-3xl leading-relaxed">
-            A growing curated collection of the best AI tools for creating UI designs, generating generative images, 3D assets, copywriting, animations, and automating design workflows. Updated weekly.
-          </p> */}
-        </section>
-
         {/* Featured Live Screen Banners Showcase */}
         {selectedCategory === 'all' && !searchQuery && (
           <section className="mb-10 sm:mb-14">
             <div className="flex items-center justify-between mb-4 sm:mb-5">
-              <h2 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight flex items-center gap-2">
-                <Flame className="text-orange-500" size={20} />
-                <span>Featured Live AI Screen Previews</span>
+              <h2 className="text-sm sm:text-base font-black text-blue-600 tracking-tight flex items-center gap-2">
+                <Flame className="text-orange-500" size={18} />
+                <span>Featured AI Tools</span>
               </h2>
             </div>
 

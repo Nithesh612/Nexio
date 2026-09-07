@@ -286,20 +286,6 @@ function DesignResourceCard({ item, isBookmarked, onToggleBookmark }) {
             <span className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 z-10 text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-black/60 text-white backdrop-blur-md border border-white/20 shadow-xs tracking-wide">
               {categoryTag}
             </span>
-
-            {/* Top-Right Glass Bookmark Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onToggleBookmark(item.id);
-              }}
-              aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark resource'}
-              className="absolute top-2 sm:top-2.5 right-2 sm:right-2.5 z-10 w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md transition-all cursor-pointer shadow-xs"
-            >
-              <Bookmark size={12} className={isBookmarked ? 'fill-rose-400 text-rose-400' : 'text-white'} />
-            </button>
           </div>
 
           {/* Overlapping Circular Live Logo Badge */}
@@ -358,14 +344,31 @@ function DesignResourceCard({ item, isBookmarked, onToggleBookmark }) {
         </p>
       </div>
 
-      {/* Footer: Category & Pricing */}
-      <div className="flex items-center justify-between pt-2 sm:pt-2.5 border-t border-gray-100 text-xs">
-        <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md truncate max-w-[110px] sm:max-w-none">
-          {item.tag || categoryTag}
-        </span>
-        <span className="font-semibold text-gray-700 flex items-center gap-1 group-hover:text-indigo-600 text-xs shrink-0">
-          {item.pricing || 'Free'}
-          <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Footer: Heart Favorite Button, Tag & Pricing */}
+      <div className="flex items-center justify-between pt-2 sm:pt-2.5 border-t border-gray-100 text-xs mt-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleBookmark(item.id);
+            }}
+            aria-label={isBookmarked ? 'Remove favorite' : 'Add favorite'}
+            className={`p-1.5 rounded-full transition-all cursor-pointer ${
+              isBookmarked
+                ? 'text-rose-500 bg-rose-50'
+                : 'text-gray-400 hover:text-rose-500 hover:bg-gray-50'
+            }`}
+          >
+            <Heart size={15} className={isBookmarked ? 'fill-rose-500' : ''} />
+          </button>
+          <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md truncate max-w-[90px] sm:max-w-none">
+            {item.tag || categoryTag}
+          </span>
+        </div>
+        <span className="text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 bg-[#fef9c3] text-[#854d0e] rounded-md tracking-wider uppercase shrink-0">
+          {item.pricing || 'FREEMIUM'}
         </span>
       </div>
     </a>
@@ -877,8 +880,8 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
                   }`}
               >
                 <div className="flex items-center gap-1.5 sm:gap-2 truncate min-w-0">
-                  <Bookmark size={15} className={`shrink-0 ${selectedCategory === 'saved' ? 'text-rose-400' : 'text-gray-500'}`} />
-                  <span className="truncate text-[11px] sm:text-xs font-semibold">Saved</span>
+                  <Heart size={15} className={`shrink-0 ${selectedCategory === 'saved' ? 'text-rose-400 fill-rose-400' : 'text-gray-500'}`} />
+                  <span className="truncate text-[11px] sm:text-xs font-semibold">Favorites</span>
                 </div>
                 <span className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.5 rounded-md shrink-0 ml-1 ${selectedCategory === 'saved' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-500'
                   }`}>
@@ -1017,71 +1020,6 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
               </button>
             </nav>
           )}
-        </div>
-
-        {/* SECTION 4: ESSENTIAL AI TOOLS (Dark High-Tech Section with Live Banners & Logos) */}
-        <div className="mb-14 rounded-3xl bg-[#0e121a] text-white p-6 sm:p-8 border border-zinc-800 shadow-xl relative overflow-hidden">
-          {/* Subtle glow background */}
-          <div className="absolute top-0 right-1/4 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-rose-600/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 relative z-10">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-semibold mb-2">
-                <Sparkles size={12} />
-                <span>Next Generation AI</span>
-              </div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Essential AI Design Tools</h2>
-              <p className="text-xs sm:text-sm text-zinc-400">Power your creative workflow with state-of-the-art neural tools</p>
-            </div>
-
-            <button className="self-start sm:self-auto text-xs font-bold px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors flex items-center gap-1.5">
-              <span>View All 38 AI Tools</span>
-              <ChevronRight size={14} />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-            {AI_TOOLS.map(ai => (
-              <a
-                key={ai.id}
-                href={ai.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 transition-all duration-200 flex flex-col justify-between shadow-lg block no-underline text-inherit group"
-              >
-                <div>
-                  {/* Live Banner / Preview */}
-                  <div className="h-32 w-full rounded-xl bg-zinc-800/80 border border-zinc-700/80 flex items-center justify-center p-2 mb-3 overflow-hidden">
-                    <img
-                      src={ai.imgUrl}
-                      alt={ai.name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between mb-1.5">
-                    <h3 className="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors">{ai.name}</h3>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                      {ai.badge}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed mb-4">
-                    {ai.desc}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-zinc-800/80 text-xs">
-                  <span className="text-zinc-500 text-[11px]">{ai.tag}</span>
-                  <span className="text-indigo-400 font-bold flex items-center gap-0.5 group-hover:underline">
-                    Try Tool <ArrowUpRight size={12} />
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
         </div>
 
 

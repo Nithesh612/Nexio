@@ -12,6 +12,7 @@ import {
   Edit2,
   FileText,
   FolderKanban,
+  Heart,
   Inbox,
   Link2,
   LayoutGrid,
@@ -37,7 +38,7 @@ const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
   { label: 'Saved', value: '24', delta: '+ 8%', accent: '#f4c849', icon: Bookmark },
   { label: 'Type', value: '0', delta: '+ 15%', accent: '#57c89d', icon: LayoutGrid },
-  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f4c849', icon: Star },
+  { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f43f5e', icon: Heart },
 ]
 
 const PREDEFINED_CATEGORIES = [
@@ -364,7 +365,7 @@ function DashboardLinkCard({ item, isDashboardView, onOpen, onEdit, onDelete, on
               onToggleFavorite(item.id);
             }}
           >
-            <Star size={15} fill={item.favorite ? 'currentColor' : 'none'} strokeWidth={item.favorite ? 0 : 2.5} />
+            <Heart size={15} fill={item.favorite ? 'currentColor' : 'none'} strokeWidth={item.favorite ? 0 : 2.5} />
           </button>
         </div>
 
@@ -698,7 +699,7 @@ function LinkIcon({ className }) {
 }
 
 function StarIcon({ className }) {
-  return <div className={className}><Star size={18} fill="none" strokeWidth={2.5} /></div>
+  return <div className={className}><Heart size={18} fill="none" strokeWidth={2.5} /></div>
 }
 
 function TagIcon({ className }) {
@@ -709,100 +710,6 @@ function InboxIcon({ className }) {
   return <div className={className}><Inbox size={18} /></div>
 }
 
-function QuickAssetCard({ item, onOpen, onEdit, onDelete }) {
-  const [bannerError, setBannerError] = useState(false)
-  const [logoError, setLogoError] = useState(false)
-  const [bannerFallback, setBannerFallback] = useState(0)
-
-  const cleanUrl = item.url ? (item.url.startsWith('http') ? item.url : `https://${item.url}`) : ''
-  const hostname = getHostname(item.url)
-
-  const getBannerSrc = () => {
-    if (bannerFallback === 0 && item.bannerUrl) return item.bannerUrl
-    if (bannerFallback <= 1) return `https://image.thum.io/get/width/700/crop/480/noanimate/${cleanUrl}`
-    if (bannerFallback === 2) return `https://api.microlink.io/?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`
-    if (bannerFallback === 3) return `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=700&h=450`
-    return null
-  }
-
-  const getLogoSrc = () => {
-    if (logoError) return getFaviconUrl(item.url)
-    return item.logoUrl || getFaviconUrl(item.url)
-  }
-
-  const bannerSrc = getBannerSrc()
-  const logoSrc = getLogoSrc()
-
-  return (
-    <article key={item.id} className="service-card">
-      {/* Live Screen Banner Container */}
-      <div className="service-preview" style={{ '--dot-color': '#6366f1', position: 'relative', overflow: 'hidden' }}>
-        {bannerSrc && !bannerError ? (
-          <img
-            src={bannerSrc}
-            alt={`${item.title} live preview`}
-            onError={() => {
-              if (bannerFallback < 3) {
-                setBannerFallback(prev => prev + 1)
-              } else {
-                setBannerError(true)
-              }
-            }}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
-            loading="lazy"
-          />
-        ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #e0e7ff, #f3e8ff)' }}>
-            <span style={{ fontSize: '2.5rem', fontWeight: 800, color: '#4f46e5' }}>{item.title ? item.title.charAt(0) : '⚡'}</span>
-          </div>
-        )}
-        <span className="service-category">{item.category || 'Featured Quick Asset'}</span>
-      </div>
-
-      {/* Live Logo Badge Header */}
-      <div className="service-card-top">
-        <div className="service-icon" style={{ '--dot-color': '#6366f1', background: '#ffffff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', borderRadius: '10px', overflow: 'hidden', padding: '3px' }}>
-          <img
-            src={logoSrc}
-            alt={`${item.title} logo`}
-            onError={() => setLogoError(true)}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            loading="lazy"
-          />
-        </div>
-        <div className="service-card-actions">
-          <button
-            type="button"
-            className="favorite-action"
-            aria-label={`Open ${item.title}`}
-            title="Open asset"
-            onClick={() => onOpen(item.url)}
-          >
-            <ArrowUpRight size={18} />
-          </button>
-        </div>
-      </div>
-
-      <div className="link-title">{item.title}</div>
-      <div className="link-description">{item.description}</div>
-      <div className="date">{hostname}</div>
-      <div className="service-footer">
-        <button type="button" className="service-open" onClick={() => onOpen(item.url)}>
-          Open asset <ArrowUpRight size={15} />
-        </button>
-        <div className="card-actions-group">
-          <button type="button" className="card-action edit-action" onClick={() => onEdit(item)}>
-            <Edit2 size={13} /> Edit
-          </button>
-          <button type="button" className="card-action delete-action" onClick={() => onDelete(item)}>
-            <Trash2 size={13} /> Delete
-          </button>
-        </div>
-      </div>
-    </article>
-  )
-}
-
 const navItems = [
   { label: 'All Links', icon: LayoutGrid },
   { label: 'Dashboard', icon: FolderKanban },
@@ -810,19 +717,210 @@ const navItems = [
   { label: 'AI Tools', icon: Code2 },
   { label: 'Editing', icon: Edit2 },
   { label: 'Saved', icon: Inbox },
-  { label: 'Favorites', icon: Star },
+  { label: 'Favorites', icon: Heart },
 ]
+
+function AIToolCard({ tool, onOpen, onEdit, onDelete, onToggleEssential }) {
+  const [screenshotError, setScreenshotError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+
+  const cleanUrl = useMemo(() => {
+    try {
+      const u = tool.url.startsWith('http') ? tool.url : `https://${tool.url}`
+      return new URL(u).href
+    } catch {
+      return tool.url || ''
+    }
+  }, [tool.url])
+
+  const hostname = useMemo(() => {
+    try {
+      return new URL(cleanUrl).hostname.replace(/^www\./, '')
+    } catch {
+      return ''
+    }
+  }, [cleanUrl])
+
+  const domainSlug = hostname.split('.')[0]?.toLowerCase()
+  const preset = BRAND_PRESETS[domainSlug] || (tool.name?.toLowerCase().includes('readymag') ? BRAND_PRESETS.readymag : null)
+
+  const primaryScreenshot = tool.bannerUrl || (preset ? preset.bannerUrl : `https://image.thum.io/get/width/600/crop/400/${cleanUrl}`)
+  const secondaryScreenshot = `https://api.microlink.io?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`
+  const tertiaryScreenshot = `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=600&h=380`
+
+  const [currentScreenshot, setCurrentScreenshot] = useState(primaryScreenshot)
+
+  useEffect(() => {
+    setCurrentScreenshot(primaryScreenshot)
+    setScreenshotError(false)
+  }, [primaryScreenshot])
+
+  const clearbitLogo = `https://logo.clearbit.com/${hostname}`
+  const googleFavicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`
+  const logoSrc = tool.logoUrl || preset?.logoUrl || (!logoError ? clearbitLogo : googleFavicon)
+
+  const isReadymag = domainSlug === 'readymag' || tool.name?.toLowerCase().includes('readymag')
+  const tagLabel = tool.tag || (tool.category && tool.category !== 'ui-web' ? tool.category : 'AI Tool')
+  const pricingLabel = tool.pricing || 'FREEMIUM'
+
+  return (
+    <article className="dash-link-card">
+      {/* Top Banner Wrapper */}
+      <div className="dash-card-banner-wrap">
+        <div
+          className="dash-card-banner"
+          style={{
+            background: isReadymag
+              ? '#ff69b4'
+              : 'linear-gradient(135deg, #1e1b4b, #312e81)',
+          }}
+        >
+          {!screenshotError ? (
+            <img
+              src={currentScreenshot}
+              alt={`${tool.name} live banner`}
+              className="dash-card-screenshot"
+              loading="lazy"
+              onError={() => {
+                if (currentScreenshot === primaryScreenshot) {
+                  setCurrentScreenshot(secondaryScreenshot)
+                } else if (currentScreenshot === secondaryScreenshot) {
+                  setCurrentScreenshot(tertiaryScreenshot)
+                } else {
+                  setScreenshotError(true)
+                }
+              }}
+            />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+              <span style={{ fontSize: '36px', fontWeight: 800, color: 'rgba(255,255,255,0.9)' }}>
+                {tool.name?.charAt(0) || '⚡'}
+              </span>
+            </div>
+          )}
+
+          {/* Category Pill Tag */}
+          <span className="dash-category-pill">{tagLabel}</span>
+
+          {/* Essential / Favorite Heart Button on top right */}
+          <button
+            type="button"
+            className={`dash-fav-btn ${tool.showInEssential ? 'active' : ''}`}
+            aria-label={tool.showInEssential ? `Remove ${tool.name} from Home Essentials` : `Feature ${tool.name} on Home Essentials`}
+            title={tool.showInEssential ? 'Featured on Home Essentials' : 'Add to Home Essentials'}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onToggleEssential(tool)
+            }}
+          >
+            <Heart size={15} fill={tool.showInEssential ? 'currentColor' : 'none'} strokeWidth={tool.showInEssential ? 0 : 2.5} />
+          </button>
+        </div>
+
+        {/* Circular Live Logo Badge Overlapping Bottom Right */}
+        <div className="dash-card-logo-badge">
+          {preset?.logoSvg === 'framer' ? (
+            <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 24 24" style={{ width: '18px', height: '18px', fill: '#fff' }}>
+                <path d="M4 0h16v8h-8zM4 8h8l8 8H4zM4 16h8v8z" />
+              </svg>
+            </div>
+          ) : preset?.logoSvg === 'figma' ? (
+            <div style={{ width: '100%', height: '100%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 38 57" style={{ width: '16px', height: '24px' }}>
+                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/>
+                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/>
+                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/>
+                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/>
+                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/>
+              </svg>
+            </div>
+          ) : (
+            <img
+              src={logoSrc}
+              alt={`${tool.name} logo`}
+              className="dash-badge-img"
+              onError={() => setLogoError(true)}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div className="dash-card-body">
+        <h3 className="dash-card-title">{tool.name}</h3>
+        <p className="dash-card-desc">
+          {tool.desc || `Curated artificial intelligence tool for modern designers & developers.`}
+        </p>
+
+        {/* Smart Tag & Pricing Row */}
+        <div className="dash-card-footer">
+          <span className="dash-tag-pill">{tagLabel}</span>
+          <span className={`dash-pricing-pill ${getPricingClass(pricingLabel)}`}>
+            {pricingLabel}
+          </span>
+        </div>
+
+        {/* Admin Action Row */}
+        <div className="dash-admin-actions">
+          <button type="button" className="dash-open-btn" onClick={() => onOpen(tool.url)}>
+            Open service <ArrowUpRight size={13} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button type="button" className="dash-edit-btn" onClick={() => onEdit(tool)}>
+              <Edit2 size={12} /> Edit
+            </button>
+            <button type="button" className="dash-delete-btn" onClick={() => onDelete(tool)}>
+              <Trash2 size={12} /> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  )
+}
 
 function AIToolsManager() {
   const emptyForm = {
-    toolId: '', name: '', desc: '', tag: '', pricing: '', url: '', bannerType: '', bannerUrl: '', isPartner: false, showInEssential: false,
+    toolId: '',
+    name: '',
+    desc: '',
+    tag: '',
+    category: 'ui-web',
+    pricing: 'FREEMIUM',
+    url: '',
+    bannerType: 'dynamic-db',
+    bannerUrl: '',
+    isPartner: false,
+    showInEssential: false,
   }
+
   const [tools, setTools] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const [form, setForm] = useState(emptyForm)
-  const [editingId, setEditingId] = useState(null)
-  const [showForm, setShowForm] = useState(false)
+  const [itemToEdit, setItemToEdit] = useState(null)
+  const [itemToDelete, setItemToDelete] = useState(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState('')
+  const cardsPerPage = 9
+
+  const categories = [
+    { id: 'all', label: 'All AI Tools' },
+    { id: 'essential', label: 'Home Essentials' },
+    { id: 'ui-web', label: 'UI & Web' },
+    { id: 'art-images', label: 'Image & Art' },
+    { id: 'copy-llm', label: 'Chat & LLMs' },
+    { id: '3d-motion', label: '3D & Motion' },
+    { id: 'code-dev', label: 'Dev & Code' },
+    { id: 'color-brand', label: 'Color & Brand' },
+    { id: 'workflow', label: 'Workflow' },
+  ]
 
   const fetchTools = async () => {
     setLoading(true)
@@ -841,80 +939,155 @@ function AIToolsManager() {
 
   useEffect(() => {
     fetchTools()
-    
+
     const handleUpdate = () => {
       fetchTools()
     }
-    
+
     window.addEventListener('nexio_ai_tools_updated', handleUpdate)
     return () => {
       window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
     }
   }, [])
 
+  const filteredTools = useMemo(() => {
+    return tools.filter((tool) => {
+      const matchesCategory =
+        activeCategory === 'all'
+          ? true
+          : activeCategory === 'essential'
+          ? Boolean(tool.showInEssential)
+          : (tool.category || '').toLowerCase() === activeCategory.toLowerCase()
+
+      const q = searchQuery.toLowerCase().trim()
+      const matchesSearch =
+        !q ||
+        (tool.name && tool.name.toLowerCase().includes(q)) ||
+        (tool.desc && tool.desc.toLowerCase().includes(q)) ||
+        (tool.tag && tool.tag.toLowerCase().includes(q)) ||
+        (tool.url && tool.url.toLowerCase().includes(q)) ||
+        (tool.pricing && tool.pricing.toLowerCase().includes(q))
+
+      return matchesCategory && matchesSearch
+    })
+  }, [tools, activeCategory, searchQuery])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCategory, searchQuery])
+
+  const totalPages = Math.ceil(filteredTools.length / cardsPerPage)
+  const paginatedTools = useMemo(() => {
+    const startIndex = (currentPage - 1) * cardsPerPage
+    return filteredTools.slice(startIndex, startIndex + cardsPerPage)
+  }, [filteredTools, currentPage])
+
   const updateForm = (event) => {
     const { name, value, type, checked } = event.target
     setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }))
   }
 
-  const openCreateForm = () => {
-    setEditingId(null)
+  const openAddModal = () => {
+    setItemToEdit(null)
     setForm(emptyForm)
     setError('')
-    setShowForm(true)
+    setIsAddModalOpen(true)
   }
 
-  const openEditForm = (tool) => {
-    setEditingId(tool._id)
-    setForm({ ...emptyForm, ...tool })
+  const openEditModal = (tool) => {
+    setItemToEdit(tool)
+    setForm({
+      toolId: tool.toolId || '',
+      name: tool.name || '',
+      desc: tool.desc || '',
+      tag: tool.tag || '',
+      category: tool.category || 'ui-web',
+      pricing: tool.pricing || 'FREEMIUM',
+      url: tool.url || '',
+      bannerType: tool.bannerType || 'dynamic-db',
+      bannerUrl: tool.bannerUrl || '',
+      isPartner: Boolean(tool.isPartner),
+      showInEssential: Boolean(tool.showInEssential),
+    })
     setError('')
-    setShowForm(true)
+    setIsAddModalOpen(false)
+  }
+
+  const closeFormModal = () => {
+    setIsAddModalOpen(false)
+    setItemToEdit(null)
+    setForm(emptyForm)
+    setError('')
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
+    setIsSubmitting(true)
+
+    const payload = {
+      ...form,
+      toolId: form.toolId.trim() || form.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      bannerType: form.bannerType || 'dynamic-db',
+    }
+
+    const editId = itemToEdit ? itemToEdit._id || itemToEdit.id : null
+
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/ai-tools${editingId ? `/${editingId}` : ''}`,
+        `${API_BASE_URL}/api/ai-tools${editId ? `/${editId}` : ''}`,
         {
-          method: editingId ? 'PUT' : 'POST',
+          method: editId ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
-        },
+          body: JSON.stringify(payload),
+        }
       )
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.message || data.error || 'Could not save AI tool.')
-      setShowForm(false)
-      setEditingId(null)
-      setForm(emptyForm)
+
+      closeFormModal()
       await fetchTools()
       window.dispatchEvent(new Event('nexio_ai_tools_updated'))
     } catch (saveError) {
       setError(saveError.message || 'Could not save AI tool.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this AI tool?')) return
-    setError('')
+  const handleDeleteClick = (tool) => {
+    setItemToDelete(tool)
+  }
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+    setIsDeleting(true)
+    const id = itemToDelete._id || itemToDelete.id
     try {
       const response = await fetch(`${API_BASE_URL}/api/ai-tools/${id}`, { method: 'DELETE' })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.message || data.error || 'Could not delete AI tool.')
+
+      setItemToDelete(null)
       await fetchTools()
       window.dispatchEvent(new Event('nexio_ai_tools_updated'))
     } catch (deleteError) {
-      setError(deleteError.message || 'Could not delete AI tool.')
+      alert(deleteError.message || 'Could not delete AI tool.')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
   const toggleEssential = async (tool) => {
-    setError('')
     const nextValue = !tool.showInEssential
-    setTools((current) => current.map((item) => item._id === tool._id ? { ...item, showInEssential: nextValue } : item))
+    setTools((current) =>
+      current.map((item) =>
+        (item._id === tool._id || item.id === tool.id) ? { ...item, showInEssential: nextValue } : item
+      )
+    )
     try {
-      const response = await fetch(`${API_BASE_URL}/api/ai-tools/${tool._id}`, {
+      const id = tool._id || tool.id
+      const response = await fetch(`${API_BASE_URL}/api/ai-tools/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...tool, showInEssential: nextValue }),
@@ -923,92 +1096,357 @@ function AIToolsManager() {
       if (!response.ok) throw new Error(data.message || data.error || 'Could not update home visibility.')
       window.dispatchEvent(new Event('nexio_ai_tools_updated'))
     } catch (toggleError) {
-      setTools((current) => current.map((item) => item._id === tool._id ? { ...item, showInEssential: !nextValue } : item))
-      setError(toggleError.message || 'Could not update home visibility.')
+      setTools((current) =>
+        current.map((item) =>
+          (item._id === tool._id || item.id === tool.id) ? { ...item, showInEssential: !nextValue } : item
+        )
+      )
     }
   }
 
+  const handleOpenTool = (url) => {
+    if (!url) return
+    const targetUrl = url.startsWith('http') ? url : `https://${url}`
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
-    <section className="panel" aria-label="AI Tools management">
-      <div className="panel-header">
-        <div>
-          <h2>AI Tools</h2>
-          <p>Manage the tools shown in the AI Tools collection.</p>
+    <>
+      {/* Category Chips and Search Bar Container */}
+      <div className="chip-row-container">
+        <div className="chip-row">
+          {categories.map((cat) => (
+            <button
+              type="button"
+              className={`chip ${cat.id === activeCategory ? 'active' : ''}`}
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="chip-search-bar">
+          <Search size={16} className="chip-search-icon" />
+          <input
+            type="text"
+            placeholder="Search AI tools by name, tag, or desc..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="chip-search-clear"
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
-      {showForm && (
-        <form className="ai-tools-form" onSubmit={handleSubmit}>
-          <div className="ai-tools-form-grid">
-            {[
-              ['toolId', 'Tool ID'], ['name', 'Name'], ['desc', 'Description'], ['tag', 'Tag'],
-              ['pricing', 'Pricing'], ['url', 'URL'], ['bannerType', 'Banner type'], ['bannerUrl', 'Banner image URL'],
-            ].map(([name, label]) => (
-              <label key={name} className={name === 'desc' || name === 'url' || name === 'bannerUrl' ? 'wide' : ''}>
-                <span>{label}{name !== 'bannerUrl' ? ' *' : ''}</span>
-                <input name={name} value={form[name]} onChange={updateForm} required={name !== 'bannerUrl'} />
-              </label>
-            ))}
+      <section className="panel" aria-label="AI Tools management">
+        <div className="panel-header" style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px' }}>AI Tools Directory</h2>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+              Manage, edit, and feature curated AI tools on the Home page.
+            </p>
           </div>
-          <label className="ai-tools-checkbox">
-            <input type="checkbox" name="isPartner" checked={form.isPartner} onChange={updateForm} />
-            Partner tool
-          </label>
-          <label className="ai-tools-checkbox">
-            <input type="checkbox" name="showInEssential" checked={form.showInEssential} onChange={updateForm} />
-            Show on Home
-          </label>
-          {error && <p className="ai-tools-error" role="alert">{error}</p>}
-          <div className="ai-tools-form-actions">
-            <button type="button" className="ghost-btn" onClick={() => setShowForm(false)}>Cancel</button>
-            <button type="submit" className="primary-btn">{editingId ? 'Update tool' : 'Save tool'}</button>
+          <button
+            type="button"
+            className="dashboard-empty-add-btn"
+            style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+            onClick={openAddModal}
+          >
+            <Plus size={16} />
+            <span>Add AI Tool</span>
+          </button>
+        </div>
+
+        {error && <p className="ai-tools-error" role="alert" style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
+
+        <div className="list-view">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, idx) => (
+              <article key={idx} className="service-card skeleton-service-card">
+                <div className="skeleton-preview" />
+                <div className="service-card-top" style={{ padding: '14px 16px 0' }}>
+                  <div className="skeleton-avatar" />
+                  <div className="skeleton-badge" />
+                </div>
+                <div className="skeleton-body">
+                  <div className="skeleton-line skeleton-card-title" />
+                  <div className="skeleton-line skeleton-card-desc" />
+                  <div className="skeleton-line skeleton-card-desc-short" />
+                </div>
+                <div className="skeleton-footer">
+                  <div className="skeleton-line skeleton-url" />
+                </div>
+              </article>
+            ))
+          ) : filteredTools.length === 0 ? (
+            <div className="dashboard-empty-container">
+              <div className="dashboard-empty-animation">
+                <img
+                  src="/assets/empty/no-data.svg"
+                  alt="No AI tools found"
+                  style={{ width: '180px', height: '140px', objectFit: 'contain' }}
+                />
+              </div>
+              <h3 className="dashboard-empty-title">
+                {searchQuery || activeCategory !== 'all' ? 'No matching AI tools found' : 'No AI tools found in database'}
+              </h3>
+              <p className="dashboard-empty-subtitle">
+                {searchQuery || activeCategory !== 'all'
+                  ? 'Try clearing your search filters or browse other categories.'
+                  : 'Add AI tools to organize your workflows, generative AI models, and design tools.'}
+              </p>
+              <button
+                type="button"
+                className="dashboard-empty-add-btn"
+                onClick={openAddModal}
+              >
+                <Plus size={16} />
+                <span>Add AI Tool</span>
+              </button>
+            </div>
+          ) : (
+            paginatedTools.map((tool) => (
+              <AIToolCard
+                key={tool._id || tool.id || tool.toolId}
+                tool={tool}
+                onOpen={handleOpenTool}
+                onEdit={openEditModal}
+                onDelete={handleDeleteClick}
+                onToggleEssential={toggleEssential}
+              />
+            ))
+          )}
+        </div>
+
+        {filteredTools.length > 0 && totalPages > 1 && (
+          <div className="pagination" aria-label="AI Tools pagination" style={{ marginTop: '20px' }}>
+            <span className="pagination-info">
+              Showing {(currentPage - 1) * cardsPerPage + 1}-{Math.min(currentPage * cardsPerPage, filteredTools.length)} of {filteredTools.length} AI tools
+            </span>
+            <div className="pagination-actions">
+              <button
+                type="button"
+                className="page-btn"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                <button
+                  type="button"
+                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  aria-label={`Go to page ${page}`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="page-btn"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </form>
+        )}
+      </section>
+
+      {/* Edit / Add Modal */}
+      {(isAddModalOpen || itemToEdit) && (
+        <div className="delete-modal-backdrop" onClick={() => !isSubmitting && closeFormModal()}>
+          <div className="delete-modal-card edit-modal-card" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-icon">
+              {itemToEdit ? <Edit2 size={20} /> : <Plus size={20} />}
+            </div>
+            <h3>{itemToEdit ? 'Edit AI Tool' : 'Add New AI Tool'}</h3>
+            <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748b' }}>
+              {itemToEdit ? 'Update details, tags, and homepage visibility for this AI tool.' : 'Fill in the information below to add a new tool to your AI collection.'}
+            </p>
+            <form className="edit-modal-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Tool Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={updateForm}
+                  required
+                  placeholder="e.g. Midjourney, Lovable, Claude"
+                />
+              </div>
+              <div className="form-group">
+                <label>Website URL *</label>
+                <input
+                  type="url"
+                  name="url"
+                  value={form.url}
+                  onChange={updateForm}
+                  required
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label>Tag / Role *</label>
+                  <input
+                    type="text"
+                    name="tag"
+                    value={form.tag}
+                    onChange={updateForm}
+                    required
+                    placeholder="e.g. Graphic AI, UI Design"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Pricing *</label>
+                  <select
+                    name="pricing"
+                    value={form.pricing}
+                    onChange={updateForm}
+                    required
+                  >
+                    <option value="FREEMIUM">FREEMIUM</option>
+                    <option value="FREE">FREE</option>
+                    <option value="PAID">PAID</option>
+                    <option value="FREE + PAID">FREE + PAID</option>
+                    <option value="FREE TRIAL">FREE TRIAL</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label>Category</label>
+                  <select
+                    name="category"
+                    value={form.category}
+                    onChange={updateForm}
+                  >
+                    <option value="ui-web">UI & Web</option>
+                    <option value="art-images">Image & Art</option>
+                    <option value="copy-llm">Chat & LLM</option>
+                    <option value="3d-motion">3D & Motion</option>
+                    <option value="code-dev">Dev & Code</option>
+                    <option value="color-brand">Color & Brand</option>
+                    <option value="workflow">Workflow</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Banner Image URL</label>
+                  <input
+                    type="url"
+                    name="bannerUrl"
+                    value={form.bannerUrl}
+                    onChange={updateForm}
+                    placeholder="Optional banner image URL"
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Description *</label>
+                <textarea
+                  name="desc"
+                  value={form.desc}
+                  onChange={updateForm}
+                  required
+                  placeholder="Describe what this AI tool does..."
+                  rows={3}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 12px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="showInEssential"
+                    checked={form.showInEssential}
+                    onChange={updateForm}
+                  />
+                  <strong>Feature in Essential AI Tools on Home Page</strong>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="isPartner"
+                    checked={form.isPartner}
+                    onChange={updateForm}
+                  />
+                  <span>Mark as Partner Tool</span>
+                </label>
+              </div>
+
+              {error && <p className="ai-tools-error" role="alert" style={{ color: '#ef4444', fontSize: '0.82rem', margin: '4px 0' }}>{error}</p>}
+
+              <div className="delete-modal-actions" style={{ marginTop: '20px' }}>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={closeFormModal}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="save-btn"
+                  disabled={isSubmitting || !form.name.trim() || !form.url.trim()}
+                >
+                  {isSubmitting ? 'Saving...' : itemToEdit ? 'Save Changes' : 'Add Tool'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
-      {!showForm && error && <p className="ai-tools-error" role="alert">{error}</p>}
-      <div className="modern-ai-tools-grid">
-        {loading ? (
-          <div className="loading-state">Loading AI tools...</div>
-        ) : tools.length === 0 ? (
-          <div className="empty-state">No AI tools found. Save one from the "Save new link" modal!</div>
-        ) : (
-          tools.map((tool) => (
-            <div key={tool._id} className="modern-ai-card">
-              <div className="card-header">
-                <div>
-                  <h3>{tool.name}</h3>
-                  <span className="tool-tag">{tool.tag}</span>
-                </div>
-                <div className="ai-tools-actions">
-                  <button
-                    type="button"
-                    className={`icon-btn ${tool.showInEssential ? 'saved' : ''}`}
-                    onClick={() => toggleEssential(tool)}
-                    title={tool.showInEssential ? "Hide from home" : "Show on home"}
-                  >
-                    {tool.showInEssential ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
-                  </button>
-                  <button type="button" className="icon-btn" onClick={() => openEditForm(tool)} title="Edit">
-                    <Edit2 size={14} />
-                  </button>
-                  <button type="button" className="icon-btn danger" onClick={() => handleDelete(tool._id)} title="Delete">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-              <p className="card-desc">{tool.desc}</p>
-              <div className="card-footer">
-                <span className="pricing-badge">{tool.pricing}</span>
-                {tool.url && (
-                  <a href={tool.url} target="_blank" rel="noreferrer" className="visit-link">Visit →</a>
-                )}
-              </div>
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="delete-modal-backdrop" onClick={() => !isDeleting && setItemToDelete(null)}>
+          <div className="delete-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">
+              <Trash2 size={24} color="#ef4444" />
             </div>
-          ))
-        )}
-      </div>
-    </section>
+            <h3>Delete AI Tool</h3>
+            <p>
+              Are you sure you want to delete <strong>{itemToDelete.name}</strong>? This action will remove it from the AI Tools collection and Home page.
+            </p>
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => setItemToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="delete-btn"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                autoFocus
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -1225,7 +1663,13 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       const col = (item.collection || '').toLowerCase().trim()
       return cat === 'saved' || col === 'saved'
     }).length
-    const favoriteCount = liveLinks.filter((item) => item.favorite).length
+    const favoriteCount = liveLinks.filter((item) => {
+      const isQuickAsset = item.collection === 'Quick Assets' ||
+        item.category === 'Quick Assets' ||
+        item.category === 'Featured Quick Asset' ||
+        item.kind === 'quick-asset'
+      return item.favorite && !isQuickAsset
+    }).length
     const totalCount = walletTotalCount ?? liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
 
@@ -1275,13 +1719,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
   }
 
   const handleToggleFavorite = async (linkId) => {
-    const selectedLink = liveLinks.find((item) => item.id === linkId)
+    const selectedLink = liveLinks.find((item) => item.id === linkId) || quickAssets.find((item) => item.id === linkId)
     if (!selectedLink) return
 
     const nextFavorite = !selectedLink.favorite
     setFavoritePulseId(linkId)
     window.setTimeout(() => setFavoritePulseId(null), 450)
     setLiveLinks((current) => current.map((item) => (
+      item.id === linkId ? { ...item, favorite: nextFavorite } : item
+    )))
+    setQuickAssets((current) => current.map((item) => (
       item.id === linkId ? { ...item, favorite: nextFavorite } : item
     )))
 
@@ -1301,9 +1748,15 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       })
 
       if (!response.ok) throw new Error('Favorite update failed')
+      if (selectedLink.collection === 'Quick Assets' && typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('nexio_quick_assets_updated'))
+      }
       setStatus(nextFavorite ? `${selectedLink.title} added to Favorites.` : `${selectedLink.title} removed from Favorites.`)
     } catch {
       setLiveLinks((current) => current.map((item) => (
+        item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
+      )))
+      setQuickAssets((current) => current.map((item) => (
         item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
       )))
       setStatus('Could not update Favorites in MongoDB.')
@@ -2415,11 +2868,11 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         }
         .dash-fav-btn:hover {
           background: #ffffff;
-          color: #eab308;
+          color: #f43f5e;
           transform: scale(1.1);
         }
         .dash-fav-btn.active {
-          color: #eab308;
+          color: #f43f5e;
           background: #ffffff;
         }
 
@@ -3336,12 +3789,15 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                     </button>
                   </div>
                 ) : filteredQuickAssets.map((item) => (
-                  <QuickAssetCard
+                  <DashboardLinkCard
                     key={item.id}
                     item={item}
+                    isDashboardView={isDashboardView}
                     onOpen={handleOpenService}
                     onEdit={handleEditService}
                     onDelete={handleDeleteService}
+                    onToggleFavorite={handleToggleFavorite}
+                    favoritePulseId={favoritePulseId}
                   />
                 ))
               ) : isLoadingLinks ? (
