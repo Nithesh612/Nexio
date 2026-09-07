@@ -6,6 +6,7 @@ import SaveLinkModal from './SaveLinkModal'
 import DashboardPage from '../dashbord/page'
 import DesignPage from '../design/page'
 import AIToolsPage from '../AI-tools/page'
+import LoginPage from '../login/page'
 import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
 import EssentialAITools from './EssentialAITools'
 import FeaturedQuickAssets from './FeaturedQuickAssets'
@@ -217,12 +218,34 @@ function downloadBlob(blob, fileName) {
 }
 
 export default function Home() {
+  // ── Auth state ──
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('nexio_auth')
+      return stored ? JSON.parse(stored) : null
+    } catch {
+      return null
+    }
+  })
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData)
+    handleSetView('app') // Go to dashboard after login
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    localStorage.removeItem('nexio_auth')
+    handleSetView('landing')
+  }
+
   const [view, setView] = useState(() => {
     try {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#dashboard' || hash === '#app') return 'app';
       if (hash === '#design') return 'design';
       if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') return 'ai-tools';
+      if (hash === '#login') return 'login';
       const saved = localStorage.getItem('nexio_current_view');
       if (saved === 'app') return 'app';
       if (saved === 'design') return 'design';
@@ -236,7 +259,7 @@ export default function Home() {
   const handleSetView = (newView) => {
     setView(newView);
     try {
-      localStorage.setItem('nexio_current_view', newView);
+      localStorage.setItem('nexio_current_view', newView === 'login' ? 'landing' : newView);
       if (newView === 'app') {
         if (window.location.hash !== '#dashboard') {
           window.history.pushState(null, '', '#dashboard');
@@ -249,8 +272,10 @@ export default function Home() {
         if (window.location.hash !== '#ai-tools') {
           window.history.pushState(null, '', '#ai-tools');
         }
+      } else if (newView === 'login') {
+        window.history.pushState(null, '', '#login');
       } else {
-        if (window.location.hash === '#dashboard' || window.location.hash === '#app' || window.location.hash === '#design' || window.location.hash === '#ai-tools' || window.location.hash === '#ai') {
+        if (window.location.hash === '#dashboard' || window.location.hash === '#app' || window.location.hash === '#design' || window.location.hash === '#ai-tools' || window.location.hash === '#ai' || window.location.hash === '#login') {
           window.history.pushState(null, '', window.location.pathname + window.location.search);
         }
       }
@@ -271,6 +296,8 @@ export default function Home() {
       } else if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') {
         setView('ai-tools');
         localStorage.setItem('nexio_current_view', 'ai-tools');
+      } else if (hash === '#login') {
+        setView('login');
       } else if (!hash || hash === '#features' || hash === '#use-cases' || hash === '#extensions' || hash === '#integrations') {
         setView('landing');
         localStorage.setItem('nexio_current_view', 'landing');
@@ -602,7 +629,12 @@ export default function Home() {
 
   return (
     <>
-      {view === 'landing' ? (
+      {view === 'login' ? (
+        <LoginPage
+          onBack={() => handleSetView('landing')}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      ) : view === 'landing' ? (
         <>
           <Header
             currentView="landing"
@@ -613,6 +645,9 @@ export default function Home() {
               else if (target === 'app') handleSetView('app')
             }}
             onAddLink={() => setIsAdding(true)}
+            user={user}
+            onLogin={() => handleSetView('login')}
+            onLogout={handleLogout}
           />
           
           <CategoryNav refreshTrigger={refreshTrigger} onAddLink={() => setIsAdding(true)} onNavigateToAITools={() => handleSetView('ai-tools')} />

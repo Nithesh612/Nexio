@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, LogIn, LogOut, User } from 'lucide-react'
 import '../home/hero.css'
 
 const NAV_LINKS = [
@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: 'Blog', targetView: 'blog', hash: '#blog' },
 ]
 
-export default function Header({ currentView = 'landing', onNavigate, onAddLink }) {
+export default function Header({ currentView = 'landing', onNavigate, onAddLink, user, onLogin, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const handleNavClick = (e, targetView, hash) => {
@@ -86,7 +86,7 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink 
           </nav>
         </div>
 
-        {/* Add Link button + Dashboard button */}
+        {/* Right side buttons */}
         <div className="v-header-right">
           {onAddLink && (
             <button
@@ -99,16 +99,104 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink 
             </button>
           )}
 
-          <button
-            className="v-primary-cta cursor-pointer"
-            type="button"
-            onClick={() => {
-              if (onNavigate) onNavigate('app')
-              else window.location.hash = '#dashboard'
-            }}
-          >
-            Dashboard
-          </button>
+          {user ? (
+            /* ── Logged-in: show user avatar + Dashboard + Logout ── */
+            <>
+              <button
+                className="v-primary-cta cursor-pointer"
+                type="button"
+                onClick={() => {
+                  if (onNavigate) onNavigate('app')
+                  else window.location.hash = '#dashboard'
+                }}
+              >
+                Dashboard
+              </button>
+
+              <div className="v-user-menu" style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginLeft: '4px',
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  flexShrink: 0,
+                  border: '2px solid rgba(99, 102, 241, 0.3)',
+                }}>
+                  {user.avatar || user.name?.charAt(0) || 'U'}
+                </div>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title="Logout"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.15)',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    color: '#f87171',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'
+                    e.currentTarget.style.color = '#ef4444'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'
+                    e.currentTarget.style.color = '#f87171'
+                  }}
+                >
+                  <LogOut size={14} />
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            /* ── Not logged in: show Login + Dashboard ── */
+            <>
+              <button
+                className="v-add-link-btn cursor-pointer"
+                type="button"
+                onClick={onLogin}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <LogIn size={15} strokeWidth={2.5} />
+                Login
+              </button>
+
+              <button
+                className="v-primary-cta cursor-pointer"
+                type="button"
+                onClick={() => {
+                  if (onNavigate) onNavigate('app')
+                  else window.location.hash = '#dashboard'
+                }}
+              >
+                Dashboard
+              </button>
+            </>
+          )}
         </div>
 
         {/* Hamburger toggle */}
