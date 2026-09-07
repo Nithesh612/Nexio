@@ -1420,11 +1420,69 @@ export default function DashboardPage({ onBack, onAddLink }) {
           color: #374151;
           font-weight: 600;
         }
+        .chip-row-container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin: 0 0 20px;
+          flex-wrap: wrap;
+        }
         .chip-row {
           display: flex;
           flex-wrap: wrap;
-          gap: 12px;
-          margin: 0 0 24px;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+        }
+        .chip-search-bar {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 999px;
+          padding: 7px 16px;
+          width: 260px;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+          transition: all 0.2s ease;
+        }
+        .chip-search-bar:focus-within {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 2px 8px rgba(37, 99, 235, 0.08);
+          width: 290px;
+        }
+        .chip-search-icon {
+          color: #94a3b8;
+          flex-shrink: 0;
+        }
+        .chip-search-bar input {
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 0.88rem;
+          color: #0f172a;
+          font-weight: 500;
+          width: 100%;
+        }
+        .chip-search-bar input::placeholder {
+          color: #94a3b8;
+          font-weight: 400;
+        }
+        .chip-search-clear {
+          background: transparent;
+          border: none;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 2px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+        .chip-search-clear:hover {
+          color: #0f172a;
+          background: #f1f5f9;
         }
         .chip {
           display: inline-flex;
@@ -2492,17 +2550,39 @@ export default function DashboardPage({ onBack, onAddLink }) {
           </div>
 
 
-          <div className="chip-row">
-            {availableCategories.map((item) => (
-              <button
-                type="button"
-                className={`chip ${item === activeFilter ? 'active' : ''}`}
-                key={item}
-                onClick={() => setActiveFilter(item)}
-              >
-                {item}
-              </button>
-            ))}
+          <div className="chip-row-container">
+            <div className="chip-row">
+              {availableCategories.map((item) => (
+                <button
+                  type="button"
+                  className={`chip ${item === activeFilter ? 'active' : ''}`}
+                  key={item}
+                  onClick={() => setActiveFilter(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            <div className="chip-search-bar">
+              <Search size={16} className="chip-search-icon" />
+              <input
+                type="text"
+                placeholder="Filter by title, URL or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  className="chip-search-clear"
+                  onClick={() => setSearchQuery('')}
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
 
           <section className="panel">
