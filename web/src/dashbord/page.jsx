@@ -122,12 +122,314 @@ const recentLinks = [
   },
 ]
 
+// Category Gradient Palette matching Home page
+const categoryColors = {
+  'UI/UX':             ['#667eea', '#764ba2'],
+  'AI Image & Video':  ['#f093fb', '#f5576c'],
+  'AI':                ['#a855f7', '#6366f1'],
+  'Other':             ['#64748b', '#475569'],
+  'Inspiration':       ['#fa709a', '#fee140'],
+  'Wallpaper':         ['#38ef7d', '#11998e'],
+  'Stock':             ['#ff9a9e', '#fecfef'],
+  'Host':              ['#2af598', '#009efd'],
+  'Article':           ['#f6d365', '#fda085'],
+  'Research':          ['#96fbc4', '#f9f586'],
+  'Tools':             ['#c471ed', '#f64f59'],
+  'default':           ['#a18cd1', '#fbc2eb'],
+};
+
+// Curated specific banners matching official design tools
+const BRAND_PRESETS = {
+  readymag: {
+    title: 'Readymag',
+    desc: 'Create all kinds of websites with flexibility and complete creative freedom.',
+    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a85732e62373e8fdd649f78_readymag-website-builder.gif',
+    logoUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/6a857854796820f3bb34f62e_logo-readymag.svg',
+    isPreset: true,
+  },
+  lovable: {
+    title: 'Lovable',
+    desc: 'Generate full-stack software, apps and tools with autonomous AI engineer.',
+    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/673dc05e197d0263be45cb97_lovable-ai-thumb.webp',
+    logoUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/673dc05e197d0263be45cb98_lovable-logo.png',
+    isPreset: true,
+  },
+  framer: {
+    title: 'Framer',
+    desc: 'Design and publish web sites at lightning speed with AI and no-code tools.',
+    bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+    logoSvg: 'framer',
+    isPreset: true,
+  },
+  figma: {
+    title: 'Figma',
+    desc: 'The leading collaborative interface design tool for modern product teams.',
+    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop',
+    logoSvg: 'figma',
+    isPreset: true,
+  },
+  webflow: {
+    title: 'Webflow',
+    desc: 'Build production-ready responsive websites visually with total code power.',
+    bannerUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop',
+    logoSvg: 'webflow',
+    isPreset: true,
+  }
+};
+
+function getSmartTag(item) {
+  if (item.tag && !['saved', 'other', 'all', 'all links', 'inbox'].includes(item.tag.toLowerCase().trim())) {
+    return item.tag;
+  }
+
+  const title = (item.title || '').toLowerCase();
+  const desc = (item.desc || item.description || '').toLowerCase();
+  const url = (item.url || '').toLowerCase();
+  const cat = (item.category || '').toLowerCase();
+
+  if (url.includes('runway') || title.includes('runway')) return 'Video AI';
+  if (url.includes('toools') || title.includes('toools')) return 'Design Vault';
+  if (url.includes('readymag') || title.includes('readymag')) return 'Web Builder';
+  if (url.includes('lovable') || title.includes('lovable')) return 'AI Engineer';
+  if (url.includes('figma') || title.includes('figma')) return 'UI Design';
+  if (url.includes('framer') || title.includes('framer')) return 'Site Builder';
+  if (url.includes('webflow') || title.includes('webflow')) return 'Visual Dev';
+  if (url.includes('midjourney') || title.includes('midjourney')) return 'Image AI';
+  if (url.includes('cursor') || title.includes('cursor')) return 'Code Editor';
+  if (url.includes('v0.dev') || title.includes('v0')) return 'Frontend AI';
+  if (url.includes('spline') || title.includes('spline')) return '3D & Motion';
+  if (url.includes('krea') || title.includes('krea')) return 'Realtime AI';
+  if (url.includes('claude') || url.includes('anthropic')) return 'LLM Model';
+  if (url.includes('chatgpt') || url.includes('openai')) return 'AI Chatbot';
+  if (url.includes('gemini') || title.includes('gemini')) return 'Multimodal AI';
+  if (url.includes('relume') || title.includes('relume')) return 'Wireframe AI';
+  if (url.includes('recraft') || title.includes('recraft')) return 'Vector AI';
+  if (url.includes('mobbin') || title.includes('mobbin')) return 'Mobile UX';
+  if (url.includes('dribbble') || url.includes('behance')) return 'Inspiration';
+  if (url.includes('luma') || url.includes('dream-machine')) return '3D Video AI';
+  if (url.includes('flux') || url.includes('black-forest')) return 'Image AI';
+  if (url.includes('pika') || title.includes('pika')) return 'Video AI';
+  if (url.includes('suno') || url.includes('udio')) return 'Audio AI';
+  if (url.includes('elevenlabs') || title.includes('elevenlabs')) return 'Voice AI';
+  if (url.includes('bolt.new') || title.includes('bolt')) return 'Fullstack AI';
+  if (url.includes('notion') || title.includes('notion')) return 'Productivity';
+  if (url.includes('linear') || title.includes('linear')) return 'Issue Tracker';
+  if (url.includes('github') || url.includes('gitlab')) return 'Code Repo';
+  if (url.includes('unsplash') || url.includes('pexels')) return 'Stock Photos';
+  if (url.includes('font') || url.includes('type')) return 'Typography';
+  if (url.includes('icon') || url.includes('lucide')) return 'Icons';
+  if (url.includes('shadcn') || url.includes('tailwind')) return 'UI Component';
+  if (url.includes('vercel') || url.includes('netlify') || url.includes('supabase')) return 'Cloud Host';
+
+  if (title.includes('video') || desc.includes('video') || desc.includes('motion')) return 'Video AI';
+  if (title.includes('image') || desc.includes('image') || desc.includes('generat') || desc.includes('art')) return 'Graphic AI';
+  if (title.includes('chat') || desc.includes('chat') || desc.includes('assistant') || desc.includes('llm')) return 'AI Chatbot';
+  if (title.includes('code') || desc.includes('coding') || desc.includes('developer') || desc.includes('programming')) return 'Dev Tool';
+  if (title.includes('icon') || desc.includes('icon') || desc.includes('vector')) return 'Icons';
+  if (title.includes('font') || desc.includes('font') || desc.includes('type')) return 'Typography';
+  if (title.includes('3d') || desc.includes('3d') || desc.includes('render')) return '3D Assets';
+  if (title.includes('color') || desc.includes('color') || desc.includes('palette')) return 'Color Tool';
+  if (title.includes('builder') || desc.includes('builder') || desc.includes('website') || desc.includes('no-code')) return 'Web Builder';
+  if (title.includes('mockup') || desc.includes('mockup') || desc.includes('ui kit')) return 'UI Kit';
+  if (title.includes('ux') || desc.includes('ux') || desc.includes('usability')) return 'UX Tool';
+  if (title.includes('inspir') || desc.includes('inspiration')) return 'Inspiration';
+  if (title.includes('learn') || desc.includes('course') || desc.includes('tutorial')) return 'Learning';
+  if (title.includes('stock') || desc.includes('photo') || desc.includes('footage')) return 'Stock Media';
+  if (title.includes('article') || desc.includes('article') || desc.includes('essay')) return 'Article';
+
+  if (cat && !['saved', 'other', 'all', 'all links', 'inbox'].includes(cat)) {
+    return cat.charAt(0).toUpperCase() + cat.slice(1);
+  }
+
+  return 'Design Tool';
+}
+
+function getSmartPricing(item) {
+  if (item.pricing) return item.pricing;
+  const url = (item.url || '').toLowerCase();
+  const desc = (item.desc || item.description || '').toLowerCase();
+
+  if (url.includes('midjourney') || desc.includes('subscription only') || desc.includes('paid only')) return 'PAID';
+  if (url.includes('runway') || url.includes('lovable') || url.includes('cursor')) return 'FREE TRIAL';
+  if (url.includes('lucide') || url.includes('github') || url.includes('react') || desc.includes('open source') || desc.includes('free to use')) return 'FREE';
+  if (url.includes('figma') || desc.includes('free plan')) return 'FREE + PAID';
+
+  return 'FREEMIUM';
+}
+
+function getPricingClass(pricing = '') {
+  const p = pricing.toUpperCase().trim();
+  if (p.includes('TRIAL')) return 'pricing-free-trial';
+  if (p.includes('FREE + PAID')) return 'pricing-free-paid';
+  if (p.includes('FREEMIUM')) return 'pricing-freemium';
+  if (p.includes('PAID')) return 'pricing-paid';
+  if (p.includes('FREE')) return 'pricing-free';
+  return 'pricing-freemium';
+}
+
 function getHostname(url) {
   try {
     return new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`).hostname.replace(/^www\./i, '')
   } catch {
     return ''
   }
+}
+
+// Dashboard Link Card Matching Home Page LinkCard design with Admin controls
+function DashboardLinkCard({ item, isDashboardView, onOpen, onEdit, onDelete, onToggleFavorite, favoritePulseId }) {
+  const [screenshotError, setScreenshotError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  const cleanUrl = (() => {
+    try {
+      const u = item.url.startsWith('http') ? item.url : `https://${item.url}`;
+      return new URL(u).href;
+    } catch {
+      return item.url;
+    }
+  })();
+
+  const hostname = (() => {
+    try {
+      return new URL(cleanUrl).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  })();
+
+  const domainSlug = hostname.split('.')[0]?.toLowerCase();
+  const preset = BRAND_PRESETS[domainSlug] || (item.title?.toLowerCase().includes('readymag') ? BRAND_PRESETS.readymag : null);
+
+  const primaryScreenshot = item.bannerUrl || (preset ? preset.bannerUrl : `https://image.thum.io/get/width/600/crop/400/${cleanUrl}`);
+  const secondaryScreenshot = `https://api.microlink.io?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`;
+  const tertiaryScreenshot = `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=600&h=380`;
+  const [currentScreenshot, setCurrentScreenshot] = useState(primaryScreenshot);
+
+  const clearbitLogo = `https://logo.clearbit.com/${hostname}`;
+  const googleFavicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+  const logoSrc = item.logoUrl || preset?.logoUrl || (!logoError ? clearbitLogo : googleFavicon);
+
+  const colors = categoryColors[item.category] || categoryColors['default'];
+  const isReadymag = domainSlug === 'readymag' || item.title?.toLowerCase().includes('readymag');
+
+  return (
+    <article className="dash-link-card">
+      {/* Top Banner Wrapper */}
+      <div className="dash-card-banner-wrap">
+        <div
+          className="dash-card-banner"
+          style={{
+            background: isReadymag 
+              ? '#ff69b4' 
+              : `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
+          }}
+        >
+          {!screenshotError ? (
+            <img
+              src={currentScreenshot}
+              alt={`${item.title} live banner`}
+              className="dash-card-screenshot"
+              loading="lazy"
+              onError={() => {
+                if (currentScreenshot === primaryScreenshot) {
+                  setCurrentScreenshot(secondaryScreenshot);
+                } else if (currentScreenshot === secondaryScreenshot) {
+                  setCurrentScreenshot(tertiaryScreenshot);
+                } else {
+                  setScreenshotError(true);
+                }
+              }}
+            />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+              <span style={{ fontSize: '36px', fontWeight: 800, color: 'rgba(255,255,255,0.9)' }}>
+                {item.title?.charAt(0) || '✦'}
+              </span>
+            </div>
+          )}
+
+          {/* Category Pill Tag */}
+          <span className="dash-category-pill">{getSmartTag(item)}</span>
+
+          {/* Favorite Button on top right */}
+          <button
+            type="button"
+            className={`dash-fav-btn ${item.favorite ? 'active' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
+            aria-label={item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`}
+            title={item.favorite ? 'Favorited' : 'Add to Favorites'}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite(item.id);
+            }}
+          >
+            <Star size={15} fill={item.favorite ? 'currentColor' : 'none'} strokeWidth={item.favorite ? 0 : 2.5} />
+          </button>
+        </div>
+
+        {/* Circular Live Logo Badge Overlapping Bottom Right */}
+        <div className="dash-card-logo-badge">
+          {preset?.logoSvg === 'framer' ? (
+            <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 24 24" style={{ width: '18px', height: '18px', fill: '#fff' }}>
+                <path d="M4 0h16v8h-8zM4 8h8l8 8H4zM4 16h8v8z" />
+              </svg>
+            </div>
+          ) : preset?.logoSvg === 'figma' ? (
+            <div style={{ width: '100%', height: '100%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg viewBox="0 0 38 57" style={{ width: '16px', height: '24px' }}>
+                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/>
+                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/>
+                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/>
+                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/>
+                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/>
+              </svg>
+            </div>
+          ) : (
+            <img
+              src={logoSrc}
+              alt={`${item.title} logo`}
+              className="dash-badge-img"
+              onError={() => setLogoError(true)}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div className="dash-card-body">
+        <h3 className="dash-card-title">{item.title}</h3>
+        <p className="dash-card-desc">
+          {item.desc || item.description || `Curated ${item.category || 'design'} tool and resource.`}
+        </p>
+
+        {/* Smart Tag & Pricing Row */}
+        <div className="dash-card-footer">
+          <span className="dash-tag-pill">{getSmartTag(item)}</span>
+          <span className={`dash-pricing-pill ${getPricingClass(getSmartPricing(item))}`}>
+            {getSmartPricing(item)}
+          </span>
+        </div>
+
+        {/* Admin Action Row */}
+        <div className="dash-admin-actions">
+          <button type="button" className="dash-open-btn" onClick={() => onOpen(item.url)}>
+            Open service <ArrowUpRight size={13} />
+          </button>
+          {isDashboardView && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button type="button" className="dash-edit-btn" onClick={() => onEdit(item)}>
+                <Edit2 size={12} /> Edit
+              </button>
+              <button type="button" className="dash-delete-btn" onClick={() => onDelete(item)}>
+                <Trash2 size={12} /> Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function getFaviconUrl(url) {
@@ -565,7 +867,7 @@ export default function DashboardPage({ onBack, onAddLink }) {
   }, [liveLinks, searchQuery])
 
   const [viewMode, setViewMode] = useState('grid')
-  const cardsPerPage = 8
+  const cardsPerPage = 9
 
   useEffect(() => {
     let isActive = true
@@ -1543,10 +1845,23 @@ export default function DashboardPage({ onBack, onAddLink }) {
         }
         .list-view {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           justify-content: start;
-          gap: 14px;
+          gap: 20px;
           padding: 16px;
+        }
+        @media (max-width: 1200px) {
+          .list-view {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+          }
+        }
+        @media (max-width: 680px) {
+          .list-view {
+            grid-template-columns: 1fr;
+            gap: 14px;
+            padding: 10px;
+          }
         }
         .view-toggle {
           display: flex;
@@ -1577,92 +1892,236 @@ export default function DashboardPage({ onBack, onAddLink }) {
           color: #2563eb;
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .list-view-linear {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 14px;
-          padding: 0 14px 14px;
-        }
-        .list-view-linear .service-card {
-          display: grid;
-          grid-template-columns: 260px 1fr 180px;
-          grid-template-rows: auto auto auto 1fr;
-          grid-template-areas: 
-            "preview top footer"
-            "preview title footer"
-            "preview desc footer"
-            "preview meta footer";
-          height: auto;
-        }
-        .list-view-linear .service-preview { grid-area: preview; height: 100%; border-right: 1px solid #e5e7eb; }
-        .list-view-linear .service-card-top { grid-area: top; padding: 16px 20px 8px; }
-        .list-view-linear .link-title { grid-area: title; margin: 0 20px 8px; }
-        .list-view-linear .link-description { grid-area: desc; margin: 0 20px 12px; }
-        .list-view-linear .meta-tags { grid-area: meta; margin: 0 20px 16px; align-self: start; }
-        .list-view-linear .date { display: none; }
-        .list-view-linear .service-footer { 
-          grid-area: footer; 
-          border-top: none; 
-          border-left: 1px solid #f1f5f9;
-          flex-direction: column;
-          justify-content: center;
-          gap: 16px;
-          padding: 0 24px;
-        }
-        .service-card {
+        
+        /* Dashboard Cards Matching Home Page Style */
+        .dash-link-card {
           display: flex;
           flex-direction: column;
-          min-width: 0;
-          width: 100%;
           background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 18px;
-          box-shadow: 0 2px 5px rgba(15, 23, 42, 0.03);
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .service-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-        }
-        .service-preview {
+          border: 1px solid #edf0f5;
+          border-radius: 24px;
+          padding: 12px;
+          text-decoration: none;
+          color: inherit;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+          transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
           position: relative;
-          height: 140px;
+        }
+        .dash-link-card:hover {
+          border-color: #e2e8f0;
+          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.07);
+          transform: translateY(-3px);
+        }
+
+        /* Banner Wrapper */
+        .dash-card-banner-wrap {
+          position: relative;
+          width: 100%;
+          margin-bottom: 8px;
+        }
+        .dash-card-banner {
+          position: relative;
+          width: 100%;
+          height: 165px;
+          background: #f1f3f8;
+          border-radius: 18px;
           overflow: hidden;
-          background: linear-gradient(135deg, var(--dot-color, #3b82f6), #f8fafc);
           flex-shrink: 0;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .service-preview .link-banner-brand-container {
+        .dash-card-screenshot {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: top center;
+          transition: transform 0.4s ease;
+          display: block;
+        }
+        .dash-link-card:hover .dash-card-screenshot {
+          transform: scale(1.04);
+        }
+        .dash-category-pill {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(8px);
+          color: #1e293b;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 3px 9px;
+          border-radius: 999px;
+          letter-spacing: 0.2px;
+          text-transform: uppercase;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+          z-index: 3;
+        }
+        
+        /* Top Right Favorite Button over Banner */
+        .dash-fav-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.92);
+          backdrop-filter: blur(8px);
+          border: none;
+          color: #94a3b8;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 58px;
-          height: 58px;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
-          padding: 8px;
+          cursor: pointer;
+          z-index: 3;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+          transition: all 0.2s ease;
+        }
+        .dash-fav-btn:hover {
+          background: #ffffff;
+          color: #eab308;
+          transform: scale(1.1);
+        }
+        .dash-fav-btn.active {
+          color: #eab308;
+          background: #ffffff;
+        }
+
+        /* Circular Logo Badge Overlapping Bottom Right */
+        .dash-card-logo-badge {
+          position: absolute;
+          bottom: -10px;
+          right: 12px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: #000000;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+          border: 3px solid #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          overflow: hidden;
           transition: transform 0.25s ease;
         }
-        .service-card:hover .link-banner-brand-container {
+        .dash-link-card:hover .dash-card-logo-badge {
           transform: scale(1.08);
         }
-        .service-preview .link-banner-brand-logo {
-          width: 36px;
-          height: 36px;
-          object-fit: contain;
-          border-radius: 8px;
-        }
-        .service-preview-fallback {
-          display: none;
+        .dash-badge-img {
           width: 100%;
           height: 100%;
-          place-items: center;
-          background: linear-gradient(135deg, var(--dot-color), #f8fafc);
-          color: #ffffff;
+          object-fit: cover;
+          padding: 5px;
+          background: #ffffff;
         }
+
+        /* Card Body */
+        .dash-card-body {
+          padding: 8px 6px 4px 6px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .dash-card-title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 800;
+          color: #090e1a;
+          letter-spacing: -0.3px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .dash-card-desc {
+          margin: 0;
+          font-size: 13px;
+          color: #64748b;
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-weight: 400;
+        }
+
+        /* Footer Row with Smart Tag & Pricing */
+        .dash-card-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 10px;
+        }
+        .dash-tag-pill {
+          font-size: 11px;
+          font-weight: 600;
+          color: #475569;
+          background: #f1f5f9;
+          padding: 2.5px 9px;
+          border-radius: 999px;
+          letter-spacing: 0.1px;
+        }
+        .dash-pricing-pill {
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+          text-transform: uppercase;
+          padding: 3px 9px;
+          border-radius: 999px;
+          user-select: none;
+        }
+        .pricing-free-trial { background: #ffedd5; color: #9a3412; }
+        .pricing-freemium   { background: #fef9c3; color: #854d0e; }
+        .pricing-free-paid  { background: #fef9c3; color: #854d0e; }
+        .pricing-paid       { background: #fee2e2; color: #991b1b; }
+        .pricing-free       { background: #dcfce7; color: #166534; }
+
+        /* Admin Actions Row (Open Service, Edit, Delete) */
+        .dash-admin-actions {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+        .dash-open-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          border: none;
+          background: transparent;
+          color: #2563eb;
+          font-size: 0.8rem;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 0;
+          transition: color 0.15s ease;
+        }
+        .dash-open-btn:hover {
+          color: #1d4ed8;
+        }
+        .dash-edit-btn, .dash-delete-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 7px;
+          border: none;
+          border-radius: 6px;
+          background: #f8fafc;
+          font-size: 0.74rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .dash-edit-btn { color: #2563eb; }
+        .dash-edit-btn:hover { background: #eff6ff; }
+        .dash-delete-btn { color: #ef4444; }
+        .dash-delete-btn:hover { background: #fef2f2; }
+
         .dashboard-empty-container {
           grid-column: 1 / -1;
           display: flex;
@@ -1715,194 +2174,6 @@ export default function DashboardPage({ onBack, onAddLink }) {
           transform: translateY(-1px);
           box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
         }
-        .service-category {
-          position: absolute;
-          top: 12px;
-          left: 12px;
-          padding: 4px 10px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.92);
-          backdrop-filter: blur(4px);
-          color: #374151;
-          font-size: 0.68rem;
-          font-weight: 700;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .service-card-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 14px 16px 0;
-        }
-        .service-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          display: grid;
-          place-items: center;
-          color: #64748b;
-          font-weight: 800;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-          flex-shrink: 0;
-        }
-        .service-icon.light {
-          color: #202124;
-        }
-        .service-icon img {
-          width: 22px;
-          height: 22px;
-          object-fit: contain;
-          border-radius: 4px;
-        }
-        .service-icon-fallback {
-          display: grid;
-          place-items: center;
-        }
-        .service-card-actions {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        .save-action {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 30px;
-          height: 30px;
-          border: none;
-          border-radius: 8px;
-          background: transparent;
-          color: #16a34a;
-          cursor: pointer;
-          transition: background-color 0.15s ease;
-        }
-        .save-action:hover {
-          background: rgba(22, 163, 74, 0.1);
-        }
-        .save-action.saved {
-          color: #16a34a;
-          background: rgba(22, 163, 74, 0.1);
-        }
-        .favorite-action {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 34px;
-          height: 34px;
-          border: none;
-          border-radius: 12px;
-          background: transparent;
-          color: #94a3b8;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .favorite-action:hover {
-          background: #f1f5f9;
-          color: #64748b;
-        }
-        .favorite-action.active {
-          background: #eef8f2;
-          color: #eab308;
-        }
-        .favorite-action.active:hover {
-          background: #e1f1e7;
-        }
-        .save-action.vibrate, .favorite-action.vibrate {
-          animation: save-vibrate 450ms ease-in-out;
-        }
-        @keyframes save-vibrate {
-          0%, 100% { transform: rotate(0) scale(1); }
-          20% { transform: rotate(-12deg) scale(1.12); }
-          40% { transform: rotate(12deg) scale(1.12); }
-          60% { transform: rotate(-8deg) scale(1.08); }
-          80% { transform: rotate(6deg) scale(1.04); }
-        }
-        .link-title {
-          font-size: 1.05rem;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          margin: 10px 16px 4px;
-          color: #111827;
-          line-height: 1.3;
-        }
-        .link-description {
-          color: #6b7280;
-          font-size: 0.84rem;
-          line-height: 1.45;
-          margin: 0 16px 8px;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          overflow: hidden;
-        }
-        .meta-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          margin: 0 16px;
-        }
-        .meta-tag {
-          display: inline-flex;
-          align-items: center;
-          padding: 3px 8px;
-          border-radius: 999px;
-          background: rgba(148, 163, 184, 0.14);
-          color: #6b7280;
-          font-size: 0.72rem;
-          font-weight: 700;
-        }
-        .date {
-          color: #2563eb;
-          font-weight: 600;
-          font-size: 0.76rem;
-          margin: 0 16px;
-          text-decoration: none;
-        }
-        .service-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-top: auto;
-          padding: 12px 16px;
-          border-top: 1px solid #f1f5f9;
-        }
-        .service-open {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          border: none;
-          background: transparent;
-          color: #2563eb;
-          font-size: 0.82rem;
-          font-weight: 700;
-          cursor: pointer;
-          padding: 0;
-          transition: color 0.15s ease;
-        }
-        .service-open:hover {
-          color: #4f46e5;
-        }
-        .card-actions-group {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .card-action {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 6px;
-          border: none;
-          border-radius: 6px;
-          background: transparent;
-          font-size: 0.76rem;
-          font-weight: 700;
-          cursor: pointer;
           transition: opacity 0.15s ease, background-color 0.15s ease;
         }
         .card-action:hover {
@@ -2686,96 +2957,16 @@ export default function DashboardPage({ onBack, onAddLink }) {
                   </button>
                 </div>
               ) : visibleLinks.map((item) => (
-                <article key={item.id} className="service-card">
-                  <div className="service-preview" style={{ '--dot-color': item.accent }}>
-                    <img
-                      src={`https://api.microlink.io?url=${encodeURIComponent(item.url.startsWith('http') ? item.url : 'https://' + item.url)}&screenshot=true&meta=false&embed=screenshot.url`}
-                      alt="preview"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }}
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        const url = item.url.startsWith('http') ? item.url : 'https://' + item.url;
-                        if (!target.dataset.triedSecondary) {
-                          target.dataset.triedSecondary = 'true';
-                          target.src = `https://s0.wp.com/mshots/v1/${encodeURIComponent(url)}?w=600&h=380`;
-                        } else {
-                          target.style.display = 'none';
-                          if (target.nextElementSibling) target.nextElementSibling.style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <div className="link-banner-brand-container" style={{ display: 'none', zIndex: 1 }}>
-                      <img
-                        src={`https://logo.clearbit.com/${getHostname(item.url)}`}
-                        alt={`${item.title} logo`}
-                        className="link-banner-brand-logo"
-                        onError={(event) => {
-                          const target = event.currentTarget;
-                          const fallbackUrl = getFaviconUrl(item.url);
-                          if (!target.dataset.triedFallback && fallbackUrl) {
-                            target.dataset.triedFallback = 'true';
-                            target.src = fallbackUrl;
-                          } else {
-                            target.style.display = 'none';
-                            if (target.nextElementSibling) {
-                              target.nextElementSibling.style.display = 'flex';
-                            }
-                          }
-                        }}
-                      />
-                      <span className="link-banner-letter" style={{ display: 'none' }}>
-                        {item.title ? item.title.charAt(0).toUpperCase() : '🔗'}
-                      </span>
-                    </div>
-                    <span className="service-category">{item.category}</span>
-                  </div>
-
-                  <div className="service-card-top">
-                    <div className={`service-icon ${item.accent === '#efefef' ? 'light' : ''}`} style={{ '--dot-color': item.accent }}>
-                      <img
-                        src={getFaviconUrl(item.url)}
-                        alt={`${item.title} logo`}
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none'
-                          event.currentTarget.nextElementSibling.style.display = 'grid'
-                        }}
-                      />
-                      <span className="service-icon-fallback" style={{ display: 'none' }}>
-                        {item.icon ? <item.icon size={21} /> : <FileText size={21} />}
-                      </span>
-                    </div>
-                    <div className="service-card-actions">
-                      <button
-                        type="button"
-                        className={`favorite-action ${item.favorite ? 'active' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
-                        aria-label={item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`}
-                        title={item.favorite ? 'Favorited' : 'Add to Favorites'}
-                        onClick={() => handleToggleFavorite(item.id)}
-                      >
-                        <Star size={18} fill={item.favorite ? 'currentColor' : 'none'} strokeWidth={item.favorite ? 0 : 2.5} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="link-title">{item.title}</div>
-                  <div className="link-description">{item.description}</div>
-                  <div className="date">{new URL(item.url).hostname.replace('www.', '')}</div>
-                  <div className="service-footer">
-                    <button type="button" className="service-open" onClick={() => handleOpenService(item.url)}>
-                      Open service <ArrowUpRight size={15} />
-                    </button>
-                    {isDashboardView && (
-                      <div className="card-actions-group">
-                        <button type="button" className="card-action edit-action" onClick={() => handleEditService(item)}>
-                          <Edit2 size={13} /> Edit
-                        </button>
-                        <button type="button" className="card-action delete-action" onClick={() => handleDeleteService(item)}>
-                          <Trash2 size={13} /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </article>
+                <DashboardLinkCard
+                  key={item.id || item._id}
+                  item={item}
+                  isDashboardView={isDashboardView}
+                  onOpen={handleOpenService}
+                  onEdit={handleEditService}
+                  onDelete={handleDeleteService}
+                  onToggleFavorite={handleToggleFavorite}
+                  favoritePulseId={favoritePulseId}
+                />
               ))}
             </div>
 
