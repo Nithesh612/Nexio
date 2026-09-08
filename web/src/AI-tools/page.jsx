@@ -35,8 +35,12 @@ import {
   Wand2,
   Code2,
   Video,
-  Bot
+  Bot,
+  Edit2,
+  Trash2
 } from 'lucide-react'
+import EditAIToolModal from '../components/EditAIToolModal'
+import DeleteConfirmModal from '../components/DeleteConfirmModal'
 
 // Category Filters Data
 const AI_CATEGORIES = [
@@ -481,6 +485,10 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12 // 3 rows on lg screens (4 columns)
   const [dbLinks, setDbLinks] = useState([])
+  const [toolToEdit, setToolToEdit] = useState(null)
+  const [toolToDelete, setToolToDelete] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('nexio_ai_favorites')
@@ -491,22 +499,73 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
   })
 
   // Fetch live bookmarks from backend
-  useEffect(() => {
-    const fetchDbLinks = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/ai-tools`)
-        if (res.ok) {
-          const data = await res.json()
-          if (Array.isArray(data)) {
-            setDbLinks(data)
-          }
+  const fetchDbLinks = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/ai-tools`)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setDbLinks(data)
         }
-      } catch (err) {
-        console.error('Failed to fetch live AI tools:', err)
       }
+    } catch (err) {
+      console.error('Failed to fetch live AI tools:', err)
     }
+  }
+
+  useEffect(() => {
     fetchDbLinks()
+
+    const handleUpdate = () => {
+      fetchDbLinks()
+    }
+
+    window.addEventListener('nexio_ai_tools_updated', handleUpdate)
+    return () => {
+      window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
+    }
   }, [])
+
+  const handleSaveEdit = async (updatedTool) => {
+    setIsSubmitting(true)
+    try {
+      const editId = updatedTool._id || updatedTool.id || updatedTool.toolId
+      const res = await fetch(`${API_BASE_URL}/api/ai-tools/${editId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTool)
+      })
+      if (res.ok) {
+        setToolToEdit(null)
+        await fetchDbLinks()
+        window.dispatchEvent(new CustomEvent('nexio_ai_tools_updated'))
+      }
+    } catch (err) {
+      console.error('Failed to update AI tool:', err)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!toolToDelete) return
+    setIsDeleting(true)
+    try {
+      const deleteId = toolToDelete._id || toolToDelete.id || toolToDelete.toolId
+      const res = await fetch(`${API_BASE_URL}/api/ai-tools/${deleteId}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        setToolToDelete(null)
+        await fetchDbLinks()
+        window.dispatchEvent(new CustomEvent('nexio_ai_tools_updated'))
+      }
+    } catch (err) {
+      console.error('Failed to delete AI tool:', err)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   const toggleFavorite = (id, e) => {
     e.preventDefault()
@@ -1082,12 +1141,14 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
                 {paginatedTools.map((tool) => (
-                  <a
+                  <div
                     key={tool.id}
-                    href={tool.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group relative"
+                    onClick={(e) => {
+                      if (e.target.closest('button')) return;
+                      const targetUrl = tool.url.startsWith('http') ? tool.url : `https://${tool.url}`;
+                      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border border-gray-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between block no-underline text-inherit group relative cursor-pointer"
                   >
                     <div>
                       {/* Live Graphic Banner */}
@@ -1096,9 +1157,38 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
                       </div>
 
                       {/* Title & Description */}
-                      <h3 className="font-bold text-base sm:text-[17px] text-gray-950 mb-1 group-hover:text-indigo-600 transition-colors truncate">
-                        {tool.name}
-                      </h3>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h3 className="font-bold text-base sm:text-[17px] text-gray-950 truncate group-hover:text-indigo-600 transition-colors">
+                          {tool.name}
+                        </h3>
+                        {/* Edit & Delete Actions */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            title="Edit AI Tool"
+                            aria-label={`Edit ${tool.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setToolToEdit(tool);
+                            }}
+                            className="p-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete AI Tool"
+                            aria-label={`Delete ${tool.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setToolToDelete(tool);
+                            }}
+                            className="p-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
                       <p className="text-xs sm:text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
                         {tool.desc}
                       </p>
@@ -1119,7 +1209,7 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
                         {tool.pricing}
                       </span>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
 
@@ -1159,6 +1249,25 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
         <NewsletterSection />
 
       </main>
+
+      {/* Edit AI Tool Modal */}
+      <EditAIToolModal
+        isOpen={Boolean(toolToEdit)}
+        tool={toolToEdit}
+        onClose={() => setToolToEdit(null)}
+        onSave={handleSaveEdit}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(toolToDelete)}
+        title="Delete AI Tool"
+        itemName={toolToDelete?.name}
+        onClose={() => setToolToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
 
       {/* Common Dark Footer */}
       <Footer

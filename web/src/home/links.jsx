@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LottieAnimation from './LottieAnimation';
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json';
 import {
@@ -17,8 +17,13 @@ import {
   Wrench,
   Bookmark,
   Compass,
-  LayoutGrid
+  LayoutGrid,
+  Edit2,
+  Trash2
 } from 'lucide-react';
+import { API_URL } from '../config/api';
+import EditLinkModal from '../components/EditLinkModal';
+import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import './links.css';
 
 // Category tab metadata
@@ -93,7 +98,7 @@ const BRAND_PRESETS = {
   }
 };
 
-function LinkCard({ item }) {
+function LinkCard({ item, onEdit, onDelete }) {
   const [screenshotError, setScreenshotError] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
@@ -134,8 +139,13 @@ function LinkCard({ item }) {
   // Readymag special banner fallback if image fails
   const isReadymag = domainSlug === 'readymag' || item.title?.toLowerCase().includes('readymag');
 
+  const handleCardClick = (e) => {
+    if (e.target.closest('button')) return;
+    window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <a href={cleanUrl} target="_blank" rel="noopener noreferrer" className="link-card group">
+    <div onClick={handleCardClick} className="link-card group relative cursor-pointer">
       {/* Top Banner with Rounded Inner Frame */}
       <div className="link-card-banner-wrapper">
         <div
@@ -239,12 +249,66 @@ function LinkCard({ item }) {
           <span className="link-tag-pill">
             {getSmartTag(item)}
           </span>
-          <span className={`link-pricing-pill ${getPricingClass(getSmartPricing(item))}`}>
-            {getSmartPricing(item)}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={`link-pricing-pill ${getPricingClass(getSmartPricing(item))}`}>
+              {getSmartPricing(item)}
+            </span>
+            {onEdit && onDelete && (
+              <div className="link-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  type="button"
+                  title="Edit link"
+                  aria-label={`Edit ${item.title}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onEdit(item);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 6px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Edit2 size={12} />
+                </button>
+                <button
+                  type="button"
+                  title="Delete link"
+                  aria-label={`Delete ${item.title}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDelete(item);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 6px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: '#fef2f2',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
@@ -457,16 +521,29 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
 
   const meta = tabMeta[activeTab] || tabMeta.all;
 
+  const [localLinks, setLocalLinks] = useState(savedLinks);
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setLocalLinks(savedLinks);
+  }, [savedLinks]);
+
   // Combine DB links with curated default links
-  const userMappedLinks = savedLinks.map(link => ({
+  const userMappedLinks = (localLinks && localLinks.length > 0 ? localLinks : savedLinks).map(link => ({
     id: link.id || link._id,
     title: link.title,
-    desc: link.description || '',
+    desc: link.description || link.desc || '',
     url: link.url,
     category: link.type || link.category || 'Other',
     collection: link.collection || 'All Links',
     bannerUrl: link.bannerUrl,
     logoUrl: link.logoUrl,
+    badge: link.badge || '',
+    favorite: Boolean(link.favorite),
+    readLater: Boolean(link.readLater)
   }));
 
   const mappedLinks = userMappedLinks.length > 0 ? userMappedLinks : CURATED_DEFAULT_LINKS;
@@ -502,6 +579,86 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
     setCurrentPage(1);
   };
 
+  const handleSaveEdit = async (updatedItem) => {
+    setIsSubmitting(true);
+    try {
+      const editId = updatedItem.id || updatedItem._id;
+      const isFallbackId = !editId || String(editId).startsWith('ct') || String(editId).startsWith('preset-') || String(editId).startsWith('live-');
+
+      const payload = {
+        title: updatedItem.title.trim(),
+        url: updatedItem.url.trim(),
+        category: updatedItem.category?.trim() || 'General',
+        description: (updatedItem.description || '').trim(),
+        collection: updatedItem.collection || 'All Links',
+        badge: updatedItem.badge || '',
+        bannerUrl: updatedItem.bannerUrl || '',
+        logoUrl: updatedItem.logoUrl || '',
+        favorite: Boolean(updatedItem.favorite),
+        readLater: Boolean(updatedItem.readLater)
+      };
+
+      if (!isFallbackId) {
+        await fetch(`${API_URL}/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      setLocalLinks((prev) =>
+        prev.map((item) =>
+          (item.id === editId || item._id === editId || item.url === updatedItem.url)
+            ? { ...item, ...payload }
+            : item
+        )
+      );
+
+      setItemToEdit(null);
+      window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'));
+    } catch (err) {
+      console.error('Failed to edit link:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      const deleteId = itemToDelete.id || itemToDelete._id;
+      const deleteUrl = itemToDelete.url;
+      const isFallbackId = !deleteId || String(deleteId).startsWith('ct') || String(deleteId).startsWith('preset-') || String(deleteId).startsWith('live-');
+
+      if (!isFallbackId) {
+        await fetch(`${API_URL}/${deleteId}`, { method: 'DELETE' });
+      }
+
+      try {
+        const raw = localStorage.getItem('nexio_deleted_quick_assets');
+        const list = raw ? JSON.parse(raw) : [];
+        if (deleteId && !list.includes(String(deleteId))) list.push(String(deleteId));
+        if (deleteUrl && !list.includes(String(deleteUrl))) list.push(String(deleteUrl));
+        localStorage.setItem('nexio_deleted_quick_assets', JSON.stringify(list));
+      } catch {}
+
+      setLocalLinks((prev) => prev.filter((item) => (item.id || item._id) !== deleteId && item.url !== deleteUrl));
+      setItemToDelete(null);
+      window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'));
+    } catch (err) {
+      console.error('Failed to delete link:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <section className="links-section" id="use-cases">
       <div className="links-container">
@@ -533,7 +690,12 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
           <div className="links-grid">
             {currentItems && currentItems.length > 0 ? (
               currentItems.map((item) => (
-                <LinkCard key={item.id} item={item} />
+                <LinkCard
+                  key={item.id}
+                  item={item}
+                  onEdit={(it) => setItemToEdit(it)}
+                  onDelete={(it) => setItemToDelete(it)}
+                />
               ))
             ) : (
               <div className="empty-links-state">
@@ -608,6 +770,25 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
         </div>
 
       </div>
+
+      {/* Edit Link Modal with Multi-Category Support */}
+      <EditLinkModal
+        isOpen={Boolean(itemToEdit)}
+        item={itemToEdit}
+        onClose={() => setItemToEdit(null)}
+        onSave={handleSaveEdit}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(itemToDelete)}
+        title="Delete Link"
+        itemName={itemToDelete?.title}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
     </section>
   );
 }

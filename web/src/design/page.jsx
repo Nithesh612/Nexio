@@ -37,6 +37,11 @@ import {
   Book,
   PenTool,
   Camera,
+  Bot,
+  Video,
+  Compass,
+  FlaskConical,
+  Folder,
   Image as ImageIcon
 } from 'lucide-react'
 
@@ -44,71 +49,163 @@ import { API_URL } from '../config/api'
 
 // Category Filters Data matching user provided categories
 const CATEGORIES = [
-  { id: 'all', name: 'All Resources', icon: LayoutGrid, url: 'https://www.toools.design' },
-  { id: 'ai', name: 'AI Tools', icon: Sparkles, url: 'https://www.toools.design/ai-design-tools' },
-  { id: 'inspiration', name: 'Inspiration', icon: Flame, url: 'https://www.toools.design/ui-web-design-inspiration-websites' },
-  { id: 'icons', name: 'Icons', icon: Layers, url: 'https://www.toools.design/free-open-source-icon-libraries' },
-  { id: 'illustrations', name: 'Illustrations & SVG', icon: ImageIcon, url: 'https://www.toools.design/free-open-source-illustrations' },
-  { id: 'stock', name: 'Stock Photos', icon: Camera, url: 'https://www.toools.design/free-stock-images-videos' },
-  { id: 'learning', name: 'Learning', icon: BookOpen, url: 'https://www.toools.design/learn-ui-ux-design' },
-  { id: 'community', name: 'Community', icon: Users, url: 'https://www.toools.design/design-communities' },
-  { id: 'blogs', name: 'Blogs & Mags', icon: Newspaper, url: 'https://www.toools.design/best-design-blogs-and-magazines' },
-  { id: 'books', name: 'Books', icon: Book, url: 'https://www.toools.design/books-for-designers' },
-  { id: 'ux-tools', name: 'UX Tools', icon: Monitor, url: 'https://www.toools.design/best-ux-tools' },
-  { id: 'colors', name: 'Color Tools', icon: Palette, url: 'https://www.toools.design/best-color-inspiration-tools' },
-  { id: 'fonts', name: 'Typography', icon: Type, url: 'https://www.toools.design/font-library-and-inspiration' },
+  { id: 'all', name: 'All Resources', icon: LayoutGrid, categoryVal: 'all' },
+  { id: 'ai', name: 'AI Tools', icon: Bot, categoryVal: 'AI Tools' },
+  { id: 'saved', name: 'Saved', icon: Bookmark, categoryVal: 'saved' },
+  { id: 'ui/ux', name: 'UI/UX', icon: Monitor, categoryVal: 'UI/UX' },
+  { id: 'ai-image-video', name: 'AI Image & Video', icon: Video, categoryVal: 'AI Image & Video' },
+  { id: 'inspiration', name: 'Inspiration', icon: Flame, categoryVal: 'Inspiration' },
+  { id: 'wallpaper', name: 'Wallpaper', icon: ImageIcon, categoryVal: 'Wallpaper' },
+  { id: 'stock', name: 'Stock', icon: Camera, categoryVal: 'Stock' },
+  { id: 'research', name: 'Research', icon: FlaskConical, categoryVal: 'Research' },
+  { id: 'typography', name: 'Typography', icon: Type, categoryVal: 'Typography' },
+  { id: 'illustrations', name: 'Illustrations & SVG', icon: Palette, categoryVal: 'Illustrations & SVG' },
+  { id: 'icons', name: 'Icons', icon: Layers, categoryVal: 'Icons' },
+  { id: 'colors', name: 'Colors', icon: Palette, categoryVal: 'Colors' },
+  { id: 'other', name: 'Other', icon: Folder, categoryVal: 'Other' },
 ]
 
-function matchCategory(link, catId) {
+function matchCategory(link, catId, bookmarkedIds = null) {
   if (!link) return false
-  const cat = (link.category || '').toLowerCase()
-  const collection = (link.collection || '').toLowerCase()
-  const desc = (link.description || '').toLowerCase()
-  const title = (link.title || '').toLowerCase()
-  const url = (link.url || '').toLowerCase()
-  const allText = `${cat} ${collection} ${desc} ${title} ${url}`
+  if (catId === 'all') return true
 
-  if (catId === 'all') {
-    const designKeywords = ['ai', 'inspiration', 'icon', 'illustration', 'svg', 'stock', 'learn', 'community', 'blog', 'book', 'ux', 'ui', 'color', 'font', 'design']
-    return designKeywords.some(keyword => cat.includes(keyword) || allText.includes(keyword))
+  const itemId = link.id || link._id
+  const isBookmarked = bookmarkedIds && itemId ? bookmarkedIds.has(itemId) : false
+  const isFav = Boolean(link.favorite || link.rawItem?.favorite)
+  const isReadLater = Boolean(link.readLater || link.rawItem?.readLater)
+
+  if (catId === 'saved') {
+    const rawCat = (link.category || link.rawItem?.category || '').toLowerCase().trim()
+    const rawCol = (link.collection || link.rawItem?.collection || '').toLowerCase().trim()
+    return isBookmarked || isFav || isReadLater || rawCat === 'saved' || rawCol === 'saved'
   }
-  if (catId === 'ai') {
-    return cat.includes('ai') || allText.includes('ai')
+
+  // Get raw category & collection strings from DB link or mapped object
+  const rawCat = (link.category || link.rawItem?.category || link.type || link.rawItem?.type || '').toLowerCase().trim()
+  const rawCol = (link.collection || link.rawItem?.collection || '').toLowerCase().trim()
+
+  // Split comma-separated categories into distinct category tags
+  const categoriesList = rawCat.split(',').map(c => c.trim().toLowerCase()).filter(Boolean)
+  const collectionsList = rawCol.split(',').map(c => c.trim().toLowerCase()).filter(Boolean)
+  const allCatTags = [...categoriesList, ...collectionsList]
+
+  if (allCatTags.length === 0) {
+    if (catId === 'other') return true
+    return false
   }
-  if (catId === 'inspiration') {
-    return cat.includes('inspiration') || allText.includes('inspiration')
+
+  switch (catId) {
+    case 'ai':
+      return allCatTags.some(c => 
+        c === 'ai' || 
+        c === 'ai tools' || 
+        c === 'ai tool' || 
+        c === 'artificial intelligence'
+      )
+
+    case 'ui/ux':
+    case 'uiux':
+      return allCatTags.some(c => 
+        c === 'ui/ux' || 
+        c === 'ui' || 
+        c === 'ux' || 
+        c === 'ui / ux' || 
+        c === 'uikits' || 
+        c === 'systems' || 
+        c === 'ui kits' || 
+        c === 'ui kit' || 
+        c === 'design system' || 
+        c === 'design systems'
+      )
+
+    case 'ai-image-video':
+      return allCatTags.some(c => 
+        c === 'ai image & video' || 
+        c === 'ai image and video' || 
+        c === 'ai image' || 
+        c === 'ai video' || 
+        c === 'image & video' || 
+        c === 'ai-image-video'
+      )
+
+    case 'inspiration':
+      return allCatTags.some(c => 
+        c === 'inspiration' || 
+        c === 'design inspiration' || 
+        c === 'web inspiration'
+      )
+
+    case 'wallpaper':
+      return allCatTags.some(c => 
+        c === 'wallpaper' || 
+        c === 'wallpapers'
+      )
+
+    case 'stock':
+      return allCatTags.some(c => 
+        c === 'stock' || 
+        c === 'stock photos' || 
+        c === 'stock photo' || 
+        c === 'stock images'
+      )
+
+    case 'research':
+      return allCatTags.some(c => 
+        c === 'research' || 
+        c === 'article' || 
+        c === 'articles' || 
+        c === 'learning' || 
+        c === 'case studies'
+      )
+
+    case 'typography':
+    case 'fonts':
+      return allCatTags.some(c => 
+        c === 'typography' || 
+        c === 'fonts' || 
+        c === 'font' || 
+        c === 'type'
+      )
+
+    case 'illustrations':
+      return allCatTags.some(c => 
+        c === 'illustrations & svg' || 
+        c === 'illustrations and svg' || 
+        c === 'illustrations' || 
+        c === 'illustration' || 
+        c === 'svg'
+      )
+
+    case 'icons':
+      return allCatTags.some(c => 
+        c === 'icons' || 
+        c === 'icon' || 
+        c === 'icon set' || 
+        c === 'icon library'
+      )
+
+    case 'colors':
+      return allCatTags.some(c => 
+        c === 'colors' || 
+        c === 'color' || 
+        c === 'color tools' || 
+        c === 'palette' || 
+        c === 'palettes'
+      )
+
+    case 'other':
+      return allCatTags.some(c => 
+        c === 'other' || 
+        c === 'general' || 
+        c === 'tools' || 
+        c === 'host' || 
+        c === 'hosting' || 
+        c === 'uncategorized'
+      ) || (!rawCat || rawCat === 'other' || rawCat === 'general')
+
+    default:
+      return allCatTags.includes(catId.toLowerCase())
   }
-  if (catId === 'icons') {
-    return cat.includes('icon') || allText.includes('icon')
-  }
-  if (catId === 'illustrations') {
-    return cat.includes('illustration') || allText.includes('illustration') || allText.includes('svg')
-  }
-  if (catId === 'stock') {
-    return cat.includes('stock') || allText.includes('stock')
-  }
-  if (catId === 'learning') {
-    return cat.includes('learn') || allText.includes('learn')
-  }
-  if (catId === 'community') {
-    return cat.includes('community') || allText.includes('community')
-  }
-  if (catId === 'blogs') {
-    return cat.includes('blog') || allText.includes('blog')
-  }
-  if (catId === 'books') {
-    return cat.includes('book') || allText.includes('book')
-  }
-  if (catId === 'ux-tools') {
-    return cat.includes('ux') || cat.includes('ui') || allText.includes('ux') || allText.includes('ui')
-  }
-  if (catId === 'colors') {
-    return cat.includes('color') || allText.includes('color')
-  }
-  if (catId === 'fonts') {
-    return cat.includes('font') || allText.includes('font')
-  }
-  return false
 }
 
 // Featured Design Tools (Live Screen Banners & Live Logos)
@@ -705,16 +802,15 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
   // Calculate real-time live counts per category from MongoDB
   const categoryCounts = useMemo(() => {
     const counts = {}
-    counts['all'] = dbLinks.length > 0 
-      ? dbLinks.filter(item => matchCategory(item, 'all')).length 
-      : LATEST_RESOURCES.filter(item => matchCategory(item, 'all')).length
+    const activeList = dbLinks.length > 0 ? dbLinks : LATEST_RESOURCES
+
+    counts['all'] = activeList.length
 
     CATEGORIES.forEach(cat => {
       if (cat.id === 'all') return
-      const matchingCount = dbLinks.filter(item => matchCategory(item, cat.id)).length
+      const matchingCount = activeList.filter(item => matchCategory(item, cat.id, bookmarkedIds)).length
       counts[cat.id] = matchingCount
     })
-    counts.saved = bookmarkedIds.size
 
     return counts
   }, [dbLinks, bookmarkedIds])
@@ -763,11 +859,7 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
   // Filter resources based on active category & search query
   const filteredResources = useMemo(() => {
     return allResources.filter(item => {
-      const isSaved = bookmarkedIds.has(item.id) || Boolean(item.rawItem?.favorite)
-      const matchesCategory = selectedCategory === 'saved'
-        ? isSaved
-        : selectedCategory === 'all' ||
-        matchCategory(item.rawItem || { category: item.category, title: item.title, description: item.desc, url: item.url }, selectedCategory)
+      const matchesCategory = matchCategory(item, selectedCategory, bookmarkedIds)
 
       const q = searchQuery.toLowerCase().trim()
       const matchesSearch = !q ||
@@ -845,7 +937,7 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
               <span className="text-xs text-gray-400">Showing {filteredResources.length} curated tools</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 sm:gap-2.5">
               {CATEGORIES.map(cat => {
                 const IconComp = cat.icon
                 const isActive = selectedCategory === cat.id
@@ -870,24 +962,6 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
                   </button>
                 )
               })}
-
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('saved')}
-                className={`flex items-center justify-between px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${selectedCategory === 'saved'
-                  ? 'bg-gray-900 text-white shadow-md shadow-gray-900/10 scale-[1.02]'
-                  : 'bg-white/80 hover:bg-white text-gray-700 border border-gray-200/80 hover:border-gray-300 shadow-2xs'
-                  }`}
-              >
-                <div className="flex items-center gap-1.5 sm:gap-2 truncate min-w-0">
-                  <Heart size={15} className={`shrink-0 ${selectedCategory === 'saved' ? 'text-rose-400 fill-rose-400' : 'text-gray-500'}`} />
-                  <span className="truncate text-[11px] sm:text-xs font-semibold">Favorites</span>
-                </div>
-                <span className={`text-[10px] sm:text-[11px] font-mono px-1.5 py-0.5 rounded-md shrink-0 ml-1 ${selectedCategory === 'saved' ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                  {categoryCounts.saved || 0}
-                </span>
-              </button>
             </div>
           </div>
 

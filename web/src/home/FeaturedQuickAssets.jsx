@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../config/api'
-import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
 
 function QuickAssetItem({ tool }) {
   const [imgError, setImgError] = useState(false)
@@ -18,14 +17,17 @@ function QuickAssetItem({ tool }) {
   const displayCategory = tool.description || tool.category || 'Useful utility'
   const displayBadge = tool.badge || 'Free'
 
+  const handleCardClick = () => {
+    const targetUrl = tool.url.startsWith('http') ? tool.url : `https://${tool.url}`
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
-    <a
-      href={tool.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="p-3.5 bg-white rounded-2xl border border-gray-200/80 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all flex items-center justify-between gap-3 group block no-underline text-inherit hover:-translate-y-0.5 duration-200"
+    <div
+      onClick={handleCardClick}
+      className="p-3.5 bg-white rounded-2xl border border-gray-200/80 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all flex items-center justify-between gap-3 group relative cursor-pointer hover:-translate-y-0.5 duration-200"
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-1.5 shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
           {!imgError && tool.logoUrl ? (
             <img
@@ -44,7 +46,7 @@ function QuickAssetItem({ tool }) {
             />
           )}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
             {displayName}
           </h4>
@@ -52,10 +54,12 @@ function QuickAssetItem({ tool }) {
         </div>
       </div>
 
-      <span className="text-[10px] font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md shrink-0">
-        {displayBadge}
-      </span>
-    </a>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-[10px] font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md shrink-0">
+          {displayBadge}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -135,7 +139,10 @@ export default function FeaturedQuickAssets() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
           {assets.map((tool) => (
-            <QuickAssetItem key={tool.id || tool._id || tool.url} tool={tool} />
+            <QuickAssetItem
+              key={tool.id || tool._id || tool.url}
+              tool={tool}
+            />
           ))}
         </div>
       )}

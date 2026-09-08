@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
+import EditLinkModal from '../components/EditLinkModal'
 import emptyAnimation from '../assets/svg/Man and robot with computers sitting together in workplace.json'
 import { API_BASE_URL, API_URL } from '../config/api'
 import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
@@ -353,12 +354,20 @@ function DashboardLinkCard({ item, isDashboardView, onOpen, onEdit, onDelete, on
           {/* Category Pill Tag */}
           <span className="dash-category-pill">{getSmartTag(item)}</span>
 
-          {/* Favorite Button on top right */}
+          {/* Favorite / Feature Button on top right */}
           <button
             type="button"
             className={`dash-fav-btn ${item.favorite ? 'active' : ''} ${favoritePulseId === item.id ? 'vibrate' : ''}`}
-            aria-label={item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`}
-            title={item.favorite ? 'Favorited' : 'Add to Favorites'}
+            aria-label={(() => {
+              const isQuick = item.collection === 'Quick Assets' || item.category === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset' || (item.category && item.category.toLowerCase().includes('quick'))
+              if (isQuick) return item.favorite ? `Remove ${item.title} from Home Quick Assets` : `Feature ${item.title} in Home Quick Assets`
+              return item.favorite ? `Remove ${item.title} from Favorites` : `Add ${item.title} to Favorites`
+            })()}
+            title={(() => {
+              const isQuick = item.collection === 'Quick Assets' || item.category === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset' || (item.category && item.category.toLowerCase().includes('quick'))
+              if (isQuick) return item.favorite ? 'Featured in Home Quick Assets' : 'Feature in Home Quick Assets'
+              return item.favorite ? 'Favorited' : 'Add to Favorites'
+            })()}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -1615,7 +1624,14 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     let base = liveLinks
 
     if (activeNav === 'Favorites') {
-      base = base.filter((item) => item.favorite)
+      base = base.filter((item) => {
+        const isQuickAsset = item.collection === 'Quick Assets' ||
+          item.category === 'Quick Assets' ||
+          item.category === 'Featured Quick Asset' ||
+          item.kind === 'quick-asset' ||
+          (item.category && item.category.toLowerCase().includes('quick'))
+        return item.favorite && !isQuickAsset
+      })
     } else if (activeNav === 'Saved') {
       base = base.filter((item) => {
         const cat = (item.category || '').toLowerCase().trim()
@@ -1654,7 +1670,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     (currentPage - 1) * cardsPerPage,
     currentPage * cardsPerPage,
   )
-  const isDashboardView = activeNav === 'Dashboard'
+  const isDashboardView = true
   const isQuickAssetsView = activeNav === 'Quick Assets'
 
   const liveStats = useMemo(() => {
@@ -1667,7 +1683,8 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       const isQuickAsset = item.collection === 'Quick Assets' ||
         item.category === 'Quick Assets' ||
         item.category === 'Featured Quick Asset' ||
-        item.kind === 'quick-asset'
+        item.kind === 'quick-asset' ||
+        (item.category && item.category.toLowerCase().includes('quick'))
       return item.favorite && !isQuickAsset
     }).length
     const totalCount = walletTotalCount ?? liveLinks.length
@@ -1722,6 +1739,12 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     const selectedLink = liveLinks.find((item) => item.id === linkId) || quickAssets.find((item) => item.id === linkId)
     if (!selectedLink) return
 
+    const isQuickAsset = selectedLink.collection === 'Quick Assets' ||
+      selectedLink.category === 'Quick Assets' ||
+      selectedLink.category === 'Featured Quick Asset' ||
+      selectedLink.kind === 'quick-asset' ||
+      (selectedLink.category && selectedLink.category.toLowerCase().includes('quick'))
+
     const nextFavorite = !selectedLink.favorite
     setFavoritePulseId(linkId)
     window.setTimeout(() => setFavoritePulseId(null), 450)
@@ -1748,10 +1771,13 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       })
 
       if (!response.ok) throw new Error('Favorite update failed')
-      if (selectedLink.collection === 'Quick Assets' && typeof window !== 'undefined') {
+      if (isQuickAsset && typeof window !== 'undefined') {
         window.dispatchEvent(new Event('nexio_quick_assets_updated'))
       }
-      setStatus(nextFavorite ? `${selectedLink.title} added to Favorites.` : `${selectedLink.title} removed from Favorites.`)
+      setStatus(isQuickAsset
+        ? (nextFavorite ? `${selectedLink.title} featured on Home Quick Assets.` : `${selectedLink.title} unfeatured from Home Quick Assets.`)
+        : (nextFavorite ? `${selectedLink.title} added to Favorites.` : `${selectedLink.title} removed from Favorites.`)
+      )
     } catch {
       setLiveLinks((current) => current.map((item) => (
         item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
@@ -1759,7 +1785,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       setQuickAssets((current) => current.map((item) => (
         item.id === linkId ? { ...item, favorite: selectedLink.favorite } : item
       )))
-      setStatus('Could not update Favorites in MongoDB.')
+      setStatus(isQuickAsset ? 'Could not update Home page featured state in MongoDB.' : 'Could not update Favorites in MongoDB.')
     }
   }
 
@@ -1770,36 +1796,30 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
 
   const handleEditService = (item) => {
     setItemToEdit(item)
-    setEditForm({
-      title: item.title || '',
-      description: item.description || '',
-      url: item.url || '',
-      category: item.category || ''
-    })
   }
 
-  const confirmEdit = async (e) => {
-    e.preventDefault()
-    if (!itemToEdit || !editForm.title.trim()) return
+  const confirmEdit = async (updatedItem) => {
+    const item = updatedItem || itemToEdit
+    if (!item || !item.title?.trim()) return
     setIsEditing(true)
     try {
-      const isQuick = itemToEdit.kind === 'quick-asset' || itemToEdit.collection === 'Quick Assets' || itemToEdit.category === 'Featured Quick Asset'
+      const isQuick = item.kind === 'quick-asset' || item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset' || (item.category && item.category.toLowerCase().includes('quick'))
 
       const payload = {
-        title: editForm.title.trim(),
-        url: editForm.url.trim(),
-        category: editForm.category.trim() || (isQuick ? 'Featured Quick Asset' : 'General'),
-        description: editForm.description.trim(),
-        collection: itemToEdit.collection || (isQuick ? 'Quick Assets' : 'All Links'),
-        favorite: Boolean(itemToEdit.favorite),
-        readLater: Boolean(itemToEdit.readLater),
-        badge: itemToEdit.badge || '',
-        logoUrl: itemToEdit.logoUrl || '',
-        bannerUrl: itemToEdit.bannerUrl || '',
+        title: item.title.trim(),
+        url: item.url.trim(),
+        category: item.category?.trim() || (isQuick ? 'Featured Quick Asset' : 'General'),
+        description: (item.description || '').trim(),
+        collection: item.collection || (isQuick ? 'Quick Assets' : 'All Links'),
+        favorite: Boolean(item.favorite),
+        readLater: Boolean(item.readLater),
+        badge: item.badge || '',
+        logoUrl: item.logoUrl || '',
+        bannerUrl: item.bannerUrl || '',
       }
 
       let savedData = null
-      const editId = itemToEdit.id || itemToEdit._id
+      const editId = item.id || item._id
       const isFallbackId = !editId || String(editId).startsWith('ct') || String(editId).startsWith('preset-') || String(editId).startsWith('live-')
 
       if (!isFallbackId) {
@@ -1833,14 +1853,36 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           }
           return [mapped, ...current]
         })
+        setQuickAssets((current) => {
+          const exists = current.some((l) => l.id === editId || l.url === payload.url)
+          if (exists) {
+            return current.map((l) => (l.id === editId || l.url === payload.url ? mapped : l))
+          }
+          return isQuick ? [mapped, ...current] : current.filter(l => l.id !== editId && l.url !== payload.url)
+        })
       } else {
         setLiveLinks((current) => current.map((link) => (
-          (link.id === editId || link.url === itemToEdit.url) ? {
+          (link.id === editId || link.url === item.url) ? {
             ...link,
             title: payload.title,
             description: payload.description,
             url: payload.url,
             category: payload.category,
+            collection: payload.collection,
+            badge: payload.badge,
+            bannerUrl: payload.bannerUrl
+          } : link
+        )))
+        setQuickAssets((current) => current.map((link) => (
+          (link.id === editId || link.url === item.url) ? {
+            ...link,
+            title: payload.title,
+            description: payload.description,
+            url: payload.url,
+            category: payload.category,
+            collection: payload.collection,
+            badge: payload.badge,
+            bannerUrl: payload.bannerUrl
           } : link
         )))
       }
@@ -3953,78 +3995,13 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         </div>
       )}
 
-      {itemToEdit && (
-        <div className="delete-modal-backdrop" onClick={() => !isEditing && setItemToEdit(null)}>
-          <div className="delete-modal-card edit-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="edit-modal-icon">
-              <Edit2 size={20} />
-            </div>
-            <h3>Edit Link</h3>
-            <form className="edit-modal-form" onSubmit={confirmEdit}>
-              <div className="form-group">
-                <label>Title</label>
-                <input
-                  type="text"
-                  value={editForm.title}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                  placeholder="Link Title"
-                />
-              </div>
-              <div className="form-group">
-                <label>URL</label>
-                <input
-                  type="url"
-                  value={editForm.url}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, url: e.target.value }))}
-                  required
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div className="form-group">
-                <label>Category</label>
-                <select
-                  value={editForm.category}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
-                >
-                  <option value="">Select a category</option>
-                  {Array.from(new Set([...PREDEFINED_CATEGORIES, ...availableCategories.filter(c => c !== 'All')])).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                  {editForm.category && !PREDEFINED_CATEGORIES.includes(editForm.category) && !availableCategories.includes(editForm.category) && editForm.category.includes(',') && (
-                    <option value={editForm.category}>{editForm.category}</option>
-                  )}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Add a description..."
-                />
-              </div>
-              <div className="delete-modal-actions" style={{ marginTop: '24px' }}>
-                <button
-                  type="button"
-                  className="cancel-btn"
-                  onClick={() => setItemToEdit(null)}
-                  disabled={isEditing}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="save-btn"
-                  disabled={isEditing || !editForm.title.trim()}
-                >
-                  {isEditing ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditLinkModal
+        isOpen={Boolean(itemToEdit)}
+        item={itemToEdit}
+        onClose={() => setItemToEdit(null)}
+        onSave={confirmEdit}
+        isSubmitting={isEditing}
+      />
 
       <GlobalSearchModal
         isOpen={isSearchModalOpen}

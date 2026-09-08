@@ -536,7 +536,7 @@ export default function Home() {
       const matchesQuery = !cleanQuery || haystack.includes(cleanQuery)
       const matchesFilter =
         filter === 'All links' ||
-        (filter === 'Favorites' && item.favorite) ||
+        (filter === 'Favorites' && item.favorite && item.collection !== 'Quick Assets' && item.category !== 'Featured Quick Asset' && item.category !== 'Quick Assets' && item.kind !== 'quick-asset' && !(item.category && item.category.toLowerCase().includes('quick'))) ||
         (filter === 'Saved' && (item.collection === 'Saved' || item.category === 'Saved' || item.type === 'Saved')) ||
         filter === item.collection ||
         filter === item.type
