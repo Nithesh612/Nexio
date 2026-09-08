@@ -358,11 +358,9 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
     });
   }, [savedLinks]);
 
-  // Merge user-saved links with presets (user-saved links appear first)
+  // Only show links that the user has added/stored in their workspace
   const allGoogleItems = useMemo(() => {
-    const userUrls = new Set(userGoogleLinks.map(l => l.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()));
-    const filteredPresets = GOOGLE_PRESETS.filter(p => !userUrls.has(p.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()));
-    return [...userGoogleLinks, ...filteredPresets];
+    return userGoogleLinks;
   }, [userGoogleLinks]);
 
   // Dynamically compute all sub-type categories with real-time item counts
@@ -606,7 +604,52 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
       </div>
 
       {/* Grid of Google Tool Cards */}
-      {filteredItems.length === 0 ? (
+      {allGoogleItems.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '64px 24px',
+          background: '#ffffff',
+          borderRadius: '24px',
+          border: '1.5px dashed #cbd5e1',
+          boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.03)'
+        }}>
+          <div style={{ display: 'inline-flex', padding: '14px', borderRadius: '50%', background: 'rgba(66, 133, 244, 0.08)', marginBottom: '16px' }}>
+            <GoogleIcon size={36} />
+          </div>
+          <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+            No Google Tools Saved Yet
+          </h3>
+          <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '440px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+            Save Google AI models (Gemini, NotebookLM), Cloud services, Material Design systems, or Developer APIs to automatically organize them here.
+          </p>
+          {typeof onAddLink === 'function' && (
+            <button
+              type="button"
+              onClick={onAddLink}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 22px',
+                borderRadius: '12px',
+                background: '#1a73e8',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '13.5px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(26, 115, 232, 0.28)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#1557b0'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
+            >
+              <Plus size={16} />
+              <span>Save Your First Google Link</span>
+            </button>
+          )}
+        </div>
+      ) : filteredItems.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '60px 20px',
@@ -614,9 +657,9 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
           borderRadius: '20px',
           border: '1.5px dashed #e2e8f0'
         }}>
-          <GoogleIcon size={40} style={{ marginBottom: '16px', opacity: 0.8 }} />
+          <GoogleIcon size={36} style={{ marginBottom: '16px', opacity: 0.8 }} />
           <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
-            No Google tools found matching "{searchQuery}"
+            No Google tools found matching "{searchQuery || activeType}"
           </h3>
           <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 20px' }}>
             Try searching with another keyword or change your category filter.
@@ -797,52 +840,30 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
                     {item.tag}
                   </span>
 
-                  {/* Buttons (Copy URL + Visit Link) */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={(e) => handleCopy(e, item)}
-                      title="Copy URL"
-                      style={{
-                        padding: '6px',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                        background: copiedId === item.id ? '#dcfce7' : '#ffffff',
-                        color: copiedId === item.id ? '#166534' : '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {copiedId === item.id ? <Check size={14} /> : <Copy size={14} />}
-                    </button>
-
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        background: '#1a73e8',
-                        color: '#ffffff',
-                        textDecoration: 'none',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#1557b0'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
-                    >
-                      <span>Open</span>
-                      <ExternalLink size={13} />
-                    </a>
-                  </div>
+                  {/* Visit Link Button */}
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '7px 14px',
+                      borderRadius: '999px',
+                      background: '#1a73e8',
+                      color: '#ffffff',
+                      textDecoration: 'none',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#1557b0'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
+                  >
+                    <span>Open</span>
+                    <ExternalLink size={13} />
+                  </a>
                 </div>
               </div>
             </div>
