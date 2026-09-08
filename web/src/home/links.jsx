@@ -278,58 +278,6 @@ function LinkCard({ item, onEdit, onDelete }) {
             <span className={`link-pricing-pill ${getPricingClass(getSmartPricing(item))}`}>
               {getSmartPricing(item)}
             </span>
-            {onEdit && onDelete && (
-              <div className="link-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <button
-                  type="button"
-                  title="Edit link"
-                  aria-label={`Edit ${item.title}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onEdit(item);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 6px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background: '#eff6ff',
-                    color: '#2563eb',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Edit2 size={12} />
-                </button>
-                <button
-                  type="button"
-                  title="Delete link"
-                  aria-label={`Delete ${item.title}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onDelete(item);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 6px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background: '#fef2f2',
-                    color: '#ef4444',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

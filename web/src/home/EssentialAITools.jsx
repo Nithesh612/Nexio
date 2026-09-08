@@ -492,33 +492,6 @@ export default function EssentialAITools({ onNavigateToDesign }) {
                   <h3 className="font-extrabold text-[17px] text-gray-950 truncate group-hover:text-indigo-600 transition-colors">
                     {tool.name}
                   </h3>
-                  {/* Admin Edit & Delete buttons */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      title="Edit AI Tool"
-                      aria-label={`Edit ${tool.name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setToolToEdit(tool);
-                      }}
-                      className="p-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
-                    >
-                      <Edit2 size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      title="Delete AI Tool"
-                      aria-label={`Delete ${tool.name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setToolToDelete(tool);
-                      }}
-                      className="p-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors cursor-pointer"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
                 </div>
                 <p className="text-[13px] text-gray-500 font-normal leading-relaxed line-clamp-2">
                   {tool.desc}
