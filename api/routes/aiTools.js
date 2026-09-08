@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const update = { $set: req.body };
-    const options = { new: true, runValidators: true, strict: false };
+    const options = { returnDocument: 'after', runValidators: true, strict: false };
     const idFilter = mongoose.isValidObjectId(req.params.id)
       ? { _id: req.params.id }
       : { toolId: req.params.id };

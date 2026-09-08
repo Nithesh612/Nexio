@@ -128,7 +128,7 @@ router.put('/:id', async (req, res) => {
         favorite: Boolean(favorite),
         readLater: Boolean(readLater)
       },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!updated) {

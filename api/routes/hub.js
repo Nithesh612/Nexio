@@ -723,14 +723,14 @@ router.put("/:id", async (req, res) => {
         let updated = await QuickAsset.findByIdAndUpdate(
             req.params.id,
             updateData,
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!updated) {
             updated = await Link.findByIdAndUpdate(
                 req.params.id,
                 updateData,
-                { new: true, runValidators: true }
+                { returnDocument: 'after', runValidators: true }
             );
         }
 
