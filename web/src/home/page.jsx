@@ -281,13 +281,13 @@ export default function Home() {
       }
       const hash = window.location.hash.toLowerCase();
       if (hash === '#dashboard' || hash === '#app') return currentUser ? 'app' : 'login';
-      if (hash === '#design') return currentUser ? 'design' : 'login';
+      if (hash === '#design') return 'design';
       if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') return 'ai-tools';
       if (hash === '#editing') return 'editing';
       if (hash === '#login') return 'login';
       const saved = localStorage.getItem('nexio_current_view');
       if (saved === 'app') return currentUser ? 'app' : 'login';
-      if (saved === 'design') return currentUser ? 'design' : 'login';
+      if (saved === 'design') return 'design';
       if (saved === 'ai-tools') return 'ai-tools';
       if (saved === 'editing') return 'editing';
     } catch {
@@ -297,7 +297,7 @@ export default function Home() {
   });
 
   const handleSetView = (newView) => {
-    if ((newView === 'app' || newView === 'design') && !user) {
+    if (newView === 'app' && !user) {
       setView('login');
       window.history.pushState(null, '', '#login');
       return;
@@ -353,13 +353,8 @@ export default function Home() {
           localStorage.setItem('nexio_current_view', 'app');
         }
       } else if (hash === '#design') {
-        if (!user) {
-          setView('login');
-          window.history.pushState(null, '', '#login');
-        } else {
-          setView('design');
-          localStorage.setItem('nexio_current_view', 'design');
-        }
+        setView('design');
+        localStorage.setItem('nexio_current_view', 'design');
       } else if (hash === '#ai-tools' || hash === '#ai' || hash === '#ai-design-tools') {
         setView('ai-tools');
         localStorage.setItem('nexio_current_view', 'ai-tools');
