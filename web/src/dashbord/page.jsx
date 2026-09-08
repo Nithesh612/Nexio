@@ -731,16 +731,6 @@ function InboxIcon({ className }) {
   return <div className={className}><Inbox size={18} /></div>
 }
 
-const navItems = [
-  { label: 'All Links', icon: LayoutGrid },
-  { label: 'Dashboard', icon: FolderKanban },
-  { label: 'Quick Assets', icon: Palette },
-  { label: 'AI Tools', icon: Code2 },
-  { label: 'Editing', icon: Edit2 },
-  { label: 'Saved', icon: Inbox },
-  { label: 'Favorites', icon: Heart },
-]
-
 function AIToolCard({ tool, onOpen, onEdit, onDelete, onToggleEssential }) {
   const [screenshotError, setScreenshotError] = useState(false)
   const [logoError, setLogoError] = useState(false)
