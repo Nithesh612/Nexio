@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Hero from './hero'
 import CategoryNav from './CategoryNav'
 import LinksSection from './links'
+import GoogleSection from './google'
 import SaveLinkModal from './SaveLinkModal'
 import DashboardPage from '../dashbord/page'
 import DesignPage from '../design/page'
@@ -805,6 +806,7 @@ export default function Home() {
           <FeaturedQuickAssets />
           <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />
           <LinksSection savedLinks={dbLinks} onAddLink={handleAddLink} />
+          <GoogleSection savedLinks={dbLinks} onAddLink={handleAddLink} />
           <AnimatedConnect01 />
           <NewsletterSection />
           <Footer onNavigate={handleSetView} />

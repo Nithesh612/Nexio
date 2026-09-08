@@ -26,6 +26,29 @@ import EditLinkModal from '../components/EditLinkModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import './links.css';
 
+function GoogleIcon({ size = 18, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </svg>
+  );
+}
+
 // Category tab metadata
 const tabMeta = {
   all:               { title: 'All Links',          description: 'Browse all your saved links across every category.' },
@@ -37,10 +60,11 @@ const tabMeta = {
   inspiration:       { title: 'Inspiration',        description: 'Visual inspiration and creative references for your next project.' },
   wallpaper:         { title: 'Wallpaper',          description: 'High resolution desktop and mobile wallpapers.' },
   stock:             { title: 'Stock',              description: 'Curated stock photos, vectors, 3D assets, and media.' },
+  google:            { title: 'Google',             description: 'Official developer tools, APIs, design systems, and AI models from Google.' },
   host:              { title: 'Host',               description: 'Hosting services, cloud providers, and deployment platforms.' },
   article:           { title: 'Article',            description: 'Interesting articles, tutorials, and long-form essays.' },
   research:          { title: 'Research',           description: 'Research papers, benchmarks, datasets, and case studies.' },
-  tools:             { title: 'Tools',              description: 'Productivity utilities, web apps, and everyday tools.' },
+  tools:             { title: 'Google',             description: 'Official developer tools, APIs, design systems, and AI models from Google.' },
 };
 
 // Gradient palette per category
@@ -52,10 +76,11 @@ const categoryColors = {
   'Inspiration':       ['#fa709a', '#fee140'],
   'Wallpaper':         ['#38ef7d', '#11998e'],
   'Stock':             ['#ff9a9e', '#fecfef'],
+  'Google':            ['#4285F4', '#34A853'],
   'Host':              ['#2af598', '#009efd'],
   'Article':           ['#f6d365', '#fda085'],
   'Research':          ['#96fbc4', '#f9f586'],
-  'Tools':             ['#c471ed', '#f64f59'],
+  'Tools':             ['#4285F4', '#34A853'],
   'default':           ['#a18cd1', '#fbc2eb'],
 };
 
@@ -515,6 +540,7 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
     { id: 'inspiration',      label: 'Inspiration',       icon: Compass,      categoryVal: 'Inspiration' },
     { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
     { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
+    { id: 'google',           label: 'Google',            icon: GoogleIcon,   categoryVal: 'Google' },
     { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
     { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
   ];
@@ -560,15 +586,22 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
           const col = (link.collection || '').toLowerCase().trim();
           return cat === 'saved' || col === 'saved';
         })
-      : mappedLinks.filter((link) => {
-          if (!currentTabConfig) return true;
-          const targetCategory = currentTabConfig.categoryVal.toLowerCase();
-          const linkCat = (link.category || '').toLowerCase().trim();
-          
-          // Match exact or inside comma-separated list
-          const categoriesList = linkCat.split(',').map(c => c.trim());
-          return categoriesList.includes(targetCategory) || linkCat === targetCategory;
-        });
+      : activeTab === 'google'
+        ? mappedLinks.filter(link => {
+            const cat = (link.category || '').toLowerCase().trim();
+            const url = (link.url || '').toLowerCase().trim();
+            const title = (link.title || '').toLowerCase().trim();
+            return cat.includes('google') || url.includes('google.com') || url.includes('firebase') || url.includes('kaggle') || url.includes('material.io') || title.includes('google');
+          })
+        : mappedLinks.filter((link) => {
+            if (!currentTabConfig) return true;
+            const targetCategory = currentTabConfig.categoryVal.toLowerCase();
+            const linkCat = (link.category || '').toLowerCase().trim();
+            
+            // Match exact or inside comma-separated list
+            const categoriesList = linkCat.split(',').map(c => c.trim());
+            return categoriesList.includes(targetCategory) || linkCat === targetCategory;
+          });
 
   // Pagination for 3 rows x 4 columns (12 items per page)
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
