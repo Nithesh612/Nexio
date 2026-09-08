@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, LogIn, LogOut, User } from 'lucide-react'
-import '../home/hero.css'
+import './Header.css'
 
 const NAV_LINKS = [
   { label: 'Home', targetView: 'landing', hash: '#home' },
@@ -100,7 +100,7 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
   return (
     <header className={`v-header${menuOpen ? ' menu-open' : ''}`}>
       <div className="v-header-container">
-        {/* Brand */}
+        {/* Brand: Nexio-Hub */}
         <a
           className="v-brand cursor-pointer"
           href="#"
@@ -109,12 +109,32 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
             if (onNavigate) onNavigate('landing')
             else window.location.hash = '#home'
           }}
-          aria-label="Nexio home"
+          aria-label="Nexio-Hub Home"
         >
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <rect width="32" height="32" rx="9" fill="rgba(0,0,0,0.06)" />
-            <path d="M9 23V9L23 23V9" stroke="#111111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <div className="v-brand-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M4 19V5L12 13V5L20 13V19L12 11V19L4 19Z"
+                fill="none"
+              />
+              <path
+                d="M5 19L5 5L12 13.5L19 5V19"
+                stroke="#f43f5e"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="5" cy="5" r="2" fill="#0f172a" stroke="#f43f5e" strokeWidth="1.5" />
+              <circle cx="12" cy="13.5" r="2.2" fill="#f43f5e" />
+              <circle cx="19" cy="5" r="2" fill="#0f172a" stroke="#f43f5e" strokeWidth="1.5" />
+              <circle cx="19" cy="19" r="2" fill="#f43f5e" />
+              <circle cx="5" cy="19" r="2" fill="#f43f5e" />
+            </svg>
+          </div>
+          <div className="v-brand-text">
+            <span className="v-brand-name">Nexio</span>
+            <span className="v-brand-hub-badge">HUB</span>
+          </div>
         </a>
 
         {/* Desktop nav */}

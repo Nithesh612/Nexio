@@ -802,6 +802,7 @@ export default function Home() {
             onLogout={handleLogout}
           />
           
+          <Hero onNavigate={handleSetView} onAddLink={handleAddLink} />
           <CategoryNav refreshTrigger={refreshTrigger} onAddLink={handleAddLink} onNavigateToAITools={() => handleSetView('ai-tools')} />
           <FeaturedQuickAssets />
           <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />

@@ -311,6 +311,267 @@ function GoogleIcon({ size = 20, className = '' }) {
   );
 }
 
+function GoogleLinkCard({ item }) {
+  const [screenshotError, setScreenshotError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  const cleanUrl = useMemo(() => {
+    try {
+      const u = (item.url || '').startsWith('http') ? item.url : `https://${item.url}`;
+      return new URL(u).href;
+    } catch {
+      return item.url || '';
+    }
+  }, [item.url]);
+
+  const hostname = useMemo(() => {
+    try {
+      return new URL(cleanUrl).hostname.replace(/^www\./, '');
+    } catch {
+      return '';
+    }
+  }, [cleanUrl]);
+
+  // Live website screenshot banner with 3-tier fallback matching links.jsx
+  const primaryScreenshot = item.bannerUrl || `https://image.thum.io/get/width/600/crop/400/${cleanUrl}`;
+  const secondaryScreenshot = `https://api.microlink.io?url=${encodeURIComponent(cleanUrl)}&screenshot=true&meta=false&embed=screenshot.url`;
+  const tertiaryScreenshot = `https://s0.wp.com/mshots/v1/${encodeURIComponent(cleanUrl)}?w=600&h=380`;
+  const [currentScreenshot, setCurrentScreenshot] = useState(primaryScreenshot);
+
+  // Live Brand Logo
+  const clearbitLogo = `https://logo.clearbit.com/${hostname}`;
+  const googleFavicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+  const logoSrc = item.logoUrl || (!logoError ? clearbitLogo : googleFavicon);
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        background: '#ffffff',
+        borderRadius: '20px',
+        border: '1px solid rgba(15, 23, 42, 0.08)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
+        transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 16px 32px -6px rgba(66, 133, 244, 0.14), 0 4px 12px -2px rgba(0, 0, 0, 0.04)';
+        e.currentTarget.style.borderColor = 'rgba(66, 133, 244, 0.3)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 4px 16px -2px rgba(0, 0, 0, 0.04)';
+        e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.08)';
+      }}
+    >
+      {/* Top Banner with Rounded Inner Frame & Overlapping Logo Badge */}
+      <div style={{ position: 'relative', width: '100%', marginBottom: '8px' }}>
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '170px',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          background: '#0f172a',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {!screenshotError ? (
+            <img
+              src={currentScreenshot}
+              alt={item.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.95 }}
+              loading="lazy"
+              onError={() => {
+                if (currentScreenshot === primaryScreenshot) {
+                  setCurrentScreenshot(secondaryScreenshot);
+                } else if (currentScreenshot === secondaryScreenshot) {
+                  setCurrentScreenshot(tertiaryScreenshot);
+                } else {
+                  setScreenshotError(true);
+                }
+              }}
+            />
+          ) : (
+            <div style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #1e293b, #0f172a)'
+            }}>
+              <span style={{ fontSize: '38px', fontWeight: 800, color: 'rgba(255,255,255,0.85)' }}>
+                {item.title?.charAt(0) || 'G'}
+              </span>
+            </div>
+          )}
+
+          {/* Subtle Google Color Stripe on top */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #4285F4 0%, #EA4335 30%, #FBBC05 65%, #34A853 100%)',
+            zIndex: 3
+          }} />
+
+          {/* Sub-type Tag Badge */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '4px 10px',
+            background: 'rgba(15, 23, 42, 0.78)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '999px',
+            color: '#ffffff',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.2px',
+            zIndex: 3
+          }}>
+            <GoogleIcon size={12} />
+            <span>{item.type}</span>
+          </div>
+
+          {/* Pricing / Badge */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            padding: '4px 9px',
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(8px)',
+            borderRadius: '999px',
+            color: '#0f172a',
+            fontSize: '10.5px',
+            fontWeight: 800,
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            zIndex: 3
+          }}>
+            {item.badge || item.pricing}
+          </div>
+        </div>
+
+        {/* Circular Brand Badge with Live Brand Logo Overlapping Banner Bottom-Right */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-12px',
+          right: '14px',
+          width: '42px',
+          height: '42px',
+          borderRadius: '50%',
+          background: '#ffffff',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.16)',
+          border: '3px solid #ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          zIndex: 10
+        }}>
+          <img
+            src={logoSrc}
+            alt={`${item.title} logo`}
+            style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+            onError={() => {
+              if (!logoError) setLogoError(true);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+          <h3 style={{
+            margin: 0,
+            fontSize: '16.5px',
+            fontWeight: 800,
+            color: '#0f172a',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.3
+          }}>
+            {item.title}
+          </h3>
+        </div>
+
+        <p style={{
+          margin: '0 0 16px',
+          fontSize: '13px',
+          color: '#64748b',
+          lineHeight: 1.5,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          flex: 1
+        }}>
+          {item.desc}
+        </p>
+
+        {/* Footer Actions */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: '12px',
+          borderTop: '1px solid #f1f5f9',
+          marginTop: 'auto'
+        }}>
+          {/* Tag pill */}
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 650,
+            color: '#475569',
+            background: '#f1f5f9',
+            padding: '3px 8px',
+            borderRadius: '6px'
+          }}>
+            {item.tag}
+          </span>
+
+          {/* Visit Link Button */}
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '7px 14px',
+              borderRadius: '999px',
+              background: '#1a73e8',
+              color: '#ffffff',
+              textDecoration: 'none',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#1557b0'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
+          >
+            <span>Open</span>
+            <ExternalLink size={13} />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GoogleSection({ savedLinks = [], onAddLink }) {
   const [activeType, setActiveType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -348,7 +609,7 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
         desc: item.description || item.desc || `Google resource in ${autoType}.`,
         type: autoType,
         category: 'Google',
-        bannerUrl: item.bannerUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+        bannerUrl: item.bannerUrl || null,
         badge: item.badge || 'Saved Link',
         pricing: item.pricing || 'FREE',
         tag: item.tag || autoType,
@@ -520,19 +781,26 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
                   fontWeight: isActive ? 700 : 550,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  border: isActive ? '1px solid #1a73e8' : '1px solid transparent',
-                  background: isActive ? 'rgba(26, 115, 232, 0.1)' : '#f8fafc',
-                  color: isActive ? '#1a73e8' : '#475569'
+                  border: isActive ? '1px solid #1a73e8' : '1px solid #e2e8f0',
+                  background: isActive ? '#1a73e8' : '#ffffff',
+                  color: isActive ? '#ffffff' : '#475569',
+                  boxShadow: isActive ? '0 4px 12px rgba(26, 115, 232, 0.25)' : 'none'
                 }}
               >
-                {id === 'all' ? <GoogleIcon size={14} /> : <Icon size={14} />}
+                {id === 'all' ? (
+                  <span style={{ display: 'inline-flex', filter: isActive ? 'brightness(10)' : 'none' }}>
+                    <GoogleIcon size={14} />
+                  </span>
+                ) : (
+                  <Icon size={14} color={isActive ? '#ffffff' : '#64748b'} />
+                )}
                 <span>{label}</span>
                 <span style={{
                   padding: '2px 7px',
                   borderRadius: '999px',
                   fontSize: '11px',
                   fontWeight: 700,
-                  background: isActive ? '#1a73e8' : '#e2e8f0',
+                  background: isActive ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9',
                   color: isActive ? '#ffffff' : '#64748b',
                   transition: 'all 0.2s'
                 }}>
@@ -688,185 +956,7 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
           gap: '24px'
         }}>
           {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                position: 'relative',
-                background: '#ffffff',
-                borderRadius: '20px',
-                border: '1px solid rgba(15, 23, 42, 0.08)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)',
-                transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 16px 32px -6px rgba(66, 133, 244, 0.14), 0 4px 12px -2px rgba(0, 0, 0, 0.04)';
-                e.currentTarget.style.borderColor = 'rgba(66, 133, 244, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 16px -2px rgba(0, 0, 0, 0.04)';
-                e.currentTarget.style.borderColor = 'rgba(15, 23, 42, 0.08)';
-              }}
-            >
-              {/* Card Banner Preview */}
-              <div style={{ position: 'relative', height: '148px', overflow: 'hidden', background: '#0f172a' }}>
-                <img
-                  src={item.bannerUrl}
-                  alt={item.title}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.88 }}
-                  loading="lazy"
-                />
-                
-                {/* Subtle Google Color Stripe on top */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '3px',
-                  background: 'linear-gradient(90deg, #4285F4 0%, #EA4335 30%, #FBBC05 65%, #34A853 100%)'
-                }} />
-
-                {/* Sub-type Tag Badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  left: '12px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '4px 10px',
-                  background: 'rgba(15, 23, 42, 0.75)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '999px',
-                  color: '#ffffff',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '0.2px'
-                }}>
-                  <GoogleIcon size={12} />
-                  <span>{item.type}</span>
-                </div>
-
-                {/* Pricing / Badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  padding: '4px 9px',
-                  background: 'rgba(255, 255, 255, 0.92)',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '999px',
-                  color: '#0f172a',
-                  fontSize: '10.5px',
-                  fontWeight: 800,
-                  letterSpacing: '0.4px',
-                  textTransform: 'uppercase'
-                }}>
-                  {item.badge || item.pricing}
-                </div>
-
-                {/* Circular Brand Badge */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '-12px',
-                  right: '16px',
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '50%',
-                  background: '#ffffff',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
-                  border: '3px solid #ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 2
-                }}>
-                  <GoogleIcon size={22} />
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div style={{ padding: '16px 18px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: '16.5px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.3
-                  }}>
-                    {item.title}
-                  </h3>
-                </div>
-
-                <p style={{
-                  margin: '0 0 16px',
-                  fontSize: '13px',
-                  color: '#64748b',
-                  lineHeight: 1.5,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  flex: 1
-                }}>
-                  {item.desc}
-                </p>
-
-                {/* Footer Actions */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #f1f5f9',
-                  marginTop: 'auto'
-                }}>
-                  {/* Tag pill */}
-                  <span style={{
-                    fontSize: '11px',
-                    fontWeight: 650,
-                    color: '#475569',
-                    background: '#f1f5f9',
-                    padding: '3px 8px',
-                    borderRadius: '6px'
-                  }}>
-                    {item.tag}
-                  </span>
-
-                  {/* Visit Link Button */}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '7px 14px',
-                      borderRadius: '999px',
-                      background: '#1a73e8',
-                      color: '#ffffff',
-                      textDecoration: 'none',
-                      fontSize: '12.5px',
-                      fontWeight: 700,
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#1557b0'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = '#1a73e8'}
-                  >
-                    <span>Open</span>
-                    <ExternalLink size={13} />
-                  </a>
-                </div>
-              </div>
-            </div>
+            <GoogleLinkCard key={item.id} item={item} />
           ))}
         </div>
       )}

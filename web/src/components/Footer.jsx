@@ -15,19 +15,36 @@ export default function Footer({ onNavigate }) {
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10 sm:gap-8 mb-14">
           
-          {/* Brand Column */}
+          {/* Brand Column: Nexio-Hub */}
           <div className="md:col-span-2">
             <div 
               className="flex items-center gap-2.5 text-white font-black text-xl mb-3.5 tracking-tight cursor-pointer select-none"
               onClick={() => onNavigate && onNavigate('landing')}
             >
-              <div className="w-8 h-8 rounded-lg bg-[#3b82f6] flex items-center justify-center text-white text-sm font-black shadow-xs">
-                N
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-900 to-slate-800 border border-white/15 flex items-center justify-center shadow-md">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
+                    fill="url(#footer-bolt-grad)"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <defs>
+                    <linearGradient id="footer-bolt-grad" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#f43f5e" />
+                      <stop offset="0.5" stopColor="#fb7185" />
+                      <stop offset="1" stopColor="#f97316" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-              <span className="font-extrabold tracking-tight">NEXIO DESIGN</span>
+              <span className="font-extrabold tracking-tight text-white">NEXIO</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-rose-500 to-pink-500 text-white tracking-wider">HUB</span>
             </div>
             <p className="text-xs sm:text-sm text-gray-400 max-w-sm leading-relaxed mb-6">
-              The modern directory for UI/UX designers, frontend engineers, and creative builders. Curated with precision.
+              The modern link architecture and resource hub for creators, developers, and AI builders.
             </p>
             <div className="flex items-center gap-2.5">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-300 transition-colors text-xs font-bold no-underline">

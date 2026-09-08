@@ -1,0 +1,231 @@
+/* ── Common Header Styles ── */
+.v-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  transition: all 0.25s ease;
+}
+
+.v-header-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+}
+
+.v-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+  user-select: none;
+}
+
+.v-brand:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.v-brand-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  border: 1px solid #1e293b;
+  transition: all 0.2s ease;
+}
+
+.v-brand:hover .v-brand-icon-box {
+  box-shadow: none;
+  border-color: #f43f5e;
+  background: #1e293b;
+}
+
+.v-brand-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.v-brand-name {
+  font-size: 19px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.v-brand-hub-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2.5px 6px;
+  border-radius: 6px;
+  background: #f43f5e;
+  color: #ffffff;
+  line-height: 1;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.v-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.04);
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.v-nav-link {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 550;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.v-nav-link:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.v-nav-link.active {
+  color: #0f172a;
+  background: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.v-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.v-add-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.v-add-link-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.v-primary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #0f172a;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.v-primary-cta:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+}
+
+/* Mobile Toggle */
+.v-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.v-menu-toggle span {
+  width: 22px;
+  height: 2px;
+  background: #0f172a;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .v-header-actions {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    transform: none;
+  }
+  .v-header-actions.open {
+    display: flex;
+    top: 100%;
+    left: 0;
+    right: 0;
+    transform: none;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+  .v-nav {
+    flex-direction: column;
+    width: 100%;
+    border-radius: 16px;
+    padding: 8px;
+  }
+  .v-nav-link {
+    width: 100%;
+    text-align: center;
+  }
+  .v-menu-toggle {
+    display: flex;
+  }
+}
