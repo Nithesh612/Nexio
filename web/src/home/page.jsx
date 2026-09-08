@@ -678,6 +678,8 @@ export default function Home() {
         setIsAdding(false)
         setRefreshTrigger((prev) => prev + 1)
         window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
+        window.dispatchEvent(new CustomEvent('nexio_links_updated'))
+        window.dispatchEvent(new CustomEvent('nexio_link_saved', { detail: newLink }))
         setFilter('All links')
         setForm({
           title: '',

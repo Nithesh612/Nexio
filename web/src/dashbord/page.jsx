@@ -26,6 +26,8 @@ import {
   Upload,
   X,
   LogOut,
+  Zap,
+  Bot,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
@@ -34,6 +36,16 @@ import emptyAnimation from '../assets/svg/Man and robot with computers sitting t
 import { API_BASE_URL, API_URL } from '../config/api'
 import { FEATURED_QUICK_ASSETS } from '../config/featuredQuickAssets'
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl
+
+const navItems = [
+  { label: 'All Links', icon: Link2 },
+  { label: 'Dashboard', icon: FolderKanban },
+  { label: 'Quick Assets', icon: Zap },
+  { label: 'AI Tools', icon: Bot },
+  { label: 'Editing', icon: Code2 },
+  { label: 'Saved', icon: Bookmark },
+  { label: 'Favorites', icon: Heart },
+]
 
 const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
@@ -1518,96 +1530,130 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
   const [viewMode, setViewMode] = useState('grid')
   const cardsPerPage = 9
 
-  useEffect(() => {
-    let isActive = true
+  const isSavedLink = (item) => {
+    if (!item) return false
+    const col = (item.collection || '').toLowerCase().trim()
+    const catList = (item.category || '').toLowerCase().split(',').map(c => c.trim())
+    return item.readLater === true ||
+      item.saved === true ||
+      col === 'inbox' ||
+      col === 'saved' ||
+      col === 'read later' ||
+      catList.includes('saved') ||
+      catList.includes('read later')
+  }
 
-    async function loadLiveLinks() {
-      try {
-        setIsLoadingLinks(true)
-        setLinksError('')
-        const response = await fetch(API_URL)
-        if (!response.ok) throw new Error('Unable to fetch links')
-        const data = await response.json()
-        const deletedList = getDeletedQuickAssets()
+  const isFavoriteLink = (item) => {
+    if (!item) return false
+    const isQuickAsset = item.collection === 'Quick Assets' ||
+      item.category === 'Quick Assets' ||
+      item.category === 'Featured Quick Asset' ||
+      item.kind === 'quick-asset' ||
+      (item.category && item.category.toLowerCase().includes('quick'))
+    return Boolean(item.favorite) && !isQuickAsset
+  }
 
-        const [aiToolsResult, editingResult] = await Promise.allSettled([
-          fetch(`${API_BASE_URL}/api/ai-tools`).then((result) => result.ok ? result.json() : []),
-          fetch(`${API_BASE_URL}/api/editing`).then((result) => result.ok ? result.json() : []),
-        ])
-        const aiTools = aiToolsResult.status === 'fulfilled' && Array.isArray(aiToolsResult.value)
-          ? aiToolsResult.value
-          : []
-        const editingItems = editingResult.status === 'fulfilled' && Array.isArray(editingResult.value)
-          ? editingResult.value
-          : []
+  const loadLiveLinks = async () => {
+    try {
+      setIsLoadingLinks(true)
+      setLinksError('')
+      const response = await fetch(API_URL)
+      if (!response.ok) throw new Error('Unable to fetch links')
+      const data = await response.json()
+      const deletedList = getDeletedQuickAssets()
 
-        let loadedLinks = Array.isArray(data) ? data.map(mapLiveLink) : []
+      const [aiToolsResult, editingResult] = await Promise.allSettled([
+        fetch(`${API_BASE_URL}/api/ai-tools`).then((result) => result.ok ? result.json() : []),
+        fetch(`${API_BASE_URL}/api/editing`).then((result) => result.ok ? result.json() : []),
+      ])
+      const aiTools = aiToolsResult.status === 'fulfilled' && Array.isArray(aiToolsResult.value)
+        ? aiToolsResult.value
+        : []
+      const editingItems = editingResult.status === 'fulfilled' && Array.isArray(editingResult.value)
+        ? editingResult.value
+        : []
 
-        if (isActive) {
-          setWalletTotalCount(loadedLinks.length + aiTools.length + editingItems.length)
-        }
+      let loadedLinks = Array.isArray(data) ? data.map(mapLiveLink) : []
 
-        // Filter out any locally deleted assets from loaded links
-        loadedLinks = loadedLinks.filter(
-          (link) => !deletedList.includes(String(link.id)) && !deletedList.includes(String(link._id)) && !deletedList.includes(String(link.url))
-        )
+      setWalletTotalCount(loadedLinks.length + aiTools.length + editingItems.length)
 
-        if (isActive) setLiveLinks(loadedLinks)
-      } catch (error) {
-        if (isActive) {
-          setLinksError('Could not load live links from MongoDB.')
-          setLiveLinks([])
-        }
-      } finally {
-        if (isActive) setIsLoadingLinks(false)
-      }
+      // Filter out any locally deleted fallback assets (by id / _id)
+      loadedLinks = loadedLinks.filter(
+        (link) => !deletedList.includes(String(link.id)) && !deletedList.includes(String(link._id))
+      )
+
+      setLiveLinks(loadedLinks)
+    } catch (error) {
+      setLinksError('Could not load live links from MongoDB.')
+      setLiveLinks([])
+    } finally {
+      setIsLoadingLinks(false)
     }
+  }
 
-    loadLiveLinks()
-    return () => { isActive = false }
-  }, [])
+  const loadQuickAssets = async () => {
+    try {
+      const response = await fetch(`${API_URL}/quickassets`)
+      if (!response.ok) throw new Error('Unable to fetch quick assets')
+      const data = await response.json()
+      let assets = Array.isArray(data) ? data : []
 
-  useEffect(() => {
-    let isActive = true
+      // Older deployments expose quick assets through the combined hub endpoint.
+      if (assets.length === 0) {
+        const fallbackResponse = await fetch(API_URL)
+        const fallbackData = await fallbackResponse.json()
+        assets = Array.isArray(fallbackData)
+          ? fallbackData.filter((item) => (
+            item.collection === 'Quick Assets' ||
+            item.category === 'Quick Assets' ||
+            item.category === 'Featured Quick Asset' ||
+            item.kind === 'quick-asset'
+          ))
+          : []
+      }
 
-    async function loadQuickAssets() {
+      setQuickAssets(assets.map(mapLiveLink))
+    } catch {
       try {
-        const response = await fetch(`${API_URL}/quickassets`)
-        if (!response.ok) throw new Error('Unable to fetch quick assets')
-        const data = await response.json()
-        let assets = Array.isArray(data) ? data : []
-
-        // Older deployments expose quick assets through the combined hub endpoint.
-        if (assets.length === 0) {
-          const fallbackResponse = await fetch(API_URL)
-          const fallbackData = await fallbackResponse.json()
-          assets = Array.isArray(fallbackData)
-            ? fallbackData.filter((item) => (
-              item.collection === 'Quick Assets' ||
-              item.category === 'Quick Assets' ||
-              item.category === 'Featured Quick Asset' ||
-              item.kind === 'quick-asset'
-            ))
-            : []
-        }
-
-        if (isActive) setQuickAssets(assets.map(mapLiveLink))
+        const fallbackResponse = await fetch(API_URL)
+        const fallbackData = await fallbackResponse.json()
+        const assets = Array.isArray(fallbackData)
+          ? fallbackData.filter((item) => item.collection === 'Quick Assets' || item.category === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset')
+          : []
+        setQuickAssets(assets.map(mapLiveLink))
       } catch {
-        try {
-          const fallbackResponse = await fetch(API_URL)
-          const fallbackData = await fallbackResponse.json()
-          const assets = Array.isArray(fallbackData)
-            ? fallbackData.filter((item) => item.collection === 'Quick Assets' || item.category === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.kind === 'quick-asset')
-            : []
-          if (isActive) setQuickAssets(assets.map(mapLiveLink))
-        } catch {
-          if (isActive) setQuickAssets([])
-        }
+        setQuickAssets([])
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadLiveLinks()
+    loadQuickAssets()
+
+    const handleLinksUpdate = () => {
+      loadLiveLinks()
+      loadQuickAssets()
+    }
+
+    const handleStorageChange = (e) => {
+      if (!e.key || e.key === 'nexio_deleted_quick_assets') {
+        loadLiveLinks()
+        loadQuickAssets()
       }
     }
 
-    loadQuickAssets()
-    return () => { isActive = false }
+    window.addEventListener('nexio_links_updated', handleLinksUpdate)
+    window.addEventListener('nexio_link_saved', handleLinksUpdate)
+    window.addEventListener('nexio_quick_assets_updated', handleLinksUpdate)
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('nexio_links_updated', handleLinksUpdate)
+      window.removeEventListener('nexio_link_saved', handleLinksUpdate)
+      window.removeEventListener('nexio_quick_assets_updated', handleLinksUpdate)
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const availableCategories = useMemo(() => {
@@ -1624,27 +1670,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     let base = liveLinks
 
     if (activeNav === 'Favorites') {
-      base = base.filter((item) => {
-        const isQuickAsset = item.collection === 'Quick Assets' ||
-          item.category === 'Quick Assets' ||
-          item.category === 'Featured Quick Asset' ||
-          item.kind === 'quick-asset' ||
-          (item.category && item.category.toLowerCase().includes('quick'))
-        return item.favorite && !isQuickAsset
-      })
+      base = base.filter(isFavoriteLink)
     } else if (activeNav === 'Saved') {
-      base = base.filter((item) => {
-        const cat = (item.category || '').toLowerCase().trim()
-        const col = (item.collection || '').toLowerCase().trim()
-        return cat === 'saved' || col === 'saved'
-      })
+      base = base.filter(isSavedLink)
     }
 
     if (activeFilter !== 'All') {
       base = base.filter((item) => {
         if (!item.category) return false
-        const itemCats = item.category.split(',').map(c => c.trim())
-        return itemCats.includes(activeFilter)
+        const itemCats = item.category.split(',').map(c => c.trim().toLowerCase())
+        return itemCats.includes(activeFilter.toLowerCase())
       })
     }
 
@@ -1674,19 +1709,8 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
   const isQuickAssetsView = activeNav === 'Quick Assets'
 
   const liveStats = useMemo(() => {
-    const savedCount = liveLinks.filter((item) => {
-      const cat = (item.category || '').toLowerCase().trim()
-      const col = (item.collection || '').toLowerCase().trim()
-      return cat === 'saved' || col === 'saved'
-    }).length
-    const favoriteCount = liveLinks.filter((item) => {
-      const isQuickAsset = item.collection === 'Quick Assets' ||
-        item.category === 'Quick Assets' ||
-        item.category === 'Featured Quick Asset' ||
-        item.kind === 'quick-asset' ||
-        (item.category && item.category.toLowerCase().includes('quick'))
-      return item.favorite && !isQuickAsset
-    }).length
+    const savedCount = liveLinks.filter(isSavedLink).length
+    const favoriteCount = liveLinks.filter(isFavoriteLink).length
     const totalCount = walletTotalCount ?? liveLinks.length
     const typeCount = new Set(liveLinks.map((item) => item.category).filter(Boolean)).size
 
@@ -1700,13 +1724,14 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     const selectedLink = liveLinks.find((item) => item.id === linkId)
     if (!selectedLink) return
 
-    const isSaved = selectedLink.collection === 'Inbox'
-    const nextCollection = isSaved ? 'All Links' : 'Inbox'
+    const isCurrentlySaved = isSavedLink(selectedLink)
+    const nextCollection = isCurrentlySaved ? 'All Links' : 'Inbox'
+    const nextReadLater = !isCurrentlySaved
     setSavePulseId(linkId)
     window.setTimeout(() => setSavePulseId(null), 450)
     setLiveLinks((current) => current.map((item) => (
       item.id === linkId
-        ? { ...item, collection: nextCollection }
+        ? { ...item, collection: nextCollection, readLater: nextReadLater }
         : item
     )))
 
@@ -1721,15 +1746,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           description: selectedLink.description,
           collection: nextCollection,
           favorite: selectedLink.favorite,
-          readLater: selectedLink.readLater,
+          readLater: nextReadLater,
         }),
       })
 
       if (!response.ok) throw new Error('Save update failed')
-      setStatus(isSaved ? `${selectedLink.title} removed from Saved.` : `${selectedLink.title} added to Saved.`)
+      window.dispatchEvent(new CustomEvent('nexio_links_updated'))
+      setStatus(isCurrentlySaved ? `${selectedLink.title} removed from Saved.` : `${selectedLink.title} added to Saved.`)
     } catch {
       setLiveLinks((current) => current.map((item) => (
-        item.id === linkId ? { ...item, collection: selectedLink.collection } : item
+        item.id === linkId ? { ...item, collection: selectedLink.collection, readLater: selectedLink.readLater } : item
       )))
       setStatus('Could not update Saved in MongoDB.')
     }
@@ -1888,6 +1914,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       }
 
       window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
+      window.dispatchEvent(new CustomEvent('nexio_links_updated'))
       setStatus(isQuick ? 'Quick asset saved successfully.' : 'Link updated successfully.')
     } catch {
       setStatus('Could not update this link.')
@@ -1925,6 +1952,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       }))
 
       window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
+      window.dispatchEvent(new CustomEvent('nexio_links_updated'))
       setStatus('Deleted successfully.')
     } catch {
       setStatus('Could not delete this item from MongoDB.')
