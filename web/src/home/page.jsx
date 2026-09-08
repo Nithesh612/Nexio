@@ -239,12 +239,14 @@ export default function Home() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData)
+    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
     handleSetView('app') // Go to dashboard after login
   }
 
   const handleLogout = () => {
     setUser(null)
     localStorage.removeItem('nexio_auth')
+    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
     handleSetView('landing')
   }
 
@@ -818,6 +820,9 @@ export default function Home() {
           onNavigateToDesign={() => handleSetView('design')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
+          user={user}
+          onLogin={() => handleSetView('login')}
+          onLogout={handleLogout}
         />
       ) : view === 'editing' ? (
         <EditingPage
@@ -826,6 +831,9 @@ export default function Home() {
           onNavigateToAITools={() => handleSetView('ai-tools')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
+          user={user}
+          onLogin={() => handleSetView('login')}
+          onLogout={handleLogout}
         />
       ) : (
         <DesignPage 
@@ -833,6 +841,9 @@ export default function Home() {
           onNavigateToAITools={() => handleSetView('ai-tools')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
+          user={user}
+          onLogin={() => handleSetView('login')}
+          onLogout={handleLogout}
         />
       )}
 

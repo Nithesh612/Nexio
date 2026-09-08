@@ -478,7 +478,7 @@ const AI_TOOLS_DIRECTORY = [
   }
 ]
 
-export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNavigateToDashboard, onAddLink }) {
+export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedPricing, setSelectedPricing] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -992,6 +992,9 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
           }
         }}
         onAddLink={onAddLink}
+        user={user}
+        onLogin={onLogin}
+        onLogout={onLogout}
       />
 
       {/* Main Container */}

@@ -757,7 +757,7 @@ const COLLECTIONS = [
   { id: 'c4', title: 'Web Designers', items: '410+ tools', iconUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/69cb98a148308217c3684e8f_icon-web-designers.svg', desc: 'No-code builders, responsive grids & tokens', url: 'https://www.toools.design/for/web-designers' },
 ]
 
-export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDashboard, onAddLink }) {
+export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set(['lr1', 'lr6', 'ai1']))
@@ -918,6 +918,9 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
           }
         }}
         onAddLink={onAddLink}
+        user={user}
+        onLogin={onLogin}
+        onLogout={onLogout}
       />
 
       {/* Background radial glow decoration */}

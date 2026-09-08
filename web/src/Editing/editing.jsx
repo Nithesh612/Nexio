@@ -8,6 +8,9 @@ export default function EditingPage({
   onNavigateToAITools,
   onNavigateToDashboard,
   onAddLink,
+  user,
+  onLogin,
+  onLogout,
 }) {
   return (
     <div className="min-h-screen bg-[#f5f5f4] text-slate-900">
@@ -21,9 +24,9 @@ export default function EditingPage({
           else if (target === 'app') onNavigateToDashboard?.()
         }}
         onAddLink={onAddLink}
-        user={null}
-        onLogin={() => onNavigateToDashboard?.()}
-        onLogout={() => onBack?.()}
+        user={user}
+        onLogin={onLogin}
+        onLogout={onLogout}
       />
 
       <main className="mx-auto max-w-6xl px-6 py-16 sm:py-20">

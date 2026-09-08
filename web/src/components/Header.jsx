@@ -12,6 +12,49 @@ const NAV_LINKS = [
 export default function Header({ currentView = 'landing', onNavigate, onAddLink, user, onLogin, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
+  const getStoredUser = () => {
+    try {
+      const stored = localStorage.getItem('nexio_auth')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
+          localStorage.removeItem('nexio_auth')
+          return null
+        }
+        return parsed
+      }
+    } catch {
+      return null
+    }
+    return null
+  }
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (user !== undefined && user !== null) return user
+    return getStoredUser()
+  })
+
+  useEffect(() => {
+    if (user !== undefined) {
+      setCurrentUser(user)
+    } else {
+      setCurrentUser(getStoredUser())
+    }
+  }, [user])
+
+  useEffect(() => {
+    const handleAuthSync = () => {
+      setCurrentUser(getStoredUser())
+    }
+
+    window.addEventListener('storage', handleAuthSync)
+    window.addEventListener('nexio_auth_updated', handleAuthSync)
+    return () => {
+      window.removeEventListener('storage', handleAuthSync)
+      window.removeEventListener('nexio_auth_updated', handleAuthSync)
+    }
+  }, [])
+
   const handleNavClick = (e, targetView, hash) => {
     e.preventDefault()
     setMenuOpen(false)
@@ -26,6 +69,16 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
       el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     } else {
       window.location.hash = hash
+    }
+  }
+
+  const handleLoginClick = () => {
+    if (onLogin) {
+      onLogin()
+    } else if (onNavigate) {
+      onNavigate('login')
+    } else {
+      window.location.hash = '#login'
     }
   }
 
@@ -88,7 +141,7 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
 
         {/* Right side buttons */}
         <div className="v-header-right">
-          {user ? (
+          {currentUser ? (
             /* ── Logged-in: show Add Link + Dashboard + user avatar ── */
             <>
               {onAddLink && (
@@ -119,7 +172,7 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
               <button
                 className="v-primary-cta cursor-pointer"
                 type="button"
-                onClick={onLogin}
+                onClick={handleLoginClick}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
