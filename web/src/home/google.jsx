@@ -204,13 +204,89 @@ const GOOGLE_PRESETS = [
   }
 ];
 
-const SUB_TYPES = [
-  { id: 'all', label: 'All Google', icon: Layers },
-  { id: 'AI & ML', label: 'AI & ML', icon: Bot },
-  { id: 'Design & Fonts', label: 'Design & Fonts', icon: Palette },
-  { id: 'Developer & Cloud', label: 'Dev & Cloud', icon: Terminal },
-  { id: 'Productivity & Research', label: 'Productivity & Research', icon: Compass },
-];
+// Smart automatic Google type detector
+export function detectGoogleType(item) {
+  if (!item) return 'Ecosystem Tools';
+  if (item.subType && item.subType !== 'Google' && item.subType !== 'Other') return item.subType;
+
+  const text = `${item.title || ''} ${item.desc || item.description || ''} ${item.url || ''} ${item.tag || ''} ${Array.isArray(item.tags) ? item.tags.join(' ') : (item.tags || '')} ${item.category || ''}`.toLowerCase();
+
+  // AI & ML
+  if (
+    text.includes('gemini') ||
+    text.includes('aistudio') ||
+    text.includes('notebooklm') ||
+    text.includes('colab') ||
+    text.includes('vertex') ||
+    text.includes('gemma') ||
+    text.includes('deepmind') ||
+    text.includes('machine learning') ||
+    text.includes('ai model') ||
+    text.includes('generative') ||
+    text.includes('labs.google')
+  ) {
+    return 'AI & ML';
+  }
+
+  // Design & Fonts
+  if (
+    text.includes('font') ||
+    text.includes('typography') ||
+    text.includes('material') ||
+    text.includes('m3') ||
+    text.includes('icon') ||
+    text.includes('symbol') ||
+    text.includes('design') ||
+    text.includes('color') ||
+    text.includes('stitch') ||
+    text.includes('vector')
+  ) {
+    return 'Design & Fonts';
+  }
+
+  // Developer & Cloud
+  if (
+    text.includes('firebase') ||
+    text.includes('idx.google') ||
+    text.includes('cloud.google') ||
+    text.includes('gcp') ||
+    text.includes('android') ||
+    text.includes('flutter') ||
+    text.includes('developer') ||
+    text.includes('api') ||
+    text.includes('sdk') ||
+    text.includes('console.cloud') ||
+    text.includes('devtools')
+  ) {
+    return 'Developer & Cloud';
+  }
+
+  // Productivity & Research
+  if (
+    text.includes('kaggle') ||
+    text.includes('scholar') ||
+    text.includes('keep') ||
+    text.includes('drive') ||
+    text.includes('docs') ||
+    text.includes('sheets') ||
+    text.includes('slides') ||
+    text.includes('calendar') ||
+    text.includes('translate') ||
+    text.includes('maps') ||
+    text.includes('search') ||
+    text.includes('analytics') ||
+    text.includes('research')
+  ) {
+    return 'Productivity & Research';
+  }
+
+  // If item has a custom clean category that's not general 'Google'
+  if (item.category && !['google', 'tools', 'saved', 'all', 'other', 'inbox'].includes(item.category.toLowerCase().trim())) {
+    return item.category.trim();
+  }
+
+  return 'Ecosystem Tools';
+}
 
 function GoogleIcon({ size = 20, className = '' }) {
   return (
@@ -240,7 +316,7 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
-  // Extract saved Google links from user database
+  // Extract and automatically categorize saved Google links from user database
   const userGoogleLinks = useMemo(() => {
     return (savedLinks || []).filter(item => {
       if (!item) return false;
@@ -259,30 +335,76 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
         url.includes('kaggle.com') ||
         url.includes('idx.google') ||
         url.includes('material.io') ||
+        url.includes('flutter.dev') ||
+        url.includes('android.com') ||
         title.includes('google')
       );
-    }).map(item => ({
-      id: item.id || item._id || item.url,
-      title: item.title,
-      url: item.url,
-      desc: item.description || item.desc || 'Google ecosystem tool saved to your workspace.',
-      type: item.subType || item.type || (item.category?.includes('AI') ? 'AI & ML' : item.category?.includes('Design') ? 'Design & Fonts' : 'Developer & Cloud'),
-      category: 'Google',
-      bannerUrl: item.bannerUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
-      badge: item.badge || 'Saved Link',
-      pricing: item.pricing || 'FREE',
-      tag: item.tag || 'Google Service',
-      stars: '5.0',
-      isUserSaved: true
-    }));
+    }).map(item => {
+      const autoType = detectGoogleType(item);
+      return {
+        id: item.id || item._id || item.url,
+        title: item.title,
+        url: item.url,
+        desc: item.description || item.desc || `Google resource in ${autoType}.`,
+        type: autoType,
+        category: 'Google',
+        bannerUrl: item.bannerUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop',
+        badge: item.badge || 'Saved Link',
+        pricing: item.pricing || 'FREE',
+        tag: item.tag || autoType,
+        stars: '5.0',
+        isUserSaved: true
+      };
+    });
   }, [savedLinks]);
 
-  // Merge user-saved links with presets (user-saved first, avoid duplicate URLs)
+  // Merge user-saved links with presets (user-saved links appear first)
   const allGoogleItems = useMemo(() => {
     const userUrls = new Set(userGoogleLinks.map(l => l.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()));
     const filteredPresets = GOOGLE_PRESETS.filter(p => !userUrls.has(p.url.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase()));
     return [...userGoogleLinks, ...filteredPresets];
   }, [userGoogleLinks]);
+
+  // Dynamically compute all sub-type categories with real-time item counts
+  const dynamicSubTypes = useMemo(() => {
+    const typeCountMap = { all: allGoogleItems.length };
+    allGoogleItems.forEach((item) => {
+      const t = item.type || 'Ecosystem Tools';
+      typeCountMap[t] = (typeCountMap[t] || 0) + 1;
+    });
+
+    const knownIconMap = {
+      'AI & ML': Bot,
+      'Design & Fonts': Palette,
+      'Developer & Cloud': Terminal,
+      'Productivity & Research': Compass,
+      'Ecosystem Tools': Layers,
+      'Mobile & Web': Globe,
+    };
+
+    const coreOrder = ['AI & ML', 'Design & Fonts', 'Developer & Cloud', 'Productivity & Research'];
+    const uniqueTypes = Array.from(new Set(allGoogleItems.map(i => i.type || 'Ecosystem Tools')));
+
+    // Sort: coreOrder first, then alphabetically for newly created types
+    uniqueTypes.sort((a, b) => {
+      const idxA = coreOrder.indexOf(a);
+      const idxB = coreOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    return [
+      { id: 'all', label: 'All Google', count: typeCountMap.all, icon: Layers },
+      ...uniqueTypes.map(t => ({
+        id: t,
+        label: t,
+        count: typeCountMap[t] || 0,
+        icon: knownIconMap[t] || Zap
+      }))
+    ];
+  }, [allGoogleItems]);
 
   // Apply Sub-type tab and search filters
   const filteredItems = useMemo(() => {
@@ -290,9 +412,9 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
 
     if (activeType !== 'all') {
       list = list.filter(item => {
-        const itemType = (item.type || '').toLowerCase();
-        const targetType = activeType.toLowerCase();
-        return itemType === targetType || itemType.includes(targetType.split(' ')[0]);
+        const itemType = (item.type || '').toLowerCase().trim();
+        const targetType = activeType.toLowerCase().trim();
+        return itemType === targetType || itemType.includes(targetType);
       });
     }
 
@@ -303,6 +425,7 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
         (item.desc && item.desc.toLowerCase().includes(q)) ||
         (item.url && item.url.toLowerCase().includes(q)) ||
         (item.tag && item.tag.toLowerCase().includes(q)) ||
+        (item.type && item.type.toLowerCase().includes(q)) ||
         (item.badge && item.badge.toLowerCase().includes(q))
       );
     }
@@ -380,9 +503,9 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
         border: '1px solid rgba(15, 23, 42, 0.08)',
         boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.04)'
       }}>
-        {/* Category Pills */}
+        {/* Dynamic Category Pills with Automatic Counts */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-          {SUB_TYPES.map(({ id, label, icon: Icon }) => {
+          {dynamicSubTypes.map(({ id, label, count, icon: Icon }) => {
             const isActive = activeType === id;
             return (
               <button
@@ -393,9 +516,9 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '7px',
-                  padding: '8px 16px',
+                  padding: '8px 14px',
                   borderRadius: '12px',
-                  fontSize: '13.5px',
+                  fontSize: '13px',
                   fontWeight: isActive ? 700 : 550,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
@@ -406,6 +529,17 @@ export default function GoogleSection({ savedLinks = [], onAddLink }) {
               >
                 {id === 'all' ? <GoogleIcon size={14} /> : <Icon size={14} />}
                 <span>{label}</span>
+                <span style={{
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  background: isActive ? '#1a73e8' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#64748b',
+                  transition: 'all 0.2s'
+                }}>
+                  {count}
+                </span>
               </button>
             );
           })}

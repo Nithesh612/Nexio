@@ -106,6 +106,40 @@ export function analyzeLinkUrl(rawUrl) {
       tag: '🎬 AI Video & Image Generator',
     },
 
+    // Google Ecosystem & AI Tools
+    {
+      match: ['aistudio.google.com', 'gemini.google.com', 'notebooklm.google.com', 'colab.research.google.com', 'labs.google', 'deepmind.google'],
+      title: 'Google AI & Research',
+      category: 'Google',
+      subType: 'AI & ML',
+      description: 'Advanced Google AI foundation models, Gemini Studio API, NotebookLM, and research notebooks.',
+      tag: '🤖 Google AI & ML',
+    },
+    {
+      match: ['fonts.google.com', 'm3.material.io', 'material.io', 'fonts.google.com/icons'],
+      title: 'Google Design & Fonts',
+      category: 'Google',
+      subType: 'Design & Fonts',
+      description: 'Open-source Google typography, variable fonts, Material Design 3 guidelines, and vector icon sets.',
+      tag: '🎨 Google Design & Fonts',
+    },
+    {
+      match: ['idx.google.com', 'firebase.google.com', 'cloud.google.com', 'console.cloud.google.com', 'developer.android.com', 'flutter.dev', 'developers.google.com'],
+      title: 'Google Developer & Cloud',
+      category: 'Google',
+      subType: 'Developer & Cloud',
+      description: 'Full-stack cloud IDE, Firebase backend services, Google Cloud Platform, and developer APIs.',
+      tag: '⚡ Google Dev & Cloud',
+    },
+    {
+      match: ['kaggle.com', 'scholar.google.com', 'keep.google.com', 'drive.google.com', 'docs.google.com'],
+      title: 'Google Productivity & Research',
+      category: 'Google',
+      subType: 'Productivity & Research',
+      description: 'Kaggle ML datasets, academic literature indexing, and collaborative workspace tools by Google.',
+      tag: '📊 Google Research & Productivity',
+    },
+
     // Stock & Photography
     {
       match: ['unsplash.com', 'pexels.com', 'freepik.com', 'pixabay.com', 'iconfinder.com'],
