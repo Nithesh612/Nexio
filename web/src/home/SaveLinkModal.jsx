@@ -11,7 +11,8 @@ import {
   Search,
   PenTool,
   Bookmark,
-  Zap
+  Zap,
+  Scissors
 } from 'lucide-react';
 import { analyzeLinkUrl } from '../utils/urlAnalyzer';
 import './SaveLinkModal.css';
@@ -50,7 +51,7 @@ const CATEGORIES = [
   { id: 'Wallpaper', label: 'Wallpaper', icon: Monitor },
   { id: 'Stock', label: 'Stock', icon: Camera },
   { id: 'Host', label: 'Host', icon: Server },
-  { id: 'Research', label: 'Research', icon: Search },
+  { id: 'Editing', label: 'Editing', icon: Scissors },
   { id: 'Google', label: 'Google', icon: GoogleIcon },
 ];
 

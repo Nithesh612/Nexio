@@ -241,14 +241,14 @@ export default function Home() {
   const handleLoginSuccess = (userData) => {
     setUser(userData)
     window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
-    handleSetView('app') // Go to dashboard after login
+    handleSetView('app', userData) // Go to dashboard after login with authenticated user
   }
 
   const handleLogout = () => {
     setUser(null)
     localStorage.removeItem('nexio_auth')
     window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
-    handleSetView('landing')
+    handleSetView('landing', null)
   }
 
   useEffect(() => {
@@ -296,8 +296,23 @@ export default function Home() {
     return 'landing';
   });
 
-  const handleSetView = (newView) => {
-    if (newView === 'app' && !user) {
+  const handleSetView = (newView, authUser) => {
+    let currentUser = authUser !== undefined ? authUser : user;
+    if (!currentUser) {
+      try {
+        const stored = localStorage.getItem('nexio_auth');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (!parsed.expiresAt || Date.now() <= parsed.expiresAt) {
+            currentUser = parsed;
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
+
+    if (newView === 'app' && !currentUser) {
       setView('login');
       window.history.pushState(null, '', '#login');
       return;
@@ -334,7 +349,21 @@ export default function Home() {
   };
 
   const handleAddLink = () => {
-    if (!user) {
+    let currentUser = user;
+    if (!currentUser) {
+      try {
+        const stored = localStorage.getItem('nexio_auth');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (!parsed.expiresAt || Date.now() <= parsed.expiresAt) {
+            currentUser = parsed;
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
+    if (!currentUser) {
       handleSetView('login');
     } else {
       setIsAdding(true);
@@ -344,8 +373,23 @@ export default function Home() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
+      let currentUser = user;
+      if (!currentUser) {
+        try {
+          const stored = localStorage.getItem('nexio_auth');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (!parsed.expiresAt || Date.now() <= parsed.expiresAt) {
+              currentUser = parsed;
+            }
+          }
+        } catch {
+          // fallback
+        }
+      }
+
       if (hash === '#dashboard' || hash === '#app') {
-        if (!user) {
+        if (!currentUser) {
           setView('login');
           window.history.pushState(null, '', '#login');
         } else {
@@ -818,6 +862,7 @@ export default function Home() {
         <AIToolsPage 
           onBackToHome={() => handleSetView('landing')} 
           onNavigateToDesign={() => handleSetView('design')}
+          onNavigateToEditing={() => handleSetView('editing')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
           user={user}
@@ -839,6 +884,7 @@ export default function Home() {
         <DesignPage 
           onBack={() => handleSetView('landing')} 
           onNavigateToAITools={() => handleSetView('ai-tools')}
+          onNavigateToEditing={() => handleSetView('editing')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
           user={user}

@@ -12,6 +12,7 @@ import {
   PenTool,
   Bookmark,
   Zap,
+  Scissors,
   Edit2,
   X
 } from 'lucide-react';
@@ -51,7 +52,7 @@ export const CATEGORIES = [
   { id: 'Wallpaper', label: 'Wallpaper', icon: Monitor },
   { id: 'Stock', label: 'Stock', icon: Camera },
   { id: 'Host', label: 'Host', icon: Server },
-  { id: 'Research', label: 'Research', icon: Search },
+  { id: 'Editing', label: 'Editing', icon: Scissors },
   { id: 'Google', label: 'Google', icon: GoogleIcon },
 ];
 

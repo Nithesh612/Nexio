@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GlobalWorkerOptions, getDocument } from 'pdfjs-dist'
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import Pagination from '../components/Pagination'
 import {
   ArrowUpRight,
   Bell,
@@ -28,6 +29,7 @@ import {
   LogOut,
   Zap,
   Bot,
+  Scissors,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
@@ -42,7 +44,7 @@ const navItems = [
   { label: 'Dashboard', icon: FolderKanban },
   { label: 'Quick Assets', icon: Zap },
   { label: 'AI Tools', icon: Bot },
-  { label: 'Editing', icon: Code2 },
+  { label: 'Editing', icon: Scissors },
   { label: 'Saved', icon: Bookmark },
   { label: 'Favorites', icon: Heart },
 ]
@@ -56,7 +58,7 @@ const stats = [
 
 const PREDEFINED_CATEGORIES = [
   'Saved', 'Quick Assets', 'UI/UX', 'AI Image & Video', 'AI', 'Inspiration', 'Other',
-  'Wallpaper', 'Stock', 'Host', 'Article', 'Research', 'Tools', 'Featured Quick Asset'
+  'Wallpaper', 'Stock', 'Host', 'Article', 'Editing', 'Research', 'Tools', 'Featured Quick Asset'
 ]
 
 const recentLinks = [
@@ -148,6 +150,7 @@ const categoryColors = {
   'Stock':             ['#ff9a9e', '#fecfef'],
   'Host':              ['#2af598', '#009efd'],
   'Article':           ['#f6d365', '#fda085'],
+  'Editing':           ['#96fbc4', '#f9f586'],
   'Research':          ['#96fbc4', '#f9f586'],
   'Tools':             ['#c471ed', '#f64f59'],
   'default':           ['#a18cd1', '#fbc2eb'],
@@ -1239,41 +1242,13 @@ function AIToolsManager() {
           )}
         </div>
 
-        {filteredTools.length > 0 && totalPages > 1 && (
-          <div className="pagination" aria-label="AI Tools pagination" style={{ marginTop: '20px' }}>
-            <span className="pagination-info">
-              Showing {(currentPage - 1) * cardsPerPage + 1}-{Math.min(currentPage * cardsPerPage, filteredTools.length)} of {filteredTools.length} AI tools
-            </span>
-            <div className="pagination-actions">
-              <button
-                type="button"
-                className="page-btn"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                <button
-                  type="button"
-                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  aria-label={`Go to page ${page}`}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="page-btn"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+        {filteredTools.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            scrollToTop={false}
+          />
         )}
       </section>
 
@@ -1663,6 +1638,12 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       base = base.filter(isFavoriteLink)
     } else if (activeNav === 'Saved') {
       base = base.filter(isSavedLink)
+    } else if (activeNav === 'Editing') {
+      base = base.filter((item) => {
+        if (!item.category) return false
+        const c = item.category.toLowerCase()
+        return c.includes('editing') || c.includes('research')
+      })
     }
 
     if (activeFilter !== 'All') {
@@ -3663,11 +3644,6 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                   type="button"
                   className={`nav-item ${activeNav === label ? 'active' : ''}`}
                   onClick={() => {
-                    if (label === 'Editing' && typeof onNavigateToEditing === 'function') {
-                      setSidebarOpen(false)
-                      onNavigateToEditing()
-                      return
-                    }
                     setActiveNav(label)
                     setActiveFilter('All')
                     setCurrentPage(1)
@@ -3679,6 +3655,11 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                   {label === 'All Links' && <span className="counter">{walletTotalCount ?? liveLinks.length}</span>}
                   {label === 'Favorites' && <span className="counter">{liveStats[3]?.value || 0}</span>}
                   {label === 'Saved' && <span className="counter">{liveStats[1]?.value || 0}</span>}
+                  {label === 'Editing' && (
+                    <span className="counter">
+                      {liveLinks.filter(item => item.category && (item.category.toLowerCase().includes('editing') || item.category.toLowerCase().includes('research'))).length}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -3941,41 +3922,13 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
               ))}
             </div>
 
-            {filteredLinks.length > 0 && totalPages > 1 && (
-              <div className="pagination" aria-label="Services pagination">
-                <span className="pagination-info">
-                  Showing {(currentPage - 1) * cardsPerPage + 1}-{Math.min(currentPage * cardsPerPage, filteredLinks.length)} of {filteredLinks.length} services
-                </span>
-                <div className="pagination-actions">
-                  <button
-                    type="button"
-                    className="page-btn"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </button>
-                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                    <button
-                      type="button"
-                      className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      aria-label={`Go to page ${page}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="page-btn"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+            {filteredLinks.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                scrollToTop={false}
+              />
             )}
           </section>
           </>}

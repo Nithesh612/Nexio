@@ -19,10 +19,12 @@ import {
   Compass,
   LayoutGrid,
   Edit2,
-  Trash2
+  Trash2,
+  Scissors
 } from 'lucide-react';
 import { API_URL } from '../config/api';
 import EditLinkModal from '../components/EditLinkModal';
+import Pagination from '../components/Pagination';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import './links.css';
 
@@ -63,7 +65,8 @@ const tabMeta = {
   google:            { title: 'Google',             description: 'Official developer tools, APIs, design systems, and AI models from Google.' },
   host:              { title: 'Host',               description: 'Hosting services, cloud providers, and deployment platforms.' },
   article:           { title: 'Article',            description: 'Interesting articles, tutorials, and long-form essays.' },
-  research:          { title: 'Research',           description: 'Research papers, benchmarks, datasets, and case studies.' },
+  editing:           { title: 'Editing',            description: 'Video editing, photo manipulation, audio production, and creative editing tools.' },
+  research:          { title: 'Editing',            description: 'Video editing, photo manipulation, audio production, and creative editing tools.' },
   tools:             { title: 'Google',             description: 'Official developer tools, APIs, design systems, and AI models from Google.' },
 };
 
@@ -79,6 +82,7 @@ const categoryColors = {
   'Google':            ['#4285F4', '#34A853'],
   'Host':              ['#2af598', '#009efd'],
   'Article':           ['#f6d365', '#fda085'],
+  'Editing':           ['#96fbc4', '#f9f586'],
   'Research':          ['#96fbc4', '#f9f586'],
   'Tools':             ['#4285F4', '#34A853'],
   'default':           ['#a18cd1', '#fbc2eb'],
@@ -489,7 +493,7 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
     { id: 'wallpaper',        label: 'Wallpaper',         icon: ImageIcon,    categoryVal: 'Wallpaper' },
     { id: 'stock',            label: 'Stock',             icon: Camera,       categoryVal: 'Stock' },
     { id: 'google',           label: 'Google',            icon: GoogleIcon,   categoryVal: 'Google' },
-    { id: 'research',         label: 'Research',          icon: FlaskConical, categoryVal: 'Research' },
+    { id: 'editing',          label: 'Editing',           icon: Scissors,     categoryVal: 'Editing' },
     { id: 'other',            label: 'Other',             icon: Folder,       categoryVal: 'Other' },
   ];
 
@@ -548,6 +552,9 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
             
             // Match exact or inside comma-separated list
             const categoriesList = linkCat.split(',').map(c => c.trim());
+            if (targetCategory === 'editing') {
+              return categoriesList.includes('editing') || categoriesList.includes('research') || linkCat === 'editing' || linkCat === 'research';
+            }
             return categoriesList.includes(targetCategory) || linkCat === targetCategory;
           });
 
@@ -704,50 +711,13 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
             )}
           </div>
 
-          {/* Pagination — 4 columns x 3 rows = 12 items per page */}
-          {totalPages > 1 && (
-            <div className="links-pagination">
-              {/* Prev */}
-              <button
-                type="button"
-                className="links-nav-page-btn"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
-                <span>Prev</span>
-              </button>
-
-              {/* Page Numbers */}
-              <div className="links-page-numbers">
-                {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    type="button"
-                    className={`links-page-btn ${currentPage === page ? 'active' : ''}`}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-
-              {/* Next */}
-              <button
-                type="button"
-                className="links-nav-page-btn"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              >
-                <span>Next</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
-            </div>
-          )}
+          {/* Unified Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            scrollToTop={false}
+          />
         </div>
 
       </div>

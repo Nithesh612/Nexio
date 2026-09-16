@@ -185,13 +185,22 @@ export function analyzeLinkUrl(rawUrl) {
       tag: '📖 Article & Publication',
     },
 
-    // Academic & Scientific Research
+    // Academic & Scientific Research / Papers
     {
       match: ['arxiv.org', 'paperswithcode.com', 'sciencedirect.com', 'nature.com', 'researchgate.net'],
       title: 'Research Paper',
-      category: 'Research',
+      category: 'Editing',
       description: 'Scientific research papers, academic studies, and machine learning publications.',
       tag: '🔬 Research & Science',
+    },
+
+    // Video Editing, Audio, & VFX Suites
+    {
+      match: ['capcut.com', 'runwayml.com', 'descript.com', 'davinciresolve', 'blackmagicdesign.com', 'premiere', 'topazlabs.com', 'submagic.co', 'photopea.com', 'jitter.video', 'elevenlabs.io'],
+      title: 'Editing Tool',
+      category: 'Editing',
+      description: 'Professional video editor, generative VFX, audio suite, or creative editing workstation.',
+      tag: '✂️ Editing & Studio',
     },
   ];
 

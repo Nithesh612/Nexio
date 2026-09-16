@@ -59,10 +59,8 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
     e.preventDefault()
     setMenuOpen(false)
     if (onNavigate) {
-      if (targetView === 'landing' || targetView === 'design' || targetView === 'ai-tools' || targetView === 'editing') {
-        onNavigate(targetView)
-        return
-      }
+      onNavigate(targetView)
+      return
     }
     const el = document.getElementById(hash.replace('#', ''))
     if (el) {

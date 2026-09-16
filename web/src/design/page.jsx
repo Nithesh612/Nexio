@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import Header from '../components/Header'
 import NewsletterSection from '../components/NewsletterSection'
 import Footer from '../components/Footer'
+import Pagination from '../components/Pagination'
 import {
   ArrowLeft,
   ChevronLeft,
@@ -757,7 +758,7 @@ const COLLECTIONS = [
   { id: 'c4', title: 'Web Designers', items: '410+ tools', iconUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/69cb98a148308217c3684e8f_icon-web-designers.svg', desc: 'No-code builders, responsive grids & tokens', url: 'https://www.toools.design/for/web-designers' },
 ]
 
-export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
+export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToEditing, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set(['lr1', 'lr6', 'ai1']))
@@ -912,6 +913,9 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
           } else if (target === 'ai-tools') {
             if (onNavigateToAITools) onNavigateToAITools()
             else window.location.hash = '#ai-tools'
+          } else if (target === 'editing') {
+            if (onNavigateToEditing) onNavigateToEditing()
+            else window.location.hash = '#editing'
           } else if (target === 'app') {
             if (onNavigateToDashboard) onNavigateToDashboard()
             else window.location.hash = '#dashboard'
@@ -930,7 +934,7 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
         <div className="absolute bottom-[20%] left-[-10%] w-[600px] h-[600px] bg-gradient-to-r from-teal-100/30 to-transparent blur-3xl rounded-full" />
       </div>
 
-      <div className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28">
+      <div className="relative z-10 max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
 
         <div className="flex flex-col">
           {/* CATEGORY FILTER PILLS GRID */}
@@ -1058,45 +1062,13 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToDa
             </div>
           )}
 
-          {totalPages > 1 && (
-            <nav className="flex items-center justify-center gap-1.5 mt-6" aria-label="Latest design resources pagination">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-                aria-label="Previous page"
-                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 flex items-center justify-center hover:border-gray-300 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map(page => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  aria-label={`Go to page ${page}`}
-                  aria-current={currentPage === page ? 'page' : undefined}
-                  className={`w-9 h-9 rounded-lg text-xs font-bold transition-colors ${currentPage === page
-                    ? 'bg-gray-900 text-white'
-                    : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-900'
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
-                disabled={currentPage === totalPages}
-                aria-label="Next page"
-                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 flex items-center justify-center hover:border-gray-300 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </nav>
-          )}
+          {/* Unified Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            scrollToTop={true}
+          />
         </div>
 
 
