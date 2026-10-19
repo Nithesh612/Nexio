@@ -1,6 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { API_URL } from '../config/api'
 
+function QuickAssetSkeleton() {
+  return (
+    <div className="p-3.5 bg-white rounded-2xl border border-gray-100 shadow-2xs flex items-center justify-between gap-3 animate-pulse">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="h-3 bg-gray-200 rounded w-3/4" />
+          <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="w-10 h-4 bg-gray-100 rounded" />
+    </div>
+  )
+}
+
 function QuickAssetItem({ tool }) {
   const [imgError, setImgError] = useState(false)
 
@@ -25,10 +40,10 @@ function QuickAssetItem({ tool }) {
   return (
     <div
       onClick={handleCardClick}
-      className="p-3.5 bg-white rounded-2xl border border-gray-200/80 hover:border-gray-300 shadow-2xs hover:shadow-md transition-all flex items-center justify-between gap-3 group relative cursor-pointer hover:-translate-y-0.5 duration-200"
+      className="p-3.5 bg-white rounded-2xl border border-gray-200/80 hover:border-indigo-300/80 shadow-2xs hover:shadow-lg hover:shadow-indigo-500/5 transition-all flex items-center justify-between gap-3 group relative cursor-pointer hover:-translate-y-1 active:scale-[0.99] duration-200"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-1.5 shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-1.5 shrink-0 shadow-2xs group-hover:scale-105 group-hover:border-indigo-100 transition-all">
           {!imgError && tool.logoUrl ? (
             <img
               src={tool.logoUrl}
@@ -54,7 +69,7 @@ function QuickAssetItem({ tool }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center shrink-0">
         <span className="text-[10px] font-semibold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md shrink-0">
           {displayBadge}
         </span>
@@ -82,7 +97,6 @@ export default function FeaturedQuickAssets() {
         const quick = data.filter(
           (item) =>
             (item.collection === 'Quick Assets' || item.category === 'Featured Quick Asset' || item.category === 'Quick Assets' || item.kind === 'quick-asset') &&
-            item.favorite === true &&
             !deletedList.includes(String(item.id)) &&
             !deletedList.includes(String(item._id)) &&
             !deletedList.includes(String(item.url))
@@ -115,7 +129,7 @@ export default function FeaturedQuickAssets() {
   }, [])
 
   return (
-    <section className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-10 mb-6">
+    <section id="featured-quick-assets" className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-10 mb-6">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Quick Assets</h2>
@@ -123,7 +137,13 @@ export default function FeaturedQuickAssets() {
         </div>
       </div>
 
-      {assets.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <QuickAssetSkeleton key={i} />
+          ))}
+        </div>
+      ) : assets.length === 0 ? (
         <div className="bg-white/80 rounded-3xl border border-gray-200/80 p-8 sm:p-12 text-center flex flex-col items-center justify-center shadow-2xs">
           <img
             src="/assets/empty/no-messages.svg"

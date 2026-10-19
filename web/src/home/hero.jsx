@@ -133,7 +133,7 @@ export const Skiper58 = ({ onNavigate, onAddLink }) => {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold tracking-wider text-rose-300 uppercase mb-5 shadow-inner">
           <Sparkles size={13} className="text-rose-400 animate-pulse" />
-          <span>Next-Gen Link Architecture</span>
+          <span>Next-Hub</span>
         </div>
 
         {/* Skiper58 Interactive Typography Menu */}

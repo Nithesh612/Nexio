@@ -11,6 +11,7 @@ const editingRoutes = require("./routes/editing/editing");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
 // Lightweight in-memory rate limiter to protect API from abuse/DDoS
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
@@ -83,7 +84,8 @@ const corsOptions = {
         ) {
             return callback(null, true);
         }
-        return callback(null, true);
+        // Reject any origin not in the whitelist
+        return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

@@ -15,6 +15,8 @@ import FeaturedQuickAssets from './FeaturedQuickAssets'
 import NewsletterSection from '../components/NewsletterSection'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import ToastContainer, { showToast } from '../components/Toast'
+import GlobalSearchModal from '../dashbord/GlobalSearchModal'
 import { API_URL, API_BASE_URL } from '../config/api'
 
 const initialLinks = [
@@ -238,10 +240,18 @@ export default function Home() {
     }
   })
 
+  const [pendingAddLink, setPendingAddLink] = useState(false)
+
   const handleLoginSuccess = (userData) => {
     setUser(userData)
     window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
-    handleSetView('app', userData) // Go to dashboard after login with authenticated user
+    if (pendingAddLink) {
+      setPendingAddLink(false)
+      setIsAdding(true)
+      handleSetView(view === 'login' ? 'app' : view, userData)
+    } else {
+      handleSetView('app', userData) // Go to dashboard after login with authenticated user
+    }
   }
 
   const handleLogout = () => {
@@ -364,6 +374,7 @@ export default function Home() {
       }
     }
     if (!currentUser) {
+      setPendingAddLink(true);
       handleSetView('login');
     } else {
       setIsAdding(true);
@@ -407,7 +418,7 @@ export default function Home() {
         localStorage.setItem('nexio_current_view', 'editing');
       } else if (hash === '#login') {
         setView('login');
-      } else if (!hash || hash === '#features' || hash === '#use-cases' || hash === '#extensions' || hash === '#integrations') {
+      } else {
         setView('landing');
         localStorage.setItem('nexio_current_view', 'landing');
       }
@@ -428,6 +439,20 @@ export default function Home() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('All links')
   const [isAdding, setIsAdding] = useState(false)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false)
+
+  // Global Command Palette hotkey (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleGlobalKeys = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setIsCommandPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeys)
+    return () => window.removeEventListener('keydown', handleGlobalKeys)
+  }, [])
+
   const [saveError, setSaveError] = useState('')
   const [importStatus, setImportStatus] = useState('')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
@@ -554,8 +579,14 @@ export default function Home() {
     }
 
     window.addEventListener('nexio_ai_tools_updated', handleUpdate)
+    window.addEventListener('nexio_links_updated', handleUpdate)
+    window.addEventListener('nexio_quick_assets_updated', handleUpdate)
+    window.addEventListener('nexio_link_saved', handleUpdate)
     return () => {
       window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
+      window.removeEventListener('nexio_links_updated', handleUpdate)
+      window.removeEventListener('nexio_quick_assets_updated', handleUpdate)
+      window.removeEventListener('nexio_link_saved', handleUpdate)
     }
   }, [])
 
@@ -608,6 +639,7 @@ export default function Home() {
     const isDuplicate = links.some((link) => normalizeUrl(link.url) === cleanUrl)
     if (isDuplicate) {
       setSaveError('This link has already been saved.')
+      showToast('This link has already been saved.', 'info')
       setIsSubmitting(false)
       return
     }
@@ -634,7 +666,17 @@ export default function Home() {
 
     const isQuick = String(selectedCategory || '').toLowerCase().includes('quick') || linkData?.collection === 'Quick Assets'
     const isSaved = String(selectedCategory || '').toLowerCase().includes('saved')
-    const isAITool = String(selectedCategory || '').toLowerCase().includes('ai tool') || (linkData?.categories || []).includes('AI Tools')
+    const isAITool = String(selectedCategory || '').toLowerCase().includes('ai') || (linkData?.categories || []).some(c => String(c).toLowerCase().includes('ai'))
+
+    const aiSubCategory = (
+      String(selectedCategory).toLowerCase().includes('image') || String(selectedCategory).toLowerCase().includes('video')
+        ? 'art-images'
+        : String(selectedCategory).toLowerCase().includes('chat') || String(selectedCategory).toLowerCase().includes('llm')
+        ? 'copy-llm'
+        : String(selectedCategory).toLowerCase().includes('3d') || String(selectedCategory).toLowerCase().includes('motion')
+        ? '3d-motion'
+        : 'ui-web'
+    )
 
     try {
       if (isAITool) {
@@ -651,8 +693,8 @@ export default function Home() {
               name: derivedTitle,
               url: cleanUrl,
               desc: smartDescription,
-              category: 'ai-tools',
-              tag: 'AI Tool',
+              category: aiSubCategory,
+              tag: selectedCategory || 'AI Tool',
               pricing: 'FREEMIUM',
               bannerType: 'image',
               bannerUrl: linkData?.bannerUrl || '',
@@ -717,6 +759,7 @@ export default function Home() {
 
         setIsAdding(false)
         setRefreshTrigger((prev) => prev + 1)
+        showToast(`✨ Saved "${newLink.title}" to library!`, 'success')
         window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
         window.dispatchEvent(new CustomEvent('nexio_links_updated'))
         window.dispatchEvent(new CustomEvent('nexio_link_saved', { detail: newLink }))
@@ -824,33 +867,6 @@ export default function Home() {
           onBack={() => handleSetView('landing')}
           onLoginSuccess={handleLoginSuccess}
         />
-      ) : view === 'landing' ? (
-        <>
-          <Header
-            currentView="landing"
-            onNavigate={(target) => {
-              if (target === 'landing') window.scrollTo({ top: 0, behavior: 'smooth' })
-              else if (target === 'design') handleSetView('design')
-              else if (target === 'ai-tools') handleSetView('ai-tools')
-              else if (target === 'editing') handleSetView('editing')
-              else if (target === 'app') handleSetView('app')
-            }}
-            onAddLink={handleAddLink}
-            user={user}
-            onLogin={() => handleSetView('login')}
-            onLogout={handleLogout}
-          />
-          
-          <Hero onNavigate={handleSetView} onAddLink={handleAddLink} />
-          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={handleAddLink} onNavigateToAITools={() => handleSetView('ai-tools')} />
-          <FeaturedQuickAssets />
-          <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />
-          <LinksSection savedLinks={dbLinks} onAddLink={handleAddLink} />
-          <GoogleSection savedLinks={dbLinks} onAddLink={handleAddLink} />
-          <AnimatedConnect01 />
-          <NewsletterSection />
-          <Footer onNavigate={handleSetView} />
-        </>
       ) : view === 'app' ? (
         <DashboardPage
           onBack={() => handleSetView('landing')}
@@ -880,7 +896,7 @@ export default function Home() {
           onLogin={() => handleSetView('login')}
           onLogout={handleLogout}
         />
-      ) : (
+      ) : view === 'design' ? (
         <DesignPage 
           onBack={() => handleSetView('landing')} 
           onNavigateToAITools={() => handleSetView('ai-tools')}
@@ -891,6 +907,34 @@ export default function Home() {
           onLogin={() => handleSetView('login')}
           onLogout={handleLogout}
         />
+      ) : (
+        <>
+          <Header
+            currentView="landing"
+            onNavigate={(target) => {
+              if (target === 'landing') window.scrollTo({ top: 0, behavior: 'smooth' })
+              else if (target === 'design') handleSetView('design')
+              else if (target === 'ai-tools') handleSetView('ai-tools')
+              else if (target === 'editing') handleSetView('editing')
+              else if (target === 'app') handleSetView('app')
+            }}
+            onAddLink={handleAddLink}
+            onOpenSearch={() => setIsCommandPaletteOpen(true)}
+            user={user}
+            onLogin={() => handleSetView('login')}
+            onLogout={handleLogout}
+          />
+          
+          <Hero onNavigate={handleSetView} onAddLink={handleAddLink} />
+          <CategoryNav refreshTrigger={refreshTrigger} onAddLink={handleAddLink} onNavigateToAITools={() => handleSetView('ai-tools')} />
+          <FeaturedQuickAssets />
+          <EssentialAITools onNavigateToDesign={() => handleSetView('ai-tools')} />
+          <LinksSection savedLinks={dbLinks} onAddLink={handleAddLink} />
+          <GoogleSection savedLinks={dbLinks} onAddLink={handleAddLink} />
+          <AnimatedConnect01 />
+          <NewsletterSection />
+          <Footer onNavigate={handleSetView} />
+        </>
       )}
 
       <SaveLinkModal
@@ -904,6 +948,22 @@ export default function Home() {
         onClearError={() => setSaveError('')}
         isSubmitting={isSubmitting}
       />
+
+      {/* Global Fast Search Modal (Dashboard Design) */}
+      <GlobalSearchModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        links={[...dbLinks, ...links]}
+        onOpenLink={(url) => {
+          if (url) {
+            const targetUrl = url.startsWith('http') ? url : `https://${url}`
+            window.open(targetUrl, '_blank', 'noopener,noreferrer')
+          }
+        }}
+      />
+
+      {/* Global Floating Glassmorphism Toast System */}
+      <ToastContainer />
     </>
   )
 }

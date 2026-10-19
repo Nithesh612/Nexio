@@ -193,7 +193,13 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
   })();
 
   return (
-    <div className="save-modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="save-modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-modal-title"
+    >
       <div className="save-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="save-modal-header">
@@ -215,7 +221,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
         </div>
 
         <div className="save-modal-headings">
-          <h2>Save a useful link</h2>
+          <h2 id="save-modal-title">Save a useful link</h2>
           <p>Add tools, articles, or color & design resources to your central hub.</p>
         </div>
 
@@ -235,6 +241,7 @@ export default function SaveLinkModal({ isOpen, onClose, onSave, saveError, onCl
               <input
                 id="modal-url"
                 required
+                autoFocus
                 type="text"
                 autoComplete="off"
                 spellCheck="false"

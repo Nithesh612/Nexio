@@ -637,9 +637,17 @@ export default function LinksSection({ savedLinks = [], onAddLink }) {
         localStorage.setItem('nexio_deleted_quick_assets', JSON.stringify(list));
       } catch {}
 
+      const deletedTitle = itemToDelete.title || itemToDelete.name || 'Saved Resource';
+      const deletedCategory = itemToDelete.collection || itemToDelete.category || 'Workspace';
       setLocalLinks((prev) => prev.filter((item) => (item.id || item._id) !== deleteId && item.url !== deleteUrl));
       setItemToDelete(null);
       window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'));
+      window.dispatchEvent(new CustomEvent('nexio_link_deleted', {
+        detail: {
+          title: deletedTitle,
+          category: deletedCategory,
+        }
+      }));
     } catch (err) {
       console.error('Failed to delete link:', err);
     } finally {

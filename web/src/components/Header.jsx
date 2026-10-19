@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, LogIn, LogOut, User } from 'lucide-react'
+import { Plus, LogIn, LogOut, User, Search } from 'lucide-react'
 import './Header.css'
 
 const NAV_LINKS = [
@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: 'Editing', targetView: 'editing', hash: '#editing' },
 ]
 
-export default function Header({ currentView = 'landing', onNavigate, onAddLink, user, onLogin, onLogout }) {
+export default function Header({ currentView = 'landing', onNavigate, onAddLink, onOpenSearch, user, onLogin, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const getStoredUser = () => {
@@ -159,6 +159,19 @@ export default function Header({ currentView = 'landing', onNavigate, onAddLink,
 
         {/* Right side buttons */}
         <div className="v-header-right">
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenSearch) onOpenSearch()
+              else window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+            }}
+            className="v-search-pill-btn"
+            aria-label="Quick search"
+          >
+            <Search size={14} className="v-search-icon" />
+            <span className="v-search-text">Search...</span>
+          </button>
+
           {currentUser ? (
             /* ── Logged-in: show Add Link + Dashboard + user avatar ── */
             <>

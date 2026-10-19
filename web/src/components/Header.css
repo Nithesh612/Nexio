@@ -133,6 +133,63 @@
   gap: 12px;
 }
 
+/* Modern Search Pill Button */
+.v-search-pill-btn {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .v-search-pill-btn {
+    display: inline-flex;
+  }
+}
+
+.v-search-pill-btn:hover {
+  background: #ffffff;
+  border-color: rgba(37, 99, 235, 0.4);
+  color: #0f172a;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.1), 0 0 0 3px rgba(37, 99, 235, 0.06);
+  transform: translateY(-1px);
+}
+
+.v-search-pill-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.v-search-pill-btn .v-search-icon {
+  color: #94a3b8;
+  transition: color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.v-search-pill-btn:hover .v-search-icon {
+  color: #2563eb;
+  transform: scale(1.08);
+}
+
+.v-search-pill-btn .v-search-text {
+  letter-spacing: -0.01em;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.v-search-pill-btn:hover .v-search-text {
+  color: #0f172a;
+}
+
 .v-add-link-btn {
   display: inline-flex;
   align-items: center;

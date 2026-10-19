@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { GlobalWorkerOptions, getDocument } from 'pdfjs-dist'
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import Pagination from '../components/Pagination'
@@ -30,6 +30,10 @@ import {
   Zap,
   Bot,
   Scissors,
+  Video,
+  Filter,
+  Check,
+  Sparkles,
 } from 'lucide-react'
 import LottieAnimation from '../home/LottieAnimation'
 import GlobalSearchModal from './GlobalSearchModal'
@@ -44,6 +48,7 @@ const navItems = [
   { label: 'Dashboard', icon: FolderKanban },
   { label: 'Quick Assets', icon: Zap },
   { label: 'AI Tools', icon: Bot },
+  { label: 'AI Image & Video', icon: Video },
   { label: 'Editing', icon: Scissors },
   { label: 'Saved', icon: Bookmark },
   { label: 'Favorites', icon: Heart },
@@ -141,19 +146,19 @@ const recentLinks = [
 
 // Category Gradient Palette matching Home page
 const categoryColors = {
-  'UI/UX':             ['#667eea', '#764ba2'],
-  'AI Image & Video':  ['#f093fb', '#f5576c'],
-  'AI':                ['#a855f7', '#6366f1'],
-  'Other':             ['#64748b', '#475569'],
-  'Inspiration':       ['#fa709a', '#fee140'],
-  'Wallpaper':         ['#38ef7d', '#11998e'],
-  'Stock':             ['#ff9a9e', '#fecfef'],
-  'Host':              ['#2af598', '#009efd'],
-  'Article':           ['#f6d365', '#fda085'],
-  'Editing':           ['#96fbc4', '#f9f586'],
-  'Research':          ['#96fbc4', '#f9f586'],
-  'Tools':             ['#c471ed', '#f64f59'],
-  'default':           ['#a18cd1', '#fbc2eb'],
+  'UI/UX': ['#667eea', '#764ba2'],
+  'AI Image & Video': ['#f093fb', '#f5576c'],
+  'AI': ['#a855f7', '#6366f1'],
+  'Other': ['#64748b', '#475569'],
+  'Inspiration': ['#fa709a', '#fee140'],
+  'Wallpaper': ['#38ef7d', '#11998e'],
+  'Stock': ['#ff9a9e', '#fecfef'],
+  'Host': ['#2af598', '#009efd'],
+  'Article': ['#f6d365', '#fda085'],
+  'Editing': ['#96fbc4', '#f9f586'],
+  'Research': ['#96fbc4', '#f9f586'],
+  'Tools': ['#c471ed', '#f64f59'],
+  'default': ['#a18cd1', '#fbc2eb'],
 };
 
 // Curated specific banners matching official design tools
@@ -337,8 +342,8 @@ function DashboardLinkCard({ item, isDashboardView, onOpen, onEdit, onDelete, on
         <div
           className="dash-card-banner"
           style={{
-            background: isReadymag 
-              ? '#ff69b4' 
+            background: isReadymag
+              ? '#ff69b4'
               : `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
           }}
         >
@@ -404,11 +409,11 @@ function DashboardLinkCard({ item, isDashboardView, onOpen, onEdit, onDelete, on
           ) : preset?.logoSvg === 'figma' ? (
             <div style={{ width: '100%', height: '100%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg viewBox="0 0 38 57" style={{ width: '16px', height: '24px' }}>
-                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/>
-                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/>
-                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/>
-                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/>
-                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/>
+                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" />
+                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z" />
+                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z" />
+                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" />
+                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" />
               </svg>
             </div>
           ) : (
@@ -843,11 +848,11 @@ function AIToolCard({ tool, onOpen, onEdit, onDelete, onToggleEssential }) {
           ) : preset?.logoSvg === 'figma' ? (
             <div style={{ width: '100%', height: '100%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg viewBox="0 0 38 57" style={{ width: '16px', height: '24px' }}>
-                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z"/>
-                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z"/>
-                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z"/>
-                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z"/>
-                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z"/>
+                <path fill="#1abcfe" d="M19 28.5a9.5 9.5 0 1 1 19 0 9.5 9.5 0 0 1-19 0z" />
+                <path fill="#0acf83" d="M0 47.5A9.5 9.5 0 0 1 9.5 38H19v9.5a9.5 9.5 0 1 1-19 0z" />
+                <path fill="#ff7262" d="M19 0v19h9.5a9.5 9.5 0 1 0 0-19H19z" />
+                <path fill="#f24e1e" d="M0 9.5A9.5 9.5 0 0 0 9.5 19H19V0H9.5A9.5 9.5 0 0 0 0 9.5z" />
+                <path fill="#a259ff" d="M0 28.5A9.5 9.5 0 0 0 9.5 38H19V19H9.5A9.5 9.5 0 0 0 0 28.5z" />
               </svg>
             </div>
           ) : (
@@ -914,6 +919,9 @@ function AIToolsManager() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
+  const [categorySearchQuery, setCategorySearchQuery] = useState('')
+  const categoryDropdownRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [form, setForm] = useState(emptyForm)
   const [itemToEdit, setItemToEdit] = useState(null)
@@ -924,7 +932,17 @@ function AIToolsManager() {
   const [error, setError] = useState('')
   const cardsPerPage = 9
 
-  const categories = [
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target)) {
+        setCategoryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const categories = useMemo(() => [
     { id: 'all', label: 'All AI Tools' },
     { id: 'essential', label: 'Home Essentials' },
     { id: 'ui-web', label: 'UI & Web' },
@@ -934,7 +952,52 @@ function AIToolsManager() {
     { id: 'code-dev', label: 'Dev & Code' },
     { id: 'color-brand', label: 'Color & Brand' },
     { id: 'workflow', label: 'Workflow' },
-  ]
+  ], [])
+
+  const categoryCounts = useMemo(() => {
+    const counts = { all: tools.length, essential: 0 }
+    categories.forEach(cat => { counts[cat.id] = 0 })
+    counts['all'] = tools.length
+
+    tools.forEach((tool) => {
+      if (tool.showInEssential) counts['essential'] = (counts['essential'] || 0) + 1
+      const toolCat = (tool.category || '').toLowerCase()
+      const toolTag = (tool.tag || '').toLowerCase()
+
+      if (toolCat === 'art-images' || toolCat.includes('image') || toolCat.includes('video') || toolTag.includes('image') || toolTag.includes('video')) {
+        counts['art-images'] = (counts['art-images'] || 0) + 1
+      }
+      if (toolCat === 'copy-llm' || toolCat.includes('chat') || toolCat.includes('llm') || toolTag.includes('chat') || toolTag.includes('llm')) {
+        counts['copy-llm'] = (counts['copy-llm'] || 0) + 1
+      }
+      if (toolCat === 'ui-web' || toolTag.includes('ui') || toolTag.includes('web')) {
+        counts['ui-web'] = (counts['ui-web'] || 0) + 1
+      }
+      if (toolCat === '3d-motion' || toolTag.includes('3d') || toolTag.includes('motion')) {
+        counts['3d-motion'] = (counts['3d-motion'] || 0) + 1
+      }
+      if (toolCat === 'code-dev' || toolTag.includes('code') || toolTag.includes('dev')) {
+        counts['code-dev'] = (counts['code-dev'] || 0) + 1
+      }
+      if (toolCat === 'color-brand' || toolTag.includes('color') || toolTag.includes('brand')) {
+        counts['color-brand'] = (counts['color-brand'] || 0) + 1
+      }
+      if (toolCat === 'workflow' || toolTag.includes('workflow')) {
+        counts['workflow'] = (counts['workflow'] || 0) + 1
+      }
+    })
+    return counts
+  }, [tools, categories])
+
+  const filteredDropdownCategories = useMemo(() => {
+    if (!categorySearchQuery.trim()) return categories
+    const q = categorySearchQuery.toLowerCase().trim()
+    return categories.filter((cat) => cat.label.toLowerCase().includes(q))
+  }, [categories, categorySearchQuery])
+
+  const activeCategoryObj = useMemo(() => {
+    return categories.find((c) => c.id === activeCategory) || categories[0]
+  }, [categories, activeCategory])
 
   const fetchTools = async () => {
     setLoading(true)
@@ -942,7 +1005,42 @@ function AIToolsManager() {
       const response = await fetch(`${API_BASE_URL}/api/ai-tools`)
       const data = await response.json().catch(() => [])
       if (!response.ok) throw new Error(data.message || data.error || 'Could not load AI tools.')
-      setTools(Array.isArray(data) ? data : Array.isArray(data?.tools) ? data.tools : [])
+      let loadedTools = Array.isArray(data) ? data : Array.isArray(data?.tools) ? data.tools : []
+
+      // Also pull AI tools saved in the Hub links collection
+      try {
+        const hubRes = await fetch(API_URL)
+        if (hubRes.ok) {
+          const hubData = await hubRes.json().catch(() => [])
+          if (Array.isArray(hubData)) {
+            const existingUrls = new Set(loadedTools.map(t => (t.url || '').toLowerCase().replace(/^https?:\/\//i, '').replace(/\/$/, '')))
+            const aiHubLinks = hubData.filter(item => {
+              const cat = (item.category || '').toLowerCase()
+              const col = (item.collection || '').toLowerCase()
+              const cleanU = (item.url || '').toLowerCase().replace(/^https?:\/\//i, '').replace(/\/$/, '')
+              return (cat.includes('ai') || col.includes('ai')) && !existingUrls.has(cleanU)
+            }).map(item => ({
+              _id: item.id || item._id,
+              toolId: item.id || item._id,
+              name: item.title,
+              url: item.url,
+              desc: item.description,
+              category: (item.category || '').toLowerCase().includes('image') || (item.category || '').toLowerCase().includes('video') ? 'art-images' : 'ui-web',
+              tag: item.category || 'AI Tool',
+              pricing: 'FREEMIUM',
+              bannerUrl: item.bannerUrl || '',
+              bannerType: 'image',
+              showInEssential: Boolean(item.favorite),
+              isPartner: false
+            }))
+            loadedTools = [...loadedTools, ...aiHubLinks]
+          }
+        }
+      } catch {
+        // silent fallback
+      }
+
+      setTools(loadedTools)
     } catch (loadError) {
       setError(loadError.message || 'Could not load AI tools.')
       setTools([])
@@ -959,19 +1057,29 @@ function AIToolsManager() {
     }
 
     window.addEventListener('nexio_ai_tools_updated', handleUpdate)
+    window.addEventListener('nexio_links_updated', handleUpdate)
+    window.addEventListener('nexio_link_saved', handleUpdate)
     return () => {
       window.removeEventListener('nexio_ai_tools_updated', handleUpdate)
+      window.removeEventListener('nexio_links_updated', handleUpdate)
+      window.removeEventListener('nexio_link_saved', handleUpdate)
     }
   }, [])
 
   const filteredTools = useMemo(() => {
     return tools.filter((tool) => {
+      const toolCat = (tool.category || '').toLowerCase()
+      const toolTag = (tool.tag || '').toLowerCase()
       const matchesCategory =
         activeCategory === 'all'
           ? true
           : activeCategory === 'essential'
-          ? Boolean(tool.showInEssential)
-          : (tool.category || '').toLowerCase() === activeCategory.toLowerCase()
+            ? Boolean(tool.showInEssential)
+            : activeCategory === 'art-images'
+              ? (toolCat === 'art-images' || toolCat.includes('image') || toolCat.includes('video') || toolTag.includes('image') || toolTag.includes('video'))
+              : activeCategory === 'copy-llm'
+                ? (toolCat === 'copy-llm' || toolCat.includes('chat') || toolCat.includes('llm') || toolTag.includes('chat') || toolTag.includes('llm'))
+                : (toolCat === activeCategory.toLowerCase() || toolTag.includes(activeCategory.toLowerCase()))
 
       const q = searchQuery.toLowerCase().trim()
       const matchesSearch =
@@ -1062,6 +1170,15 @@ function AIToolsManager() {
       closeFormModal()
       await fetchTools()
       window.dispatchEvent(new Event('nexio_ai_tools_updated'))
+      if (!editId) {
+        window.dispatchEvent(new CustomEvent('nexio_link_saved', {
+          detail: {
+            title: payload.name || 'AI Tool',
+            category: 'AI Tools',
+            url: payload.url,
+          }
+        }))
+      }
     } catch (saveError) {
       setError(saveError.message || 'Could not save AI tool.')
     } finally {
@@ -1082,9 +1199,16 @@ function AIToolsManager() {
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.message || data.error || 'Could not delete AI tool.')
 
+      const deletedTitle = itemToDelete.name || 'AI Tool'
       setItemToDelete(null)
       await fetchTools()
       window.dispatchEvent(new Event('nexio_ai_tools_updated'))
+      window.dispatchEvent(new CustomEvent('nexio_link_deleted', {
+        detail: {
+          title: deletedTitle,
+          category: 'AI Tools',
+        }
+      }))
     } catch (deleteError) {
       alert(deleteError.message || 'Could not delete AI tool.')
     } finally {
@@ -1126,19 +1250,121 @@ function AIToolsManager() {
 
   return (
     <>
-      {/* Category Chips and Search Bar Container */}
+      {/* Category Filter and Search Bar Container */}
       <div className="chip-row-container">
-        <div className="chip-row">
-          {categories.map((cat) => (
+        <div className="filter-group">
+          <button
+            type="button"
+            className={`chip ${activeCategory === 'all' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveCategory('all')
+              setCategoryDropdownOpen(false)
+            }}
+          >
+            All AI Tools
+            <span className="category-count-badge" style={{ marginLeft: '6px' }}>
+              {tools.length}
+            </span>
+          </button>
+
+          <div className="filter-dropdown-wrap" ref={categoryDropdownRef}>
             <button
               type="button"
-              className={`chip ${cat.id === activeCategory ? 'active' : ''}`}
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              className={`category-dropdown-btn ${activeCategory !== 'all' ? 'active-filter' : ''}`}
+              onClick={() => setCategoryDropdownOpen((prev) => !prev)}
+              aria-expanded={categoryDropdownOpen}
             >
-              {cat.label}
+              <Filter size={15} className="category-btn-icon" />
+              <span>
+                {activeCategory === 'all' ? 'Select Category' : activeCategoryObj.label}
+              </span>
+              {activeCategory !== 'all' && (
+                <>
+                  <span className="category-count-badge">
+                    {categoryCounts[activeCategory] || 0}
+                  </span>
+                  <span
+                    className="category-clear-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveCategory('all')
+                      setCategoryDropdownOpen(false)
+                    }}
+                    title="Reset to All"
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <X size={11} />
+                  </span>
+                </>
+              )}
+              <ChevronDown
+                size={14}
+                className="category-chevron"
+                style={{
+                  transform: categoryDropdownOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.2s ease',
+                  marginLeft: '2px',
+                }}
+              />
             </button>
-          ))}
+
+            {categoryDropdownOpen && (
+              <div className="category-dropdown-menu">
+                {categories.length > 5 && (
+                  <div className="category-dropdown-search">
+                    <Search size={14} color="#94a3b8" />
+                    <input
+                      type="text"
+                      placeholder="Search categories..."
+                      value={categorySearchQuery}
+                      onChange={(e) => setCategorySearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                    {categorySearchQuery && (
+                      <button
+                        type="button"
+                        className="chip-search-clear"
+                        onClick={() => setCategorySearchQuery('')}
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                )}
+                <div className="category-dropdown-list">
+                  {filteredDropdownCategories.map((cat) => {
+                    const isSelected = activeCategory === cat.id
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        className={`category-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          setActiveCategory(cat.id)
+                          setCategoryDropdownOpen(false)
+                          setCategorySearchQuery('')
+                        }}
+                      >
+                        <span>{cat.label}</span>
+                        <div className="category-item-right">
+                          <span className="category-count-badge">
+                            {categoryCounts[cat.id] || 0}
+                          </span>
+                          {isSelected && <Check size={14} color="#2563eb" />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                  {filteredDropdownCategories.length === 0 && (
+                    <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>
+                      No categories found
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="chip-search-bar">
@@ -1254,133 +1480,173 @@ function AIToolsManager() {
 
       {/* Edit / Add Modal */}
       {(isAddModalOpen || itemToEdit) && (
-        <div className="delete-modal-backdrop" onClick={() => !isSubmitting && closeFormModal()}>
-          <div className="delete-modal-card edit-modal-card" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="edit-modal-icon">
-              {itemToEdit ? <Edit2 size={20} /> : <Plus size={20} />}
+        <div className="ai-modal-overlay" onClick={() => !isSubmitting && closeFormModal()}>
+          <div className="ai-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="ai-modal-header">
+              <div className="ai-modal-header-left">
+                <div className="ai-modal-badge">
+                  {itemToEdit ? <Edit2 size={20} /> : <Sparkles size={20} />}
+                </div>
+                <div>
+                  <h3 className="ai-modal-title">{itemToEdit ? 'Edit AI Tool' : 'Add New AI Tool'}</h3>
+                  <p className="ai-modal-subtitle">
+                    {itemToEdit ? 'Update details, tags, and homepage visibility.' : 'Fill in the details below to add a new tool to your collection.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="ai-modal-close-btn"
+                onClick={closeFormModal}
+                disabled={isSubmitting}
+                aria-label="Close modal"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <h3>{itemToEdit ? 'Edit AI Tool' : 'Add New AI Tool'}</h3>
-            <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748b' }}>
-              {itemToEdit ? 'Update details, tags, and homepage visibility for this AI tool.' : 'Fill in the information below to add a new tool to your AI collection.'}
-            </p>
-            <form className="edit-modal-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Tool Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={updateForm}
-                  required
-                  placeholder="e.g. Midjourney, Lovable, Claude"
-                />
-              </div>
-              <div className="form-group">
-                <label>Website URL *</label>
-                <input
-                  type="url"
-                  name="url"
-                  value={form.url}
-                  onChange={updateForm}
-                  required
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label>Tag / Role *</label>
+
+            {/* Form & Body */}
+            <form className="ai-modal-form" onSubmit={handleSubmit}>
+              <div className="ai-modal-body">
+                <div className="ai-field-group">
+                  <label className="ai-field-label">Tool Name *</label>
                   <input
                     type="text"
-                    name="tag"
-                    value={form.tag}
+                    name="name"
+                    className="ai-field-input"
+                    value={form.name}
                     onChange={updateForm}
                     required
-                    placeholder="e.g. Graphic AI, UI Design"
+                    placeholder="e.g. Midjourney, Lovable, Claude"
                   />
                 </div>
-                <div className="form-group">
-                  <label>Pricing *</label>
-                  <select
-                    name="pricing"
-                    value={form.pricing}
-                    onChange={updateForm}
-                    required
-                  >
-                    <option value="FREEMIUM">FREEMIUM</option>
-                    <option value="FREE">FREE</option>
-                    <option value="PAID">PAID</option>
-                    <option value="FREE + PAID">FREE + PAID</option>
-                    <option value="FREE TRIAL">FREE TRIAL</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label>Category</label>
-                  <select
-                    name="category"
-                    value={form.category}
-                    onChange={updateForm}
-                  >
-                    <option value="ui-web">UI & Web</option>
-                    <option value="art-images">Image & Art</option>
-                    <option value="copy-llm">Chat & LLM</option>
-                    <option value="3d-motion">3D & Motion</option>
-                    <option value="code-dev">Dev & Code</option>
-                    <option value="color-brand">Color & Brand</option>
-                    <option value="workflow">Workflow</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Banner Image URL</label>
+
+                <div className="ai-field-group">
+                  <label className="ai-field-label">Website URL *</label>
                   <input
                     type="url"
-                    name="bannerUrl"
-                    value={form.bannerUrl}
+                    name="url"
+                    className="ai-field-input"
+                    value={form.url}
                     onChange={updateForm}
-                    placeholder="Optional banner image URL"
+                    required
+                    placeholder="https://example.com"
                   />
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Description *</label>
-                <textarea
-                  name="desc"
-                  value={form.desc}
-                  onChange={updateForm}
-                  required
-                  placeholder="Describe what this AI tool does..."
-                  rows={3}
-                />
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '4px 0 12px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    name="showInEssential"
-                    checked={form.showInEssential}
+                <div className="ai-modal-grid-2">
+                  <div className="ai-field-group">
+                    <label className="ai-field-label">Tag / Role *</label>
+                    <input
+                      type="text"
+                      name="tag"
+                      className="ai-field-input"
+                      value={form.tag}
+                      onChange={updateForm}
+                      required
+                      placeholder="e.g. Graphic AI, UI Design"
+                    />
+                  </div>
+                  <div className="ai-field-group">
+                    <label className="ai-field-label">Pricing *</label>
+                    <select
+                      name="pricing"
+                      className="ai-field-select"
+                      value={form.pricing}
+                      onChange={updateForm}
+                      required
+                    >
+                      <option value="FREEMIUM">FREEMIUM</option>
+                      <option value="FREE">FREE</option>
+                      <option value="PAID">PAID</option>
+                      <option value="FREE + PAID">FREE + PAID</option>
+                      <option value="FREE TRIAL">FREE TRIAL</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="ai-modal-grid-2">
+                  <div className="ai-field-group">
+                    <label className="ai-field-label">Category</label>
+                    <select
+                      name="category"
+                      className="ai-field-select"
+                      value={form.category}
+                      onChange={updateForm}
+                    >
+                      <option value="ui-web">UI & Web</option>
+                      <option value="art-images">Image & Art</option>
+                      <option value="copy-llm">Chat & LLM</option>
+                      <option value="3d-motion">3D & Motion</option>
+                      <option value="code-dev">Dev & Code</option>
+                      <option value="color-brand">Color & Brand</option>
+                      <option value="workflow">Workflow</option>
+                    </select>
+                  </div>
+                  <div className="ai-field-group">
+                    <label className="ai-field-label">Banner Image URL</label>
+                    <input
+                      type="url"
+                      name="bannerUrl"
+                      className="ai-field-input"
+                      value={form.bannerUrl}
+                      onChange={updateForm}
+                      placeholder="Optional banner image URL"
+                    />
+                  </div>
+                </div>
+
+                <div className="ai-field-group">
+                  <label className="ai-field-label">Description *</label>
+                  <textarea
+                    name="desc"
+                    className="ai-field-textarea"
+                    value={form.desc}
                     onChange={updateForm}
+                    required
+                    placeholder="Describe what this AI tool does and its key features..."
+                    rows={3}
                   />
-                  <strong>Feature in Essential AI Tools on Home Page</strong>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    name="isPartner"
-                    checked={form.isPartner}
-                    onChange={updateForm}
-                  />
-                  <span>Mark as Partner Tool</span>
-                </label>
+                </div>
+
+                {/* Interactive Feature Cards */}
+                <div className="ai-toggle-cards">
+                  <label className={`ai-toggle-card ${form.showInEssential ? 'active' : ''}`}>
+                    <input
+                      type="checkbox"
+                      name="showInEssential"
+                      checked={form.showInEssential}
+                      onChange={updateForm}
+                    />
+                    <div className="ai-toggle-info">
+                      <div className="ai-toggle-title">Feature in Essential AI Tools</div>
+                      <div className="ai-toggle-desc">Showcase on homepage Essential section</div>
+                    </div>
+                  </label>
+
+                  <label className={`ai-toggle-card ${form.isPartner ? 'active' : ''}`}>
+                    <input
+                      type="checkbox"
+                      name="isPartner"
+                      checked={form.isPartner}
+                      onChange={updateForm}
+                    />
+                    <div className="ai-toggle-info">
+                      <div className="ai-toggle-title">Mark as Partner Tool</div>
+                      <div className="ai-toggle-desc">Display partner badge on card</div>
+                    </div>
+                  </label>
+                </div>
+
+                {error && <p className="ai-tools-error" role="alert">{error}</p>}
               </div>
 
-              {error && <p className="ai-tools-error" role="alert" style={{ color: '#ef4444', fontSize: '0.82rem', margin: '4px 0' }}>{error}</p>}
-
-              <div className="delete-modal-actions" style={{ marginTop: '20px' }}>
+              {/* Sticky Footer */}
+              <div className="ai-modal-footer">
                 <button
                   type="button"
-                  className="cancel-btn"
+                  className="ai-btn-cancel"
                   onClick={closeFormModal}
                   disabled={isSubmitting}
                 >
@@ -1388,7 +1654,7 @@ function AIToolsManager() {
                 </button>
                 <button
                   type="submit"
-                  className="save-btn"
+                  className="ai-btn-submit"
                   disabled={isSubmitting || !form.name.trim() || !form.url.trim()}
                 >
                   {isSubmitting ? 'Saving...' : itemToEdit ? 'Save Changes' : 'Add Tool'}
@@ -1471,6 +1737,114 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
   const [favoritePulseId, setFavoritePulseId] = useState(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState('All')
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false)
+  const [categorySearchQuery, setCategorySearchQuery] = useState('')
+  const categoryDropdownRef = useRef(null)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const notificationRef = useRef(null)
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const stored = localStorage.getItem('nexio_notifications_log')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleNotifClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleNotifClickOutside)
+    return () => document.removeEventListener('mousedown', handleNotifClickOutside)
+  }, [])
+
+  // Listen specifically to link saved & link deleted events ONLY
+  useEffect(() => {
+    const handleNewLinkSaved = (e) => {
+      const title = e?.detail?.title || e?.detail?.name || 'New Resource'
+      const category = e?.detail?.category || e?.detail?.collection || 'Saved Links'
+      const newNotif = {
+        id: `saved-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        action: 'saved',
+        title: `Link Stored: ${title}`,
+        message: `"${title}" has been saved to ${category}.`,
+        category,
+        time: 'Just now',
+        read: false,
+        url: e?.detail?.url,
+      }
+      setNotifications((prev) => {
+        const updated = [newNotif, ...prev].slice(0, 50)
+        try {
+          localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
+        } catch {}
+        return updated
+      })
+    }
+
+    const handleLinkDeleted = (e) => {
+      const title = e?.detail?.title || e?.detail?.name || 'Resource'
+      const category = e?.detail?.category || e?.detail?.collection || 'Workspace'
+      const newNotif = {
+        id: `deleted-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        action: 'deleted',
+        title: `Link Deleted: ${title}`,
+        message: `"${title}" was deleted from ${category}.`,
+        category,
+        time: 'Just now',
+        read: false,
+      }
+      setNotifications((prev) => {
+        const updated = [newNotif, ...prev].slice(0, 50)
+        try {
+          localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
+        } catch {}
+        return updated
+      })
+    }
+
+    window.addEventListener('nexio_link_saved', handleNewLinkSaved)
+    window.addEventListener('nexio_link_deleted', handleLinkDeleted)
+    return () => {
+      window.removeEventListener('nexio_link_saved', handleNewLinkSaved)
+      window.removeEventListener('nexio_link_deleted', handleLinkDeleted)
+    }
+  }, [])
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length
+  }, [notifications])
+
+  const markAllNotificationsRead = () => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }))
+      try {
+        localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
+
+  const clearAllNotifications = () => {
+    setNotifications([])
+    try {
+      localStorage.removeItem('nexio_notifications_log')
+    } catch {}
+  }
+
+  const markNotificationRead = (id) => {
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      try {
+        localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
+      } catch {}
+      return updated
+    })
+  }
   const [searchQuery, setSearchQuery] = useState('')
   const [itemToDelete, setItemToDelete] = useState(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -1540,7 +1914,32 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
 
       let loadedLinks = Array.isArray(data) ? data.map(mapLiveLink) : []
 
-      setWalletTotalCount(loadedLinks.length + aiTools.length + editingItems.length)
+      if (Array.isArray(aiTools) && aiTools.length > 0) {
+        const existingUrls = new Set(loadedLinks.map(l => (l.url || '').toLowerCase().replace(/^https?:\/\//i, '').replace(/\/$/, '')))
+        const formattedAi = aiTools
+          .filter(t => !existingUrls.has((t.url || '').toLowerCase().replace(/^https?:\/\//i, '').replace(/\/$/, '')))
+          .map((item, idx) => ({
+            id: item._id || item.toolId || `ai-${idx}`,
+            title: item.name,
+            url: item.url,
+            description: item.desc || item.name,
+            category: item.tag || (item.category === 'art-images' ? 'AI Image & Video' : 'AI'),
+            collection: 'AI Tools',
+            meta: [item.tag || 'AI'],
+            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Recently',
+            accent: '#a855f7',
+            label: (item.name || 'A').charAt(0).toUpperCase(),
+            favorite: Boolean(item.showInEssential),
+            readLater: false,
+            badge: item.pricing || 'FREEMIUM',
+            bannerUrl: item.bannerUrl || '',
+            logoUrl: '',
+            kind: 'ai-tool'
+          }))
+        loadedLinks = [...loadedLinks, ...formattedAi]
+      }
+
+      setWalletTotalCount(loadedLinks.length + editingItems.length)
 
       // Filter out any locally deleted fallback assets (by id / _id)
       loadedLinks = loadedLinks.filter(
@@ -1621,6 +2020,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     }
   }, [])
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target)) {
+        setCategoryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const availableCategories = useMemo(() => {
     const cats = new Set()
     liveLinks.forEach((l) => {
@@ -1630,6 +2039,25 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     })
     return ['All', ...Array.from(cats)]
   }, [liveLinks])
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: liveLinks.length }
+    liveLinks.forEach((l) => {
+      if (l.category) {
+        l.category.split(',').forEach((c) => {
+          const trimmed = c.trim()
+          counts[trimmed] = (counts[trimmed] || 0) + 1
+        })
+      }
+    })
+    return counts
+  }, [liveLinks])
+
+  const filteredDropdownCategories = useMemo(() => {
+    if (!categorySearchQuery.trim()) return availableCategories
+    const q = categorySearchQuery.toLowerCase().trim()
+    return availableCategories.filter((cat) => cat.toLowerCase().includes(q))
+  }, [availableCategories, categorySearchQuery])
 
   const filteredLinks = useMemo(() => {
     let base = liveLinks
@@ -1643,6 +2071,13 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         if (!item.category) return false
         const c = item.category.toLowerCase()
         return c.includes('editing') || c.includes('research')
+      })
+    } else if (activeNav === 'AI Image & Video') {
+      base = base.filter((item) => {
+        if (!item.category && !item.tag) return false
+        const c = (item.category || '').toLowerCase()
+        const t = (item.tag || '').toLowerCase()
+        return c.includes('image') || c.includes('video') || t.includes('image') || t.includes('video')
       })
     }
 
@@ -1886,6 +2321,15 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
 
       window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
       window.dispatchEvent(new CustomEvent('nexio_links_updated'))
+      if (!editId) {
+        window.dispatchEvent(new CustomEvent('nexio_link_saved', {
+          detail: {
+            title: payload.title || 'Saved Link',
+            category: payload.collection || payload.category || 'Workspace',
+            url: payload.url,
+          }
+        }))
+      }
       setStatus(isQuick ? 'Quick asset saved successfully.' : 'Link updated successfully.')
     } catch {
       setStatus('Could not update this link.')
@@ -1922,8 +2366,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         return true
       }))
 
+      const deletedTitle = itemToDelete.title || itemToDelete.name || 'Saved Resource'
+      const deletedCategory = itemToDelete.collection || itemToDelete.category || 'Workspace'
       window.dispatchEvent(new CustomEvent('nexio_quick_assets_updated'))
       window.dispatchEvent(new CustomEvent('nexio_links_updated'))
+      window.dispatchEvent(new CustomEvent('nexio_link_deleted', {
+        detail: {
+          title: deletedTitle,
+          category: deletedCategory,
+        }
+      }))
       setStatus('Deleted successfully.')
     } catch {
       setStatus('Could not delete this item from MongoDB.')
@@ -2075,10 +2527,10 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           display: none;
         }
         .sidebar {
-          width: 250px;
+          width: 268px;
           background: #ffffff;
           border-right: 1px solid rgba(15,23,42,0.08);
-          padding: 22px 16px 18px;
+          padding: 22px 14px 18px;
           display: flex;
           flex-direction: column;
           gap: 16px;
@@ -2181,16 +2633,16 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         .nav-list {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
         .nav-item {
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 13px 16px;
+          gap: 11px;
+          padding: 11px 14px;
           border-radius: 999px;
           color: #1f2925;
-          font-size: 1rem;
+          font-size: 0.92rem;
           font-weight: 700;
           background: transparent;
           border: none;
@@ -2198,20 +2650,27 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           width: 100%;
           cursor: pointer;
           transition: background-color 0.18s ease, color 0.18s ease;
+          white-space: nowrap;
         }
         .nav-item:hover {
           background: rgba(15, 23, 42, 0.05);
         }
+        .nav-item svg {
+          flex-shrink: 0;
+        }
         .nav-item .nav-label {
           flex: 1;
           display: inline-block;
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           font-weight: 700;
           color: inherit;
           background: transparent;
           width: auto;
           height: auto;
           line-height: normal;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .nav-item.active {
           background: #17211c;
@@ -2223,6 +2682,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         }
         .nav-item .counter {
           margin-left: auto;
+          flex-shrink: 0;
           background: rgba(148, 163, 184, 0.18);
           color: #667085;
           padding: 3px 8px;
@@ -2230,6 +2690,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           font-size: 0.75rem;
           font-weight: 700;
           line-height: 1;
+          white-space: nowrap;
         }
         .upgrade-card {
           margin-top: auto;
@@ -2317,14 +2778,309 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           text-align: left;
         }
         .mini-avatar {
-          width: 36px;
-          height: 36px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
           background: linear-gradient(135deg, #1d4ed8, #3b82f6);
           color: white;
           display: grid;
           place-items: center;
           font-weight: 700;
+          font-size: 0.95rem;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .mini-avatar:hover {
+          transform: scale(1.05);
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+        .topbar-divider {
+          width: 1px;
+          height: 24px;
+          background: rgba(15, 23, 42, 0.12);
+          margin: 0 2px;
+        }
+        .icon-circle-btn {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          background: #ffffff;
+          color: #475569;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+          flex-shrink: 0;
+        }
+        .icon-circle-btn:hover,
+        .icon-circle-btn.active {
+          background: #ffffff;
+          border-color: rgba(37, 99, 235, 0.3);
+          color: #2563eb;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+          transform: translateY(-1px);
+        }
+        .notification-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          background: #ef4444;
+          color: #ffffff;
+          font-size: 0.65rem;
+          font-weight: 800;
+          min-width: 16px;
+          height: 16px;
+          padding: 0 4px;
+          border-radius: 999px;
+          display: grid;
+          place-items: center;
+          border: 2px solid #ffffff;
+          line-height: 1;
+          box-shadow: 0 2px 4px rgba(239, 68, 68, 0.35);
+        }
+        .notification-wrap {
+          position: relative;
+        }
+        .notification-dropdown {
+          position: absolute;
+          top: calc(100% + 10px);
+          right: -40px;
+          width: 340px;
+          max-width: 90vw;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.1);
+          border-radius: 18px;
+          box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.02);
+          z-index: 100;
+          overflow: hidden;
+          animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @media (min-width: 640px) {
+          .notification-dropdown {
+            right: 0;
+          }
+        }
+        .notification-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px 16px;
+          border-bottom: 1px solid #f1f5f9;
+          background: #ffffff;
+        }
+        .notification-header-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .notification-header-title h4 {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        .notification-count-pill {
+          padding: 2px 7px;
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563eb;
+          border-radius: 999px;
+          font-size: 0.72rem;
+          font-weight: 700;
+        }
+        .mark-all-read-btn {
+          border: none;
+          background: transparent;
+          color: #64748b;
+          font-size: 0.76rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          border-radius: 6px;
+          transition: all 0.15s ease;
+        }
+        .mark-all-read-btn:hover {
+          background: #f1f5f9;
+          color: #2563eb;
+        }
+        .notification-list {
+          max-height: 290px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          padding: 4px;
+        }
+        .notification-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .notification-item:hover {
+          background: #f8fafc;
+        }
+        .notification-item.unread {
+          background: rgba(37, 99, 235, 0.03);
+        }
+        .notification-item.unread:hover {
+          background: rgba(37, 99, 235, 0.07);
+        }
+        .notif-dot-wrap {
+          padding-top: 4px;
+          flex-shrink: 0;
+        }
+        .notif-status-dot {
+          display: block;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #cbd5e1;
+        }
+        .notif-status-dot.active {
+          background: #2563eb;
+          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        .notif-content {
+          flex: 1;
+          min-width: 0;
+        }
+        .notif-title-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 2px;
+        }
+        .notif-title {
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #0f172a;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .notif-time {
+          font-size: 0.72rem;
+          color: #94a3b8;
+          flex-shrink: 0;
+        }
+        .notif-message {
+          margin: 0;
+          font-size: 0.78rem;
+          color: #64748b;
+          line-height: 1.35;
+        }
+        .notif-meta-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 5px;
+        }
+        .notif-category-pill {
+          display: inline-flex;
+          align-items: center;
+          padding: 1px 7px;
+          border-radius: 999px;
+          background: #f1f5f9;
+          color: #475569;
+          font-size: 0.68rem;
+          font-weight: 600;
+        }
+        .notif-open-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #2563eb;
+          margin-left: auto;
+          transition: transform 0.15s ease;
+        }
+        .notification-item:hover .notif-open-link {
+          transform: translateX(2px);
+        }
+        .notif-status-dot.saved.active {
+          background: #10b981;
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+        }
+        .notif-status-dot.deleted.active {
+          background: #ef4444;
+          box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+        }
+        .notif-action-tag {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+        }
+        .notif-action-tag.saved {
+          background: #ecfdf5;
+          color: #059669;
+          border: 1px solid #a7f3d0;
+        }
+        .notif-action-tag.deleted {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+        .notification-item.deleted:hover {
+          background: rgba(239, 68, 68, 0.04);
+        }
+        .notification-empty {
+          padding: 28px 16px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .notification-empty-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #f0fdf4;
+          display: grid;
+          place-items: center;
+          margin-bottom: 8px;
+        }
+        .notification-empty h5 {
+          margin: 0 0 4px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          color: #1e293b;
+        }
+        .notification-empty p {
+          margin: 0;
+          font-size: 0.78rem;
+          color: #94a3b8;
+        }
+        .notification-footer {
+          padding: 10px 16px;
+          border-top: 1px solid #f1f5f9;
+          background: #fcfdfe;
+          text-align: center;
+        }
+        .clear-all-notif-btn {
+          border: none;
+          background: transparent;
+          color: #94a3b8;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: color 0.15s ease;
+        }
+        .clear-all-notif-btn:hover {
+          color: #ef4444;
         }
         .action-row {
           display: flex;
@@ -2485,12 +3241,173 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           margin: 0 0 20px;
           flex-wrap: wrap;
         }
-        .chip-row {
+        .filter-group {
           display: flex;
-          flex-wrap: wrap;
           align-items: center;
           gap: 10px;
-          flex: 1;
+          flex-wrap: wrap;
+        }
+        .filter-dropdown-wrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+        .category-dropdown-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 999px;
+          border: 1px solid rgba(15, 23, 42, 0.1);
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(8px);
+          color: #334155;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+          white-space: nowrap;
+        }
+        .category-dropdown-btn:hover {
+          background: #ffffff;
+          border-color: rgba(37, 99, 235, 0.3);
+          color: #0f172a;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+          transform: translateY(-1px);
+        }
+        .category-dropdown-btn.active-filter {
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          color: #ffffff;
+          border-color: transparent;
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+        }
+        .category-dropdown-btn.active-filter .category-btn-icon,
+        .category-dropdown-btn.active-filter .category-chevron {
+          color: #ffffff;
+        }
+        .category-dropdown-btn.active-filter .category-count-badge {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
+        }
+        .category-btn-icon {
+          color: #64748b;
+          flex-shrink: 0;
+        }
+        .category-chevron {
+          color: #64748b;
+          flex-shrink: 0;
+        }
+        .category-count-badge {
+          padding: 2px 7px;
+          border-radius: 999px;
+          background: rgba(15, 23, 42, 0.06);
+          color: #64748b;
+          font-size: 0.75rem;
+          font-weight: 700;
+          line-height: 1;
+          display: inline-flex;
+          align-items: center;
+        }
+        .category-clear-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
+          border: none;
+          cursor: pointer;
+          margin-left: 2px;
+          transition: background 0.15s ease;
+        }
+        .category-clear-btn:hover {
+          background: rgba(255, 255, 255, 0.4);
+        }
+        .category-dropdown-menu {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          min-width: 260px;
+          max-width: 320px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.1);
+          border-radius: 16px;
+          box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02);
+          padding: 8px;
+          z-index: 100;
+          animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dropdownFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        .category-dropdown-search {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          margin-bottom: 6px;
+        }
+        .category-dropdown-search input {
+          border: none;
+          outline: none;
+          background: transparent;
+          font-size: 0.84rem;
+          color: #0f172a;
+          width: 100%;
+        }
+        .category-dropdown-search input::placeholder {
+          color: #94a3b8;
+        }
+        .category-dropdown-list {
+          max-height: 240px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .category-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 8px 12px;
+          border-radius: 10px;
+          border: none;
+          background: transparent;
+          color: #334155;
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+          text-align: left;
+          width: 100%;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .category-item:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+        .category-item.selected {
+          background: #eff6ff;
+          color: #2563eb;
+          font-weight: 700;
+        }
+        .category-item-right {
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
         .chip-search-bar {
           display: flex;
@@ -2555,6 +3472,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           cursor: pointer;
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+          white-space: nowrap;
         }
         .chip:hover {
           transform: translateY(-2px);
@@ -2569,6 +3487,10 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           border-color: transparent;
           box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
           transform: translateY(-2px);
+        }
+        .chip.active .category-count-badge {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
         }
         .chip.active:hover {
           box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
@@ -3594,6 +4516,286 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         .delete-modal-actions .save-btn:hover {
           background: #1d4ed8;
         }
+
+        /* Premium AI Tool Modal */
+        .ai-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.55);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px 16px;
+          animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ai-modal-dialog {
+          background: #ffffff;
+          width: min(580px, 100%);
+          max-height: min(88vh, 800px);
+          max-height: min(88dvh, 800px);
+          border-radius: 20px;
+          box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          animation: modalScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ai-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px 16px;
+          border-bottom: 1px solid #f1f5f9;
+          background: #ffffff;
+          flex-shrink: 0;
+        }
+        .ai-modal-header-left {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .ai-modal-badge {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #2563eb, #3b82f6);
+          color: #ffffff;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+        .ai-modal-title {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
+          letter-spacing: -0.02em;
+          margin: 0 0 2px;
+          line-height: 1.2;
+        }
+        .ai-modal-subtitle {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 500;
+          margin: 0;
+          line-height: 1.4;
+        }
+        .ai-modal-close-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          color: #64748b;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          flex-shrink: 0;
+        }
+        .ai-modal-close-btn:hover {
+          background: #fee2e2;
+          border-color: #fca5a5;
+          color: #ef4444;
+          transform: rotate(90deg);
+        }
+        .ai-modal-form {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+        }
+        .ai-modal-body {
+          padding: 20px 24px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          flex: 1;
+        }
+        .ai-modal-body::-webkit-scrollbar {
+          width: 6px;
+        }
+        .ai-modal-body::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 999px;
+        }
+        .ai-modal-grid-2 {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .ai-field-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .ai-field-label {
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #475569;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .ai-field-input,
+        .ai-field-select,
+        .ai-field-textarea {
+          width: 100%;
+          padding: 10px 14px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          font-size: 0.92rem;
+          color: #0f172a;
+          font-weight: 500;
+          outline: none;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+        .ai-field-input:focus,
+        .ai-field-select:focus,
+        .ai-field-textarea:focus {
+          border-color: #2563eb;
+          background: #ffffff;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        .ai-field-input::placeholder,
+        .ai-field-textarea::placeholder {
+          color: #94a3b8;
+        }
+        .ai-field-select {
+          cursor: pointer;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 14px center;
+          padding-right: 36px;
+          appearance: none;
+        }
+        .ai-field-textarea {
+          resize: vertical;
+          min-height: 72px;
+          max-height: 140px;
+          line-height: 1.5;
+        }
+        .ai-toggle-cards {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 2px;
+        }
+        .ai-toggle-card {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+        .ai-toggle-card:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+        }
+        .ai-toggle-card.active {
+          background: #eff6ff;
+          border-color: #3b82f6;
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+        }
+        .ai-toggle-card input[type="checkbox"] {
+          margin-top: 2px;
+          width: 16px;
+          height: 16px;
+          accent-color: #2563eb;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .ai-toggle-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+        .ai-toggle-title {
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1.3;
+        }
+        .ai-toggle-desc {
+          font-size: 0.74rem;
+          color: #64748b;
+          line-height: 1.3;
+        }
+        .ai-tools-error {
+          padding: 8px 12px;
+          border-radius: 8px;
+          background: #fef2f2;
+          border: 1px solid #fee2e2;
+          color: #ef4444;
+          font-size: 0.82rem;
+          font-weight: 600;
+          margin: 0;
+        }
+        .ai-modal-footer {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 10px;
+          padding: 14px 24px;
+          border-top: 1px solid #f1f5f9;
+          background: #fcfdfe;
+          flex-shrink: 0;
+        }
+        .ai-btn-cancel {
+          padding: 10px 18px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          background: #ffffff;
+          color: #475569;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .ai-btn-cancel:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+        .ai-btn-submit {
+          padding: 10px 22px;
+          border-radius: 12px;
+          border: none;
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          color: #ffffff;
+          font-size: 0.9rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+          transition: all 0.15s ease;
+        }
+        .ai-btn-submit:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
+        }
+        .ai-btn-submit:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+        @media (max-width: 520px) {
+          .ai-modal-grid-2 {
+            grid-template-columns: 1fr;
+          }
+          .ai-toggle-cards {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
 
       <div className="dashboard-shell">
@@ -3660,6 +4862,15 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                       {liveLinks.filter(item => item.category && (item.category.toLowerCase().includes('editing') || item.category.toLowerCase().includes('research'))).length}
                     </span>
                   )}
+                  {label === 'AI Image & Video' && (
+                    <span className="counter">
+                      {liveLinks.filter(item => {
+                        const c = (item.category || '').toLowerCase()
+                        const t = (item.tag || '').toLowerCase()
+                        return c.includes('image') || c.includes('video') || t.includes('image') || t.includes('video')
+                      }).length}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -3706,8 +4917,8 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
               >
                 <Menu size={20} />
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="search-input-wrap"
                 onClick={() => setIsSearchModalOpen(true)}
               >
@@ -3740,10 +4951,113 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                   )}
                 </div>
               </div>
-              <button className="ghost-btn" type="button">
-                <Bell size={16} />
-              </button>
-              <div className="mini-avatar">N</div>
+              <div className="topbar-divider" />
+
+              {/* Notification Center */}
+              <div className="notification-wrap" ref={notificationRef}>
+                <button
+                  className={`icon-circle-btn ${isNotificationOpen ? 'active' : ''}`}
+                  type="button"
+                  onClick={() => setIsNotificationOpen((prev) => !prev)}
+                  title="Notifications"
+                  aria-expanded={isNotificationOpen}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="notification-badge">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotificationOpen && (
+                  <div className="notification-dropdown" role="dialog" aria-label="Notifications">
+                    <div className="notification-header">
+                      <div className="notification-header-title">
+                        <h4>Notifications</h4>
+                        {unreadCount > 0 && (
+                          <span className="notification-count-pill">{unreadCount} new</span>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="mark-all-read-btn"
+                          onClick={markAllNotificationsRead}
+                          title="Mark all as read"
+                        >
+                          <Check size={13} />
+                          <span>Mark all read</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="notification-list">
+                      {notifications.length === 0 ? (
+                        <div className="notification-empty">
+                          <div className="notification-empty-icon">
+                            <Bell size={20} color="#94a3b8" />
+                          </div>
+                          <h5>No notifications yet</h5>
+                          <p>Notifications will appear here when links are stored or deleted.</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`notification-item ${!notif.read ? 'unread' : ''} ${notif.action || 'saved'}`}
+                            onClick={() => {
+                              markNotificationRead(notif.id)
+                              if (notif.url && notif.action !== 'deleted') {
+                                const targetUrl = notif.url.startsWith('http') ? notif.url : `https://${notif.url}`
+                                window.open(targetUrl, '_blank', 'noopener,noreferrer')
+                              }
+                            }}
+                          >
+                            <div className="notif-dot-wrap">
+                              <span className={`notif-status-dot ${notif.action === 'deleted' ? 'deleted' : 'saved'} ${!notif.read ? 'active' : ''}`} />
+                            </div>
+                            <div className="notif-content">
+                              <div className="notif-title-row">
+                                <span className="notif-title">{notif.title}</span>
+                                <span className="notif-time">{notif.time}</span>
+                              </div>
+                              <p className="notif-message">{notif.message}</p>
+                              <div className="notif-meta-row">
+                                <span className={`notif-action-tag ${notif.action === 'deleted' ? 'deleted' : 'saved'}`}>
+                                  {notif.action === 'deleted' ? 'Deleted' : 'Stored'}
+                                </span>
+                                {notif.category && (
+                                  <span className="notif-category-pill">{notif.category}</span>
+                                )}
+                                {notif.url && notif.action !== 'deleted' && (
+                                  <span className="notif-open-link">
+                                    Open <ArrowUpRight size={11} />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {notifications.length > 0 && (
+                      <div className="notification-footer">
+                        <button
+                          type="button"
+                          className="clear-all-notif-btn"
+                          onClick={clearAllNotifications}
+                        >
+                          Clear all notifications
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mini-avatar" title="Nexio Workspace">N</div>
             </div>
           </header>
 
@@ -3754,72 +5068,252 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           )}
 
           {activeNav === 'AI Tools' ? <AIToolsManager /> : <>
-          <div className="stats-grid">
-            {liveStats.map(({ label, value, delta, accent, icon: Icon }) => (
-              <div className="stat-card" key={label}>
-                <div className="stat-icon" style={{ '--icon-color': accent }}>
-                  <Icon size={16} strokeWidth={2.2} />
+            <div className="stats-grid">
+              {liveStats.map(({ label, value, delta, accent, icon: Icon }) => (
+                <div className="stat-card" key={label}>
+                  <div className="stat-icon" style={{ '--icon-color': accent }}>
+                    <Icon size={16} strokeWidth={2.2} />
+                  </div>
+                  <div className="stat-main">
+                    <div className="stat-value">{value}</div>
+                    <div className="stat-label">{label}</div>
+                    <div className="stat-delta">↑ {delta}</div>
+                  </div>
                 </div>
-                <div className="stat-main">
-                  <div className="stat-value">{value}</div>
-                  <div className="stat-label">{label}</div>
-                  <div className="stat-delta">↑ {delta}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-
-          <div className="chip-row-container">
-            <div className="chip-row">
-              {availableCategories.map((item) => (
-                <button
-                  type="button"
-                  className={`chip ${item === activeFilter ? 'active' : ''}`}
-                  key={item}
-                  onClick={() => setActiveFilter(item)}
-                >
-                  {item}
-                </button>
               ))}
             </div>
 
-            <div className="chip-search-bar">
-              <Search size={16} className="chip-search-icon" />
-              <input
-                type="text"
-                placeholder="Filter by title, URL or tags..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
+
+            <div className="chip-row-container">
+              <div className="filter-group">
                 <button
                   type="button"
-                  className="chip-search-clear"
-                  onClick={() => setSearchQuery('')}
-                  title="Clear search"
+                  className={`chip ${activeFilter === 'All' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveFilter('All')
+                    setCategoryDropdownOpen(false)
+                  }}
                 >
-                  <X size={14} />
+                  All
+                  <span className="category-count-badge" style={{ marginLeft: '6px' }}>
+                    {categoryCounts['All'] || 0}
+                  </span>
                 </button>
-              )}
-            </div>
-          </div>
 
-          <section className="panel">
-            <div className="list-view">
-              {isQuickAssetsView ? (
+                <div className="filter-dropdown-wrap" ref={categoryDropdownRef}>
+                  <button
+                    type="button"
+                    className={`category-dropdown-btn ${activeFilter !== 'All' ? 'active-filter' : ''}`}
+                    onClick={() => setCategoryDropdownOpen((prev) => !prev)}
+                    aria-expanded={categoryDropdownOpen}
+                  >
+                    <Filter size={15} className="category-btn-icon" />
+                    <span>
+                      {activeFilter === 'All' ? 'Select Category' : activeFilter}
+                    </span>
+                    {activeFilter !== 'All' && (
+                      <>
+                        <span className="category-count-badge">
+                          {categoryCounts[activeFilter] || 0}
+                        </span>
+                        <span
+                          className="category-clear-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveFilter('All')
+                            setCategoryDropdownOpen(false)
+                          }}
+                          title="Reset to All"
+                          role="button"
+                          tabIndex={0}
+                        >
+                          <X size={11} />
+                        </span>
+                      </>
+                    )}
+                    <ChevronDown
+                      size={14}
+                      className="category-chevron"
+                      style={{
+                        transform: categoryDropdownOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform 0.2s ease',
+                        marginLeft: '2px',
+                      }}
+                    />
+                  </button>
+
+                  {categoryDropdownOpen && (
+                    <div className="category-dropdown-menu">
+                      {availableCategories.length > 5 && (
+                        <div className="category-dropdown-search">
+                          <Search size={14} color="#94a3b8" />
+                          <input
+                            type="text"
+                            placeholder="Search categories..."
+                            value={categorySearchQuery}
+                            onChange={(e) => setCategorySearchQuery(e.target.value)}
+                            autoFocus
+                          />
+                          {categorySearchQuery && (
+                            <button
+                              type="button"
+                              className="chip-search-clear"
+                              onClick={() => setCategorySearchQuery('')}
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <div className="category-dropdown-list">
+                        {filteredDropdownCategories.map((cat) => {
+                          const isSelected = activeFilter === cat
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              className={`category-item ${isSelected ? 'selected' : ''}`}
+                              onClick={() => {
+                                setActiveFilter(cat)
+                                setCategoryDropdownOpen(false)
+                                setCategorySearchQuery('')
+                              }}
+                            >
+                              <span>{cat === 'All' ? 'All Categories' : cat}</span>
+                              <div className="category-item-right">
+                                <span className="category-count-badge">
+                                  {categoryCounts[cat] || 0}
+                                </span>
+                                {isSelected && <Check size={14} color="#2563eb" />}
+                              </div>
+                            </button>
+                          )
+                        })}
+                        {filteredDropdownCategories.length === 0 && (
+                          <div style={{ padding: '12px', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>
+                            No categories found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="chip-search-bar">
+                <Search size={16} className="chip-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Filter by title, URL or tags..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="chip-search-clear"
+                    onClick={() => setSearchQuery('')}
+                    title="Clear search"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <section className="panel">
+              <div className="list-view">
+                {isQuickAssetsView ? (
                   filteredQuickAssets.length === 0 ? (
-                  <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1' }}>
+                    <div className="dashboard-empty-container" style={{ gridColumn: '1 / -1' }}>
+                      <div className="dashboard-empty-animation">
+                        <img
+                          src="/assets/empty/no-messages.svg"
+                          alt="No quick assets"
+                          style={{ width: '180px', height: '140px', objectFit: 'contain' }}
+                        />
+                      </div>
+                      <h3 className="dashboard-empty-title">No quick assets available</h3>
+                      <p className="dashboard-empty-subtitle">
+                        Add lightweight utilities, plugins, and vector sets to your Quick Assets workspace.
+                      </p>
+                      <button
+                        type="button"
+                        className="dashboard-empty-add-btn"
+                        onClick={onAddLink}
+                      >
+                        <Plus size={16} />
+                        <span>Add Quick Asset</span>
+                      </button>
+                    </div>
+                  ) : filteredQuickAssets.map((item) => (
+                    <DashboardLinkCard
+                      key={item.id}
+                      item={item}
+                      isDashboardView={isDashboardView}
+                      onOpen={handleOpenService}
+                      onEdit={handleEditService}
+                      onDelete={handleDeleteService}
+                      onToggleFavorite={handleToggleFavorite}
+                      favoritePulseId={favoritePulseId}
+                    />
+                  ))
+                ) : isLoadingLinks ? (
+                  Array.from({ length: 8 }).map((_, idx) => (
+                    <article key={idx} className="service-card skeleton-service-card">
+                      <div className="skeleton-preview" />
+                      <div className="service-card-top" style={{ padding: '14px 16px 0' }}>
+                        <div className="skeleton-avatar" />
+                        <div className="skeleton-badge" />
+                      </div>
+                      <div className="skeleton-body">
+                        <div className="skeleton-line skeleton-card-title" />
+                        <div className="skeleton-line skeleton-card-desc" />
+                        <div className="skeleton-line skeleton-card-desc-short" />
+                        <div className="skeleton-tags">
+                          <div className="skeleton-tag" />
+                          <div className="skeleton-tag" />
+                        </div>
+                      </div>
+                      <div className="skeleton-footer">
+                        <div className="skeleton-line skeleton-url" />
+                        <div className="skeleton-action-icons">
+                          <div className="skeleton-circle" />
+                          <div className="skeleton-circle" />
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                ) : linksError ? (
+                  <div className="service-card empty-state" style={{ gridColumn: '1 / -1', color: '#b45309' }}>
+                    {linksError}
+                  </div>
+                ) : filteredLinks.length === 0 ? (
+                  <div className="dashboard-empty-container">
                     <div className="dashboard-empty-animation">
                       <img
-                        src="/assets/empty/no-messages.svg"
-                        alt="No quick assets"
+                        src={
+                          activeNav === 'Favorites'
+                            ? '/assets/empty/no-favorites.svg'
+                            : activeNav === 'Saved'
+                              ? '/assets/empty/checklist.svg'
+                              : activeNav === 'Read Later'
+                                ? '/assets/empty/announcement.svg'
+                                : '/assets/empty/no-data.svg'
+                        }
+                        alt="Empty state"
                         style={{ width: '180px', height: '140px', objectFit: 'contain' }}
                       />
                     </div>
-                    <h3 className="dashboard-empty-title">No quick assets available</h3>
+                    <h3 className="dashboard-empty-title">
+                      {activeNav === 'Favorites'
+                        ? 'No favorite links saved yet'
+                        : activeNav === 'Read Later'
+                          ? 'No links marked for read later'
+                          : `No ${activeNav.toLowerCase()} links found`}
+                    </h3>
                     <p className="dashboard-empty-subtitle">
-                      Add lightweight utilities, plugins, and vector sets to your Quick Assets workspace.
+                      Keep your favorite websites, tools, and research documents organized in your Nexio workspace.
                     </p>
                     <button
                       type="button"
@@ -3827,12 +5321,12 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                       onClick={onAddLink}
                     >
                       <Plus size={16} />
-                      <span>Add Quick Asset</span>
+                      <span>Add New Link</span>
                     </button>
                   </div>
-                ) : filteredQuickAssets.map((item) => (
+                ) : visibleLinks.map((item) => (
                   <DashboardLinkCard
-                    key={item.id}
+                    key={item.id || item._id}
                     item={item}
                     isDashboardView={isDashboardView}
                     onOpen={handleOpenService}
@@ -3841,96 +5335,18 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
                     onToggleFavorite={handleToggleFavorite}
                     favoritePulseId={favoritePulseId}
                   />
-                ))
-              ) : isLoadingLinks ? (
-                Array.from({ length: 8 }).map((_, idx) => (
-                  <article key={idx} className="service-card skeleton-service-card">
-                    <div className="skeleton-preview" />
-                    <div className="service-card-top" style={{ padding: '14px 16px 0' }}>
-                      <div className="skeleton-avatar" />
-                      <div className="skeleton-badge" />
-                    </div>
-                    <div className="skeleton-body">
-                      <div className="skeleton-line skeleton-card-title" />
-                      <div className="skeleton-line skeleton-card-desc" />
-                      <div className="skeleton-line skeleton-card-desc-short" />
-                      <div className="skeleton-tags">
-                        <div className="skeleton-tag" />
-                        <div className="skeleton-tag" />
-                      </div>
-                    </div>
-                    <div className="skeleton-footer">
-                      <div className="skeleton-line skeleton-url" />
-                      <div className="skeleton-action-icons">
-                        <div className="skeleton-circle" />
-                        <div className="skeleton-circle" />
-                      </div>
-                    </div>
-                  </article>
-                ))
-              ) : linksError ? (
-                <div className="service-card empty-state" style={{ gridColumn: '1 / -1', color: '#b45309' }}>
-                  {linksError}
-                </div>
-              ) : filteredLinks.length === 0 ? (
-                <div className="dashboard-empty-container">
-                  <div className="dashboard-empty-animation">
-                    <img
-                      src={
-                        activeNav === 'Favorites'
-                          ? '/assets/empty/no-favorites.svg'
-                          : activeNav === 'Saved'
-                            ? '/assets/empty/checklist.svg'
-                            : activeNav === 'Read Later'
-                              ? '/assets/empty/announcement.svg'
-                              : '/assets/empty/no-data.svg'
-                      }
-                      alt="Empty state"
-                      style={{ width: '180px', height: '140px', objectFit: 'contain' }}
-                    />
-                  </div>
-                  <h3 className="dashboard-empty-title">
-                    {activeNav === 'Favorites'
-                      ? 'No favorite links saved yet'
-                      : activeNav === 'Read Later'
-                        ? 'No links marked for read later'
-                        : `No ${activeNav.toLowerCase()} links found`}
-                  </h3>
-                  <p className="dashboard-empty-subtitle">
-                    Keep your favorite websites, tools, and research documents organized in your Nexio workspace.
-                  </p>
-                  <button
-                    type="button"
-                    className="dashboard-empty-add-btn"
-                    onClick={onAddLink}
-                  >
-                    <Plus size={16} />
-                    <span>Add New Link</span>
-                  </button>
-                </div>
-              ) : visibleLinks.map((item) => (
-                <DashboardLinkCard
-                  key={item.id || item._id}
-                  item={item}
-                  isDashboardView={isDashboardView}
-                  onOpen={handleOpenService}
-                  onEdit={handleEditService}
-                  onDelete={handleDeleteService}
-                  onToggleFavorite={handleToggleFavorite}
-                  favoritePulseId={favoritePulseId}
-                />
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {filteredLinks.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                scrollToTop={false}
-              />
-            )}
-          </section>
+              {filteredLinks.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  scrollToTop={false}
+                />
+              )}
+            </section>
           </>}
         </main>
       </div>

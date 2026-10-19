@@ -118,9 +118,16 @@ export default function EssentialAITools({ onNavigateToDesign }) {
         method: 'DELETE'
       });
       if (res.ok) {
+        const deletedTitle = toolToDelete.name || 'AI Tool';
         setToolToDelete(null);
         await fetchEssentialTools();
         window.dispatchEvent(new CustomEvent('nexio_ai_tools_updated'));
+        window.dispatchEvent(new CustomEvent('nexio_link_deleted', {
+          detail: {
+            title: deletedTitle,
+            category: 'AI Tools',
+          }
+        }));
       }
     } catch (err) {
       console.error('Failed to delete AI tool:', err);
@@ -463,7 +470,25 @@ export default function EssentialAITools({ onNavigateToDesign }) {
         className="flex gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory no-scrollbar scrollbar-none"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {!loading && tools.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-[280px] sm:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] shrink-0 snap-start bg-white rounded-3xl p-4 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between animate-pulse"
+            >
+              <div>
+                <div className="h-[142px] w-full rounded-[20px] bg-gray-200 mb-5" />
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+                <div className="h-3 bg-gray-100 rounded w-2/3" />
+              </div>
+              <div className="mt-4 pt-3 flex items-center justify-between">
+                <div className="h-4 bg-gray-100 rounded-full w-14" />
+                <div className="h-4 bg-gray-200 rounded-full w-16" />
+              </div>
+            </div>
+          ))
+        ) : tools.length === 0 ? (
           <div className="w-full py-10 flex flex-col items-center justify-center text-center">
             <img src="/assets/empty/no-results.svg" alt="No tools found" className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">No essential tools found</h3>

@@ -46,7 +46,7 @@ export default function GlobalSearchModal({ isOpen, onClose, links, onOpenLink }
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  const tabs = ['Saved', 'Quick Assets', 'UI/UX'];
+  const tabs = ['Saved', 'Quick Assets', 'AI Tools', 'AI Image & Video', 'Editing'];
 
   useEffect(() => {
     if (isOpen) {
@@ -75,8 +75,39 @@ export default function GlobalSearchModal({ isOpen, onClose, links, onOpenLink }
         result = result.filter(l => l.collection === 'Inbox' || l.category === 'Saved' || l.collection === 'Saved');
       } else if (activeTab === 'Quick Assets') {
         result = result.filter(l => l.kind === 'quick-asset' || l.collection === 'Quick Assets' || l.category === 'Featured Quick Asset');
-      } else if (activeTab === 'UI/UX') {
-        result = result.filter(l => l.category && l.category.toLowerCase().includes('ui/ux'));
+      } else if (activeTab === 'AI Tools') {
+        result = result.filter(l => {
+          const cat = (l.category || '').toLowerCase();
+          const col = (l.collection || '').toLowerCase();
+          const title = (l.title || l.name || '').toLowerCase();
+          const type = (l.type || '').toLowerCase();
+          const meta = Array.isArray(l.meta) ? l.meta.join(' ').toLowerCase() : '';
+          const tags = Array.isArray(l.tags) ? l.tags.join(' ').toLowerCase() : '';
+          const all = `${cat} ${col} ${title} ${type} ${meta} ${tags}`;
+          return l.kind === 'ai-tool' || all.includes('ai') || all.includes('bot') || all.includes('gpt') || all.includes('agent') || all.includes('llm') || all.includes('generator');
+        });
+      } else if (activeTab === 'AI Image & Video') {
+        result = result.filter(l => {
+          const cat = (l.category || '').toLowerCase();
+          const col = (l.collection || '').toLowerCase();
+          const title = (l.title || l.name || '').toLowerCase();
+          const type = (l.type || '').toLowerCase();
+          const meta = Array.isArray(l.meta) ? l.meta.join(' ').toLowerCase() : '';
+          const tags = Array.isArray(l.tags) ? l.tags.join(' ').toLowerCase() : '';
+          const all = `${cat} ${col} ${title} ${type} ${meta} ${tags}`;
+          return all.includes('image') || all.includes('video') || all.includes('photo') || all.includes('midjourney') || all.includes('runway') || all.includes('luma') || all.includes('sora') || all.includes('pika') || all.includes('art') || all.includes('avatar') || all.includes('graphic') || all.includes('visual');
+        });
+      } else if (activeTab === 'Editing') {
+        result = result.filter(l => {
+          const cat = (l.category || '').toLowerCase();
+          const col = (l.collection || '').toLowerCase();
+          const title = (l.title || l.name || '').toLowerCase();
+          const type = (l.type || '').toLowerCase();
+          const meta = Array.isArray(l.meta) ? l.meta.join(' ').toLowerCase() : '';
+          const tags = Array.isArray(l.tags) ? l.tags.join(' ').toLowerCase() : '';
+          const all = `${cat} ${col} ${title} ${type} ${meta} ${tags}`;
+          return col.includes('edit') || cat.includes('edit') || all.includes('edit') || all.includes('cutter') || all.includes('trim') || all.includes('audio') || all.includes('video edit') || all.includes('capcut') || all.includes('davinci') || all.includes('photoshop') || all.includes('studio') || all.includes('caption');
+        });
       }
     } else if (hasQuery) {
       const q = query.toLowerCase().trim();
@@ -382,7 +413,7 @@ export default function GlobalSearchModal({ isOpen, onClose, links, onOpenLink }
         /* Result Row */
         .search-result-item {
           display: grid;
-          grid-template-columns: 28px 1fr auto 72px;
+          grid-template-columns: 28px 1fr auto;
           align-items: center;
           column-gap: 12px;
           padding: 8px 12px;
@@ -466,47 +497,6 @@ export default function GlobalSearchModal({ isOpen, onClose, links, onOpenLink }
           font-weight: 600;
           white-space: nowrap;
           justify-self: end;
-        }
-
-        /* Action Column - Fixed 72px slot prevents shifting */
-        .result-action-slot {
-          width: 72px;
-          display: flex;
-          justify-content: flex-end;
-          align-items: center;
-        }
-
-        .result-action-btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          padding: 3px 8px;
-          border-radius: 5px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-          opacity: 0;
-          transform: translateX(4px);
-          transition: all 0.12s ease;
-        }
-
-        .search-result-item.selected .result-action-btn,
-        .search-result-item:hover .result-action-btn {
-          opacity: 1;
-          transform: translateX(0);
-        }
-
-        .result-action-btn span {
-          font-size: 0.75rem;
-          color: #475569;
-          font-weight: 500;
-        }
-
-        .result-action-btn kbd {
-          font-family: inherit;
-          font-size: 0.75rem;
-          color: #2563eb;
-          font-weight: 600;
         }
 
         @media (max-width: 640px) {
@@ -613,12 +603,6 @@ export default function GlobalSearchModal({ isOpen, onClose, links, onOpenLink }
                     </div>
                     <div className="result-category">
                       {item.category || 'General'}
-                    </div>
-                    <div className="result-action-slot">
-                      <div className="result-action-btn">
-                        <span>Open</span>
-                        <kbd>↵</kbd>
-                      </div>
                     </div>
                   </div>
                 );
