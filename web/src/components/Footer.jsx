@@ -4,9 +4,11 @@ export default function Footer({ onNavigate }) {
   const handleCategoryClick = (category) => {
     if (onNavigate) {
       if (category === 'ai') onNavigate('ai-tools')
+      else if (category === 'editing') onNavigate('editing')
+      else if (category === 'skills') onNavigate('skills')
       else onNavigate('design')
     } else {
-      window.location.hash = category === 'ai' ? '#ai-tools' : '#design'
+      window.location.hash = category
     }
   }
 
@@ -67,28 +69,28 @@ export default function Footer({ onNavigate }) {
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Categories</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm list-none p-0 m-0">
               <li>
-                <button type="button" onClick={() => handleCategoryClick('3d')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
-                  3D Illustrations
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleCategoryClick('icons')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
-                  Vector Icons
-                </button>
-              </li>
-              <li>
-                <button type="button" onClick={() => handleCategoryClick('fonts')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
-                  Typography
+                <button type="button" onClick={() => handleCategoryClick('design')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
+                  UI/UX & Design Systems
                 </button>
               </li>
               <li>
                 <button type="button" onClick={() => handleCategoryClick('ai')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
-                  AI Generative
+                  AI Tools & Agents
                 </button>
               </li>
               <li>
-                <button type="button" onClick={() => handleCategoryClick('uikits')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
-                  Figma UI Kits
+                <button type="button" onClick={() => handleCategoryClick('skills')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
+                  Agent Skills & Motion
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleCategoryClick('editing')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
+                  Creative Editing Studio
+                </button>
+              </li>
+              <li>
+                <button type="button" onClick={() => handleCategoryClick('design')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-gray-400">
+                  Production Site Autopsies
                 </button>
               </li>
             </ul>

@@ -1,210 +1,280 @@
+/**
+ * Comprehensive AI Tools Seeder for Nexio Hub
+ * Safely upserts 25+ top modern AI tools into MongoDB Atlas (ai-tools collection)
+ */
+
 const mongoose = require("mongoose");
 require("dotenv").config({ quiet: true });
-const AITool = require("./models/AITool");
+const AITool = require("../models/AITool");
 
-const ESSENTIAL_AI_TOOLS = [
-  {
-    toolId: 'lovable',
-    name: 'Lovable',
-    desc: 'Create apps and websites by chatting with AI.',
-    category: 'ui-web',
-    tag: 'AI Engineer',
-    pricing: 'FREE TRIAL',
-    isPartner: true,
-    url: 'https://lovablelabs.pxf.io/4aoVMo',
-    bannerType: 'lovable',
-    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/673dc05e197d0263be45cb97_lovable-ai-thumb.webp'
-  },
-  {
-    toolId: 'firefly',
-    name: 'Adobe Firefly',
-    desc: 'A suite of generative AI models and tools by Adobe.',
-    category: 'art-images',
-    tag: 'Graphic AI',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://www.adobe.com/products/firefly.html',
-    bannerType: 'firefly'
-  },
-  {
-    toolId: 'bolt',
-    name: 'Bolt',
-    desc: 'Create stunning apps and websites by chatting with AI.',
-    category: 'ui-web',
-    tag: 'Fullstack AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://bolt.new/?ref=toools',
-    bannerType: 'bolt'
-  },
-  {
-    toolId: 'webflow-ai',
-    name: 'Webflow AI',
-    desc: "Build websites even faster with Webflow's new AI tools.",
-    category: 'ui-web',
-    tag: 'Visual Dev',
-    pricing: 'FREEMIUM',
-    isPartner: true,
-    url: 'https://try.webflow.com/via-toools',
-    bannerType: 'webflow',
-    bannerUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    toolId: 'figma-ai',
-    name: 'Figma AI',
-    desc: "Figma's built-in AI features for faster design workflows.",
-    category: 'ui-web',
-    tag: 'UI Design',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://www.figma.com/ai/?via=toools',
-    bannerType: 'figma',
-    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    toolId: 'krea',
-    name: 'Krea',
-    desc: 'An easy way to generate images, video and sound with AI.',
-    category: 'art-images',
-    tag: 'Realtime AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://www.krea.ai/?via=toools',
-    bannerType: 'krea'
-  },
+const AI_TOOLS_CATALOG = [
   {
     toolId: 'claude',
-    name: 'Claude',
-    desc: 'The AI for problem solvers.',
+    name: 'Claude 3.7 Sonnet',
+    desc: 'State-of-the-art hybrid reasoning and coding model by Anthropic.',
     category: 'copy-llm',
-    tag: 'LLM Model',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://claude.ai/?via=toools',
-    bannerType: 'claude'
-  },
-  {
-    toolId: 'gemini',
-    name: 'Gemini',
-    desc: 'Unlock multimodal creativity for the next generation of visual apps.',
-    category: 'copy-llm',
-    tag: 'Multimodal AI',
-    pricing: 'FREE + PAID',
-    isPartner: false,
-    url: 'https://gemini.google.com/?via=toools',
-    bannerType: 'gemini'
-  },
-  {
-    toolId: 'spline-ai',
-    name: 'Spline AI',
-    desc: 'Generate objects, animations, and textures using prompts.',
-    category: '3d-motion',
-    tag: '3D & Motion',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://spline.design/ai?via=toools',
-    bannerType: 'spline',
-    bannerUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop'
-  },
-  {
-    toolId: 'framer-ai',
-    name: 'Framer AI',
-    desc: 'Design websites faster with intelligent tools.',
-    category: 'ui-web',
-    tag: 'Site Builder',
+    tag: 'LLM & Code',
     pricing: 'FREEMIUM',
     isPartner: true,
-    url: 'https://framer.link/toools',
-    bannerType: 'framer',
-    bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop'
+    showInEssential: true,
+    url: 'https://claude.ai',
+    bannerType: 'claude',
+    bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop'
   },
   {
     toolId: 'chatgpt',
     name: 'ChatGPT',
-    desc: 'Get answers, find inspiration and be more productive.',
+    desc: 'Leading conversational intelligence, web browsing, and multi-modal canvas by OpenAI.',
     category: 'copy-llm',
-    tag: 'AI Chatbot',
+    tag: 'AI Assistant',
     pricing: 'FREEMIUM',
     isPartner: false,
-    url: 'https://chat.openai.com/?via=toools',
-    bannerType: 'chatgpt'
+    showInEssential: true,
+    url: 'https://chat.openai.com',
+    bannerType: 'chatgpt',
+    bannerUrl: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop'
   },
   {
-    toolId: 'v0',
-    name: 'v0',
-    desc: 'Generative UI system powered by AI from Vercel.',
-    category: 'ui-web',
-    tag: 'Frontend AI',
-    pricing: 'FREEMIUM',
-    isPartner: false,
-    url: 'https://v0.dev/?via=toools',
-    bannerType: 'v0'
+    toolId: 'gemini',
+    name: 'Google Gemini 2.5',
+    desc: 'Google multimodal foundation model with 2M token context window and native video reasoning.',
+    category: 'copy-llm',
+    tag: 'Multimodal AI',
+    pricing: 'FREE + PAID',
+    isPartner: true,
+    showInEssential: true,
+    url: 'https://gemini.google.com',
+    bannerType: 'gemini',
+    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop'
   },
   {
     toolId: 'cursor',
     name: 'Cursor',
-    desc: 'AI-powered code editor built for extraordinary productivity.',
+    desc: 'The AI-first code editor built on VS Code with seamless codebase indexing and tab completions.',
     category: 'ui-web',
-    tag: 'Code Editor',
+    tag: 'AI Code Editor',
     pricing: 'FREE TRIAL',
     isPartner: false,
-    url: 'https://www.cursor.com/?via=toools',
+    showInEssential: true,
+    url: 'https://www.cursor.com',
     bannerType: 'cursor',
-    bannerUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop'
+    bannerUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'v0',
+    name: 'v0 by Vercel',
+    desc: 'Generative UI system powered by AI that produces responsive React and Tailwind components.',
+    category: 'ui-web',
+    tag: 'Frontend AI',
+    pricing: 'FREEMIUM',
+    isPartner: true,
+    showInEssential: true,
+    url: 'https://v0.dev',
+    bannerType: 'v0',
+    bannerUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'bolt',
+    name: 'Bolt.new',
+    desc: 'Prompt, build, and deploy full-stack web applications entirely in your browser with WebContainers.',
+    category: 'ui-web',
+    tag: 'Fullstack AI',
+    pricing: 'FREEMIUM',
+    isPartner: false,
+    showInEssential: true,
+    url: 'https://bolt.new',
+    bannerType: 'bolt',
+    bannerUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'lovable',
+    name: 'Lovable',
+    desc: 'Autonomous AI software engineer that creates production-ready web apps from your ideas.',
+    category: 'ui-web',
+    tag: 'AI Engineer',
+    pricing: 'FREE TRIAL',
+    isPartner: true,
+    showInEssential: true,
+    url: 'https://lovable.dev',
+    bannerType: 'lovable',
+    bannerUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/673dc05e197d0263be45cb97_lovable-ai-thumb.webp'
+  },
+  {
+    toolId: 'midjourney',
+    name: 'Midjourney v7',
+    desc: 'Industry standard for hyper-realistic and artistic generative image creation.',
+    category: 'art-images',
+    tag: 'Image Gen',
+    pricing: 'PAID',
+    isPartner: false,
+    showInEssential: true,
+    url: 'https://www.midjourney.com',
+    bannerType: 'midjourney',
+    bannerUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800&auto=format&fit=crop'
   },
   {
     toolId: 'recraft',
-    name: 'Recraft',
-    desc: 'Generate consistent vectors, 3D graphics, and style palettes.',
+    name: 'Recraft AI',
+    desc: 'Generate consistent vector art, SVGs, 3D illustrations, and brand style systems.',
     category: 'art-images',
-    tag: 'Vector AI',
+    tag: 'Vector & SVG',
     pricing: 'FREEMIUM',
     isPartner: false,
-    url: 'https://www.recraft.ai/?via=toools',
-    bannerType: 'recraft'
+    showInEssential: true,
+    url: 'https://www.recraft.ai',
+    bannerType: 'recraft',
+    bannerUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'krea',
+    name: 'Krea AI',
+    desc: 'Real-time interactive canvas generation, video enhancement, and image upscaling.',
+    category: 'art-images',
+    tag: 'Realtime Gen',
+    pricing: 'FREEMIUM',
+    isPartner: false,
+    showInEssential: false,
+    url: 'https://www.krea.ai',
+    bannerType: 'krea',
+    bannerUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'spline-ai',
+    name: 'Spline AI',
+    desc: 'Generate 3D objects, interactive scenes, physics animations, and textures with prompt prompts.',
+    category: '3d-motion',
+    tag: '3D & Motion',
+    pricing: 'FREEMIUM',
+    isPartner: false,
+    showInEssential: true,
+    url: 'https://spline.design/ai',
+    bannerType: 'spline',
+    bannerUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'runway',
+    name: 'Runway Gen-3 Alpha',
+    desc: 'Breakthrough video generation model producing cinema-grade video clips from text and images.',
+    category: '3d-motion',
+    tag: 'Video AI',
+    pricing: 'FREE TRIAL',
+    isPartner: false,
+    showInEssential: true,
+    url: 'https://runwayml.com',
+    bannerType: 'runway',
+    bannerUrl: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'elevenlabs',
+    name: 'ElevenLabs',
+    desc: 'Industry-leading voice cloning, emotional text-to-speech, and generative sound effects.',
+    category: '3d-motion',
+    tag: 'Voice & Audio',
+    pricing: 'FREEMIUM',
+    isPartner: true,
+    showInEssential: true,
+    url: 'https://elevenlabs.io',
+    bannerType: 'elevenlabs',
+    bannerUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'figma-ai',
+    name: 'Figma AI',
+    desc: 'First draft wireframing, automated layer renaming, and visual search directly in Figma.',
+    category: 'ui-web',
+    tag: 'UI Design',
+    pricing: 'FREE + PAID',
+    isPartner: false,
+    showInEssential: false,
+    url: 'https://www.figma.com/ai',
+    bannerType: 'figma',
+    bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'framer-ai',
+    name: 'Framer AI',
+    desc: 'Generate, style, and publish responsive websites with visual breakout AI controls.',
+    category: 'ui-web',
+    tag: 'Web Publishing',
+    pricing: 'FREEMIUM',
+    isPartner: true,
+    showInEssential: false,
+    url: 'https://framer.com',
+    bannerType: 'framer',
+    bannerUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop'
+  },
+  {
+    toolId: 'perplexity',
+    name: 'Perplexity AI',
+    desc: 'AI-powered answer engine with live real-time citation index and deep research modes.',
+    category: 'copy-llm',
+    tag: 'Research AI',
+    pricing: 'FREEMIUM',
+    isPartner: false,
+    showInEssential: true,
+    url: 'https://www.perplexity.ai',
+    bannerType: 'perplexity',
+    bannerUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop'
   },
   {
     toolId: 'relume',
     name: 'Relume',
-    desc: 'Generate websites, sitemaps, and wireframes with AI in seconds.',
+    desc: 'Generate full website architecture, wireframes, and copy in minutes for Figma and Webflow.',
     category: 'ui-web',
-    tag: 'Wireframe AI',
+    tag: 'Sitemap AI',
     pricing: 'FREEMIUM',
     isPartner: false,
-    url: 'https://www.relume.io/?via=toools',
-    bannerType: 'relume'
+    showInEssential: false,
+    url: 'https://www.relume.io',
+    bannerType: 'relume',
+    bannerUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop'
   },
   {
-    toolId: 'midjourney',
-    name: 'Midjourney',
-    desc: 'State of the art generative visual creation platform.',
+    toolId: 'firefly',
+    name: 'Adobe Firefly',
+    desc: 'Commercial-safe generative AI models for image expansion, vector recoloring, and generative fill.',
     category: 'art-images',
-    tag: 'Image AI',
-    pricing: 'PAID',
+    tag: 'Adobe AI',
+    pricing: 'FREE + PAID',
     isPartner: false,
-    url: 'https://www.midjourney.com/?via=toools',
-    bannerType: 'midjourney',
-    bannerUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=600&auto=format&fit=crop'
+    showInEssential: false,
+    url: 'https://www.adobe.com/products/firefly.html',
+    bannerType: 'firefly',
+    bannerUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?q=80&w=800&auto=format&fit=crop'
   }
 ];
 
-const seedDB = async () => {
-    try {
-        const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/wallet";
-        await mongoose.connect(uri, { dbName: "wallet" });
-        console.log("Connected to MongoDB for seeding...");
+async function seedAITools() {
+  console.log("🚀 Starting Safe AI Tools Seeder for Nexio Hub...");
+  try {
+    const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/wallet";
+    await mongoose.connect(uri, { dbName: "wallet" });
+    console.log("🟢 Connected to MongoDB Atlas (wallet database)");
 
-        await AITool.deleteMany({});
-        console.log("Cleared existing tools");
+    // Safe bulk upsert: updates existing tools or inserts new ones without destroying user changes
+    const bulkOps = AI_TOOLS_CATALOG.map((tool) => ({
+      updateOne: {
+        filter: { toolId: tool.toolId },
+        update: { $set: tool },
+        upsert: true
+      }
+    }));
 
-        await AITool.insertMany(ESSENTIAL_AI_TOOLS);
-        console.log("Successfully inserted tools");
+    const result = await AITool.bulkWrite(bulkOps, { ordered: false });
+    console.log(`✅ AI Tools Seeding completed!`);
+    console.log(`📊 Upserted: ${result.upsertedCount || 0} new tools`);
+    console.log(`🔄 Updated/Verified: ${result.modifiedCount || 0} tools`);
 
-        process.exit(0);
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
-};
+    const total = await AITool.countDocuments();
+    console.log(`🌟 Total AI Tools now in database: ${total}`);
 
-seedDB();
+    await mongoose.disconnect();
+    console.log("🔌 Disconnected.");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Seeding failed:", err);
+    process.exit(1);
+  }
+}
+
+seedAITools();

@@ -120,33 +120,33 @@
   }
 }
 
-/* Card matching the user screenshot with wider spacious proportions */
+/* Card matching the user screenshot with wider spacious proportions (Unslopped) */
 .link-card {
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  border: 1px solid #edf0f5;
-  border-radius: 26px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
   padding: 14px;
   text-decoration: none;
   color: inherit;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 6px 16px rgba(15, 23, 42, 0.02);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
   cursor: pointer;
   position: relative;
 }
 
 .link-card:hover {
-  border-color: #e2e8f0;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
-  transform: translateY(-4px);
+  border-color: rgba(15, 23, 42, 0.18);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+  transform: translateY(-2px);
 }
 
 /* Banner Wrapper with Relative Position for Overlapping Badge */
 .link-card-banner-wrapper {
   position: relative;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 /* Inner Banner Container with Rounded Corners */
@@ -154,13 +154,14 @@
   position: relative;
   width: 100%;
   height: 180px;
-  background: #f1f3f8;
-  border-radius: 20px;
+  background: #f1f5f9;
+  border-radius: 14px;
   overflow: hidden;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.05);
 }
 
 .link-card-screenshot {
@@ -168,12 +169,12 @@
   height: 100%;
   object-fit: cover;
   object-position: top center;
-  transition: transform 0.4s ease;
+  transition: transform 0.35s ease;
   display: block;
 }
 
 .link-card:hover .link-card-screenshot {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
 /* Readymag Special Banner Style matching user image */
@@ -212,24 +213,24 @@
 /* Circular Logo Badge Overlapping Bottom Right */
 .link-card-logo-badge {
   position: absolute;
-  bottom: -12px;
+  bottom: -10px;
   right: 12px;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #000000;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
-  border: 3.5px solid #ffffff;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  border: 2px solid #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
   overflow: hidden;
-  transition: transform 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .link-card:hover .link-card-logo-badge {
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
 .link-badge-img {

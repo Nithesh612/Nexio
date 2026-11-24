@@ -31,6 +31,9 @@ const getApiBaseUrl = () => {
 
 export const API_BASE_URL = getApiBaseUrl();
 export const API_URL = `${API_BASE_URL}/hub`;
+export const API_SKILLS_URL = `${API_BASE_URL}/skills`;
+export const API_EDITING_URL = `${API_BASE_URL}/editing`;
+export const API_AI_TOOLS_URL = `${API_BASE_URL}/api/ai-tools`;
 
 if (typeof window !== 'undefined') {
   console.log('🔗 Nexio Backend Connected to:', API_URL);
@@ -39,4 +42,7 @@ if (typeof window !== 'undefined') {
 export default {
   BASE_URL: API_BASE_URL,
   API_URL,
+  API_SKILLS_URL,
+  API_EDITING_URL,
+  API_AI_TOOLS_URL,
 };

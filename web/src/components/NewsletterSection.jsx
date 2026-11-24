@@ -19,24 +19,24 @@ export default function NewsletterSection({ className = '' }) {
         <div className="max-w-2xl mx-auto relative z-10">
           {/* Badge */}
           <span className="text-[11px] font-bold text-indigo-700 uppercase tracking-widest bg-white px-3.5 py-1.5 rounded-full border border-indigo-200/60 inline-block mb-4 shadow-2xs">
-            Weekly Resource Dispatch
+            Nexio Creative Dispatch
           </span>
 
           {/* Headline */}
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#0f172a] tracking-tight mb-3.5 leading-snug">
-            Join 5,000+ designers getting the latest tools, assets, and news in their inbox.
+            Stay ahead with curated AI tools, design systems, and developer bookmarks.
           </h2>
 
           {/* Description */}
           <p className="text-sm sm:text-base text-gray-600 mb-8 max-w-xl mx-auto leading-relaxed">
-            No spam, ever. Only the best curated Figma files, 3D icons, fonts and frontend components sent every Tuesday.
+            Zero spam, ever. Breakthrough AI releases, real production website autopsies, and creative assets delivered straight to your inbox.
           </p>
 
           {/* Form / Subscribed state */}
           {subscribed ? (
             <div className="inline-flex items-center gap-2 px-6 py-3.5 bg-emerald-600 text-white font-bold rounded-full text-sm shadow-md transition-all">
               <Check size={18} strokeWidth={3} />
-              <span>You're in! Check your inbox for the starter asset kit.</span>
+              <span>You're on the list! Check your inbox for the weekly creative digest.</span>
             </div>
           ) : (
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-center justify-center gap-2.5 max-w-lg mx-auto">
@@ -60,7 +60,7 @@ export default function NewsletterSection({ className = '' }) {
           )}
 
           <p className="text-xs text-gray-500 mt-4 font-normal">
-            Free forever. Unsubscribe with 1-click anytime.
+            Weekly intelligence for modern builders • Unsubscribe with 1 click anytime.
           </p>
         </div>
       </div>

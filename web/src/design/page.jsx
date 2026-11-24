@@ -758,7 +758,7 @@ const COLLECTIONS = [
   { id: 'c4', title: 'Web Designers', items: '410+ tools', iconUrl: 'https://cdn.prod.website-files.com/5ce10a4d0b5f0b560c22e756/69cb98a148308217c3684e8f_icon-web-designers.svg', desc: 'No-code builders, responsive grids & tokens', url: 'https://www.toools.design/for/web-designers' },
 ]
 
-export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToEditing, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
+export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToSkills, onNavigateToEditing, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [bookmarkedIds, setBookmarkedIds] = useState(new Set(['lr1', 'lr6', 'ai1']))
@@ -913,6 +913,9 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToEd
           } else if (target === 'ai-tools') {
             if (onNavigateToAITools) onNavigateToAITools()
             else window.location.hash = '#ai-tools'
+          } else if (target === 'skills') {
+            if (onNavigateToSkills) onNavigateToSkills()
+            else window.location.hash = '#skills'
           } else if (target === 'editing') {
             if (onNavigateToEditing) onNavigateToEditing()
             else window.location.hash = '#editing'
@@ -1161,124 +1164,20 @@ export default function DesignPage({ onBack, onNavigateToAITools, onNavigateToEd
           </div>
         </div>
 
-        {/* SECTION 9: NEWSLETTER CTA PILL */}
-        <div className="mb-16 relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 border border-indigo-200/60 p-8 sm:p-12 text-center shadow-lg">
-          <div className="max-w-2xl mx-auto relative z-10">
-            <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-white/80 px-3 py-1 rounded-full border border-indigo-200/60 inline-block mb-3">
-              Weekly Resource Dispatch
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-3">
-              Join 5,000+ designers getting the latest tools, assets, and news in their inbox.
-            </h2>
-            <p className="text-sm text-gray-600 mb-6">
-              No spam, ever. Only the best curated Figma files, 3D icons, fonts and frontend components sent every Tuesday.
-            </p>
-
-            {subscribed ? (
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-full text-sm shadow-md animate-bounce">
-                <Check size={18} />
-                <span>You're in! Check your inbox for the starter asset kit.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-center justify-center gap-2 max-w-md mx-auto">
-                <input
-                  type="email"
-                  required
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="Enter your work email..."
-                  className="w-full px-4 py-3 bg-white rounded-full text-sm border border-gray-300 focus:border-indigo-600 outline-none shadow-xs text-gray-900"
-                />
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-gray-900 hover:bg-black text-white font-bold text-sm rounded-full shadow-md transition-transform active:scale-95 shrink-0 cursor-pointer"
-                >
-                  Join Free
-                </button>
-              </form>
-            )}
-            <p className="text-[11px] text-gray-500 mt-3">Free forever. Unsubscribe with 1-click anytime.</p>
-          </div>
-        </div>
+        {/* SECTION 9: NEWSLETTER DISPATCH */}
+        <NewsletterSection />
 
       </div>
 
       {/* SECTION 10: DARK RICH FOOTER */}
-      <footer className="bg-[#0b0f19] text-gray-400 pt-14 pb-8 border-t border-gray-800">
-        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-
-            {/* Brand Column */}
-            <div className="col-span-2">
-              <div className="flex items-center gap-2 text-white font-extrabold text-xl mb-3 tracking-tight">
-                <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
-                  N
-                </span>
-                <span>NEXIO DESIGN</span>
-              </div>
-              <p className="text-xs text-gray-400 max-w-sm leading-relaxed mb-4">
-                The modern directory for UI/UX designers, frontend engineers, and creative builders. Curated with precision.
-              </p>
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-gray-300 transition-colors cursor-pointer text-xs">𝕏</span>
-                <span className="w-8 h-8 rounded-full bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-gray-300 transition-colors cursor-pointer text-xs">GH</span>
-                <span className="w-8 h-8 rounded-full bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-gray-300 transition-colors cursor-pointer text-xs">DC</span>
-                <span className="w-8 h-8 rounded-full bg-gray-800/80 hover:bg-gray-700 flex items-center justify-center text-gray-300 transition-colors cursor-pointer text-xs">IN</span>
-              </div>
-            </div>
-
-            {/* Links Columns */}
-            <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Categories</h4>
-              <ul className="space-y-2 text-xs">
-                <li><a href="#all" onClick={(e) => { e.preventDefault(); setSelectedCategory('3d') }} className="hover:text-white transition-colors">3D Illustrations</a></li>
-                <li><a href="#all" onClick={(e) => { e.preventDefault(); setSelectedCategory('icons') }} className="hover:text-white transition-colors">Vector Icons</a></li>
-                <li><a href="#all" onClick={(e) => { e.preventDefault(); setSelectedCategory('fonts') }} className="hover:text-white transition-colors">Typography</a></li>
-                <li><a href="#all" onClick={(e) => { e.preventDefault(); setSelectedCategory('ai') }} className="hover:text-white transition-colors">AI Generative</a></li>
-                <li><a href="#all" onClick={(e) => { e.preventDefault(); setSelectedCategory('uikits') }} className="hover:text-white transition-colors">Figma UI Kits</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Resources</h4>
-              <ul className="space-y-2 text-xs">
-                <li><a href="#" className="hover:text-white transition-colors">Submit a Tool</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Advertise With Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Weekly Newsletter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API & Feed</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Company</h4>
-              <ul className="space-y-2 text-xs">
-                <li><a href="#" className="hover:text-white transition-colors">About Nexio</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Brand Guidelines</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
-              </ul>
-            </div>
-
-          </div>
-
-          <div className="pt-8 border-t border-gray-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
-            <p>© {new Date().getFullYear()} Nexio Design Inc. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <span className="hover:text-gray-400 cursor-pointer">Privacy</span>
-              <span className="hover:text-gray-400 cursor-pointer">Terms</span>
-              <span className="hover:text-gray-400 cursor-pointer">Security</span>
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="hover:text-white text-gray-400 cursor-pointer"
-              >
-                Back to top ↑
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer onNavigate={(target) => {
+        if (target === 'landing') onBack?.()
+        else if (target === 'ai-tools') onNavigateToAITools?.()
+        else if (target === 'skills') onNavigateToSkills?.()
+        else if (target === 'editing') onNavigateToEditing?.()
+        else if (target === 'app') onNavigateToDashboard?.()
+        else if (target === 'design') window.scrollTo({ top: 0, behavior: 'smooth' })
+      }} />
     </div>
   )
 }

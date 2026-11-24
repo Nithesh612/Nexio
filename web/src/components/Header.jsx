@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { label: 'Home', targetView: 'landing', hash: '#home' },
   { label: 'Design', targetView: 'design', hash: '#design' },
   { label: 'AI Tools', targetView: 'ai-tools', hash: '#ai-tools' },
+  { label: 'Skills', targetView: 'skills', hash: '#skills' },
   { label: 'Editing', targetView: 'editing', hash: '#editing' },
 ]
 

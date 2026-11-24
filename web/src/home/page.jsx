@@ -9,7 +9,8 @@ import DesignPage from '../design/page'
 import AIToolsPage from '../AI-tools/page'
 import EditingPage from '../Editing/editing'
 import LoginPage from '../login/page'
-import AnimatedConnect01 from '../components/fonts/animation/animated-ai-saas-integrations-connect-flow'
+import SkillsPage from '../skills/page'
+import AnimatedConnect01 from '../components/fonts/animation/ai-saas-integrations'
 import EssentialAITools from './EssentialAITools'
 import FeaturedQuickAssets from './FeaturedQuickAssets'
 import NewsletterSection from '../components/NewsletterSection'
@@ -242,43 +243,6 @@ export default function Home() {
 
   const [pendingAddLink, setPendingAddLink] = useState(false)
 
-  const handleLoginSuccess = (userData) => {
-    setUser(userData)
-    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
-    if (pendingAddLink) {
-      setPendingAddLink(false)
-      setIsAdding(true)
-      handleSetView(view === 'login' ? 'app' : view, userData)
-    } else {
-      handleSetView('app', userData) // Go to dashboard after login with authenticated user
-    }
-  }
-
-  const handleLogout = () => {
-    setUser(null)
-    localStorage.removeItem('nexio_auth')
-    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
-    handleSetView('landing', null)
-  }
-
-  useEffect(() => {
-    if (!user || !user.expiresAt) return
-
-    const timeRemaining = user.expiresAt - Date.now()
-    if (timeRemaining <= 0) {
-      handleLogout()
-      return
-    }
-
-    // Set a timeout to auto logout. Use max 32-bit integer for setTimeout limit, though 1 day fits.
-    // 24 hours = 86400000 ms, which is < 2147483647 ms
-    const timer = setTimeout(() => {
-      handleLogout()
-    }, timeRemaining)
-
-    return () => clearTimeout(timer)
-  }, [user])
-
   const [view, setView] = useState(() => {
     try {
       const stored = localStorage.getItem('nexio_auth');
@@ -357,6 +321,43 @@ export default function Home() {
       // fallback
     }
   };
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData)
+    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
+    if (pendingAddLink) {
+      setPendingAddLink(false)
+      setIsAdding(true)
+      handleSetView(view === 'login' ? 'app' : view, userData)
+    } else {
+      handleSetView('app', userData) // Go to dashboard after login with authenticated user
+    }
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    localStorage.removeItem('nexio_auth')
+    window.dispatchEvent(new CustomEvent('nexio_auth_updated'))
+    handleSetView('landing', null)
+  }
+
+  useEffect(() => {
+    if (!user || !user.expiresAt) return
+
+    const timeRemaining = user.expiresAt - Date.now()
+    if (timeRemaining <= 0) {
+      handleLogout()
+      return
+    }
+
+    // Set a timeout to auto logout. Use max 32-bit integer for setTimeout limit, though 1 day fits.
+    // 24 hours = 86400000 ms, which is < 2147483647 ms
+    const timer = setTimeout(() => {
+      handleLogout()
+    }, timeRemaining)
+
+    return () => clearTimeout(timer)
+  }, [user])
 
   const handleAddLink = () => {
     let currentUser = user;
@@ -878,6 +879,7 @@ export default function Home() {
         <AIToolsPage 
           onBackToHome={() => handleSetView('landing')} 
           onNavigateToDesign={() => handleSetView('design')}
+          onNavigateToSkills={() => handleSetView('skills')}
           onNavigateToEditing={() => handleSetView('editing')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
@@ -890,6 +892,7 @@ export default function Home() {
           onBack={() => handleSetView('landing')}
           onNavigateToDesign={() => handleSetView('design')}
           onNavigateToAITools={() => handleSetView('ai-tools')}
+          onNavigateToSkills={() => handleSetView('skills')}
           onNavigateToDashboard={() => handleSetView('app')}
           onAddLink={handleAddLink}
           user={user}
@@ -899,6 +902,19 @@ export default function Home() {
       ) : view === 'design' ? (
         <DesignPage 
           onBack={() => handleSetView('landing')} 
+          onNavigateToAITools={() => handleSetView('ai-tools')}
+          onNavigateToSkills={() => handleSetView('skills')}
+          onNavigateToEditing={() => handleSetView('editing')}
+          onNavigateToDashboard={() => handleSetView('app')}
+          onAddLink={handleAddLink}
+          user={user}
+          onLogin={() => handleSetView('login')}
+          onLogout={handleLogout}
+        />
+      ) : view === 'skills' ? (
+        <SkillsPage
+          onBackToHome={() => handleSetView('landing')}
+          onNavigateToDesign={() => handleSetView('design')}
           onNavigateToAITools={() => handleSetView('ai-tools')}
           onNavigateToEditing={() => handleSetView('editing')}
           onNavigateToDashboard={() => handleSetView('app')}
@@ -915,6 +931,7 @@ export default function Home() {
               if (target === 'landing') window.scrollTo({ top: 0, behavior: 'smooth' })
               else if (target === 'design') handleSetView('design')
               else if (target === 'ai-tools') handleSetView('ai-tools')
+              else if (target === 'skills') handleSetView('skills')
               else if (target === 'editing') handleSetView('editing')
               else if (target === 'app') handleSetView('app')
             }}

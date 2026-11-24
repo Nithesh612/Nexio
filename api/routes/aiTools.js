@@ -53,7 +53,13 @@ router.put('/:id', async (req, res) => {
 // Delete an AI Tool
 router.delete('/:id', async (req, res) => {
   try {
-    const tool = await AITool.findByIdAndDelete(req.params.id);
+    const idFilter = mongoose.isValidObjectId(req.params.id)
+      ? { _id: req.params.id }
+      : { toolId: req.params.id };
+    let tool = await AITool.findOneAndDelete(idFilter);
+    if (!tool && req.params.id) {
+      tool = await AITool.findOneAndDelete({ toolId: req.params.id });
+    }
     if (!tool) return res.status(404).json({ message: 'Tool not found' });
     res.json({ message: 'Tool deleted successfully' });
   } catch (error) {

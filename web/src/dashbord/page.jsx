@@ -57,7 +57,7 @@ const navItems = [
 const stats = [
   { label: 'Total Links', value: '128', delta: '+ 12%', accent: '#3b82f6', icon: Link2 },
   { label: 'Saved', value: '24', delta: '+ 8%', accent: '#f4c849', icon: Bookmark },
-  { label: 'Type', value: '0', delta: '+ 15%', accent: '#57c89d', icon: LayoutGrid },
+  { label: 'Categories', value: '0', delta: '+ 15%', accent: '#57c89d', icon: LayoutGrid },
   { label: 'Favorites', value: '0', delta: '+ 6%', accent: '#f43f5e', icon: Heart },
 ]
 
@@ -1781,7 +1781,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         const updated = [newNotif, ...prev].slice(0, 50)
         try {
           localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
-        } catch {}
+        } catch { }
         return updated
       })
     }
@@ -1802,7 +1802,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
         const updated = [newNotif, ...prev].slice(0, 50)
         try {
           localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
-        } catch {}
+        } catch { }
         return updated
       })
     }
@@ -1824,7 +1824,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       const updated = prev.map((n) => ({ ...n, read: true }))
       try {
         localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
-      } catch {}
+      } catch { }
       return updated
     })
   }
@@ -1833,7 +1833,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
     setNotifications([])
     try {
       localStorage.removeItem('nexio_notifications_log')
-    } catch {}
+    } catch { }
   }
 
   const markNotificationRead = (id) => {
@@ -1841,7 +1841,7 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
       const updated = prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       try {
         localStorage.setItem('nexio_notifications_log', JSON.stringify(updated))
-      } catch {}
+      } catch { }
       return updated
     })
   }
@@ -3799,14 +3799,15 @@ export default function DashboardPage({ onBack, onAddLink, onLogout, onNavigateT
           left: 10px;
           background: rgba(255, 255, 255, 0.94);
           backdrop-filter: blur(8px);
-          color: #1e293b;
+          color: #64748b;
           font-size: 10px;
-          font-weight: 700;
+          font-weight: 600;
           padding: 3px 9px;
           border-radius: 999px;
-          letter-spacing: 0.2px;
+          letter-spacing: 0.5px;
           text-transform: uppercase;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(226, 232, 240, 0.8);
           z-index: 3;
         }
         

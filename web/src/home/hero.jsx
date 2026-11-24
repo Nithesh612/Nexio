@@ -104,12 +104,18 @@ export const Skiper58 = ({ onNavigate, onAddLink }) => {
       desc: "Typography, UI kits, design systems, and animations."
     },
     {
+      name: "Agent Skills",
+      action: () => onNavigate?.("skills"),
+      tag: "AGENT WORKSPACE [04]",
+      desc: "GSAP motion, UI-UX Pro Max, Unslop, Inspo, and Video tools."
+    },
+    {
       name: "Quick Assets",
       action: () => {
         const el = document.getElementById("quick-assets") || document.getElementById("featured-quick-assets");
         el?.scrollIntoView({ behavior: "smooth" });
       },
-      tag: "CURATED [04]",
+      tag: "CURATED [05]",
       desc: "Plugins, SVG vectors, mockup templates, and components."
     },
     {
@@ -124,41 +130,47 @@ export const Skiper58 = ({ onNavigate, onAddLink }) => {
   ];
 
   return (
-    <section className="relative w-full overflow-hidden py-8 md:py-12 flex flex-col items-center justify-center bg-gradient-to-b from-[#090d16] via-[#0f172a] to-[#090d16] text-white">
-      {/* Glow Effects */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[260px] bg-gradient-to-tr from-rose-500/20 via-indigo-500/20 to-cyan-400/20 blur-[100px] pointer-events-none rounded-full" />
+    <section className="relative w-full overflow-hidden py-10 md:py-16 flex flex-col items-center justify-center bg-[#0a0f1d] text-white">
+      {/* Architectural subtle ambient light wash (Unslopped) */}
+      <div 
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[720px] h-[340px] pointer-events-none rounded-full"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 20%, rgba(99, 102, 241, 0.12) 0%, rgba(15, 23, 42, 0) 70%)',
+          filter: 'blur(60px)',
+        }}
+      />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 w-full flex flex-col items-center text-center">
 
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold tracking-wider text-rose-300 uppercase mb-5 shadow-inner">
-          <Sparkles size={13} className="text-rose-400 animate-pulse" />
-          <span>Next-Hub</span>
+        {/* Unslopped Tactile Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700/60 text-[11px] font-medium tracking-wide text-slate-300 uppercase mb-5 shadow-sm">
+          <Sparkles size={12} className="text-indigo-400" />
+          <span>Curated Creative Intelligence</span>
         </div>
 
         {/* Skiper58 Interactive Typography Menu */}
         <div className="w-full my-1 flex flex-col items-center justify-center">
-          <ul className="flex w-full flex-col items-center justify-center gap-2.5 md:gap-3.5 py-2">
+          <ul className="flex w-full flex-col items-center justify-center gap-2 md:gap-3 py-2">
             {navigationItems.map((item, index) => (
               <li
                 key={index}
                 onClick={item.action}
-                className="group relative flex cursor-pointer flex-col items-center justify-center transition-transform hover:scale-[1.025] active:scale-[0.98]"
+                className="group relative flex cursor-pointer flex-col items-center justify-center transition-transform hover:scale-[1.015] active:scale-[0.99]"
               >
                 <div className="flex items-center gap-3">
                   <TextRoll
                     center
-                    className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight text-slate-100 group-hover:text-rose-400 transition-colors"
+                    className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-slate-200 group-hover:text-white transition-colors"
                   >
                     {item.name}
                   </TextRoll>
-                  <span className="hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-rose-400 -translate-x-2 group-hover:translate-x-0">
+                  <span className="hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-all duration-300 text-indigo-400 -translate-x-2 group-hover:translate-x-0">
                     <ArrowRight size={24} />
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 mt-0.5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-                  <span className="text-[10.5px] font-bold tracking-widest text-rose-400/90 uppercase">{item.tag}</span>
+                  <span className="text-[10px] font-semibold tracking-wider text-indigo-400 uppercase">{item.tag}</span>
                   <span className="text-xs text-slate-400 hidden md:inline">— {item.desc}</span>
                 </div>
               </li>
@@ -166,15 +178,15 @@ export const Skiper58 = ({ onNavigate, onAddLink }) => {
           </ul>
         </div>
 
-        {/* Bottom CTA Row */}
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-3.5 z-20">
+        {/* Bottom CTA Row (Unslopped) */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 z-20">
           <button
             type="button"
             onClick={onAddLink}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-[0_0_24px_rgba(244,63,94,0.35)] transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-100 text-slate-900 font-semibold text-xs transition-all shadow-sm hover:shadow active:scale-95"
           >
             <span>Save Link Now</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={14} />
           </button>
 
           <button
@@ -183,10 +195,10 @@ export const Skiper58 = ({ onNavigate, onAddLink }) => {
               const el = document.getElementById("use-cases");
               el?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 text-white font-semibold text-xs backdrop-blur-md transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-700/70 text-slate-200 font-medium text-xs backdrop-blur-md transition-all active:scale-95"
           >
             <span>Explore All Links</span>
-            <Compass size={15} />
+            <Compass size={14} className="text-slate-400" />
           </button>
         </div>
 

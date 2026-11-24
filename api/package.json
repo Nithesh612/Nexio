@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "seed:inspo": "node seedInspoSites.js",
+    "seed:inspo:all": "node seedInspoSites.js --all",
+    "seed:ai": "node seedAITools.js",
+    "seed:editing": "node seedEditingTools.js"
   },
   "keywords": [],
   "author": "",

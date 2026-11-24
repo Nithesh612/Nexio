@@ -68,12 +68,7 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     { id: 'inspiration', label: 'Inspiration', icon: <Sparkles size={15} /> },
   ];
 
-  // Fetch links from DB
-  useEffect(() => {
-    fetchLinks();
-  }, [refreshTrigger]);
-
-  async function fetchLinks() {
+  const fetchLinks = async () => {
     try {
       setLoading(true);
       const res = await fetch(API_URL);
@@ -86,7 +81,12 @@ export default function CategoryNav({ refreshTrigger, onAddLink }) {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  // Fetch links from DB
+  useEffect(() => {
+    fetchLinks();
+  }, [refreshTrigger]);
 
   // Only DB links — no defaults
   function getItemsForCategory(catId) {

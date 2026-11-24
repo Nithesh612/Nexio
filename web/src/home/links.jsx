@@ -70,22 +70,22 @@ const tabMeta = {
   tools:             { title: 'Google',             description: 'Official developer tools, APIs, design systems, and AI models from Google.' },
 };
 
-// Gradient palette per category
+// Editorial, cohesive color palette per category (Unslopped)
 const categoryColors = {
-  'UI/UX':             ['#667eea', '#764ba2'],
-  'AI Image & Video':  ['#f093fb', '#f5576c'],
-  'AI':                ['#a855f7', '#6366f1'],
-  'Other':             ['#64748b', '#475569'],
-  'Inspiration':       ['#fa709a', '#fee140'],
-  'Wallpaper':         ['#38ef7d', '#11998e'],
-  'Stock':             ['#ff9a9e', '#fecfef'],
-  'Google':            ['#4285F4', '#34A853'],
-  'Host':              ['#2af598', '#009efd'],
-  'Article':           ['#f6d365', '#fda085'],
-  'Editing':           ['#96fbc4', '#f9f586'],
-  'Research':          ['#96fbc4', '#f9f586'],
-  'Tools':             ['#4285F4', '#34A853'],
-  'default':           ['#a18cd1', '#fbc2eb'],
+  'UI/UX':             ['#1e293b', '#334155'], // Deep slate
+  'AI Image & Video':  ['#312e81', '#4338ca'], // Sophisticated indigo
+  'AI':                ['#0f172a', '#1e293b'], // Obsidian
+  'Other':             ['#334155', '#475569'], // Neutral charcoal
+  'Inspiration':       ['#1c1917', '#44403c'], // Warm stone
+  'Wallpaper':         ['#064e3b', '#047857'], // Forest emerald
+  'Stock':             ['#18181b', '#27272a'], // Zinc
+  'Google':            ['#1e3a8a', '#1d4ed8'], // Deep royal blue
+  'Host':              ['#0f766e', '#115e59'], // Teal slate
+  'Article':           ['#3f3f46', '#52525b'], // Muted graphite
+  'Editing':           ['#2e1065', '#4c1d95'], // Royal midnight purple
+  'Research':          ['#1e293b', '#334155'], // Slate
+  'Tools':             ['#1e3a8a', '#1d4ed8'], // Royal blue
+  'default':           ['#18181b', '#27272a'], // Neutral zinc
 };
 
 // Curated specific banners matching official design tools

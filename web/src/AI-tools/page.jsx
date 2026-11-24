@@ -708,7 +708,7 @@ function FeaturedHeroBanner({ item }) {
   )
 }
 
-export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNavigateToEditing, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
+export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNavigateToSkills, onNavigateToEditing, onNavigateToDashboard, onAddLink, user, onLogin, onLogout }) {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedPricing, setSelectedPricing] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -809,6 +809,10 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
         onNavigate={(target) => {
           if (target === 'landing') onBackToHome()
           else if (target === 'design') onNavigateToDesign()
+          else if (target === 'skills') {
+            if (onNavigateToSkills) onNavigateToSkills()
+            else window.location.hash = '#skills'
+          }
           else if (target === 'editing') {
             if (onNavigateToEditing) onNavigateToEditing()
             else window.location.hash = '#editing'
@@ -1079,6 +1083,10 @@ export default function AIToolsPage({ onBackToHome, onNavigateToDesign, onNaviga
         onNavigate={(target) => {
           if (target === 'landing') onBackToHome()
           else if (target === 'design') onNavigateToDesign()
+          else if (target === 'skills') {
+            if (onNavigateToSkills) onNavigateToSkills()
+            else window.location.hash = '#skills'
+          }
           else if (target === 'editing') {
             if (onNavigateToEditing) onNavigateToEditing()
             else window.location.hash = '#editing'

@@ -3,7 +3,7 @@ import Header from '../components/Header'
 import NewsletterSection from '../components/NewsletterSection'
 import Footer from '../components/Footer'
 import Pagination from '../components/Pagination'
-import { API_URL } from '../config/api'
+import { API_URL, API_EDITING_URL } from '../config/api'
 import {
   Scissors,
   Search,
@@ -210,6 +210,7 @@ export default function EditingPage({
   onBack,
   onNavigateToDesign,
   onNavigateToAITools,
+  onNavigateToSkills,
   onNavigateToDashboard,
   onAddLink,
   user,
@@ -246,14 +247,37 @@ export default function EditingPage({
     })
   }
 
-  // Fetch only user links from MongoDB
+  // Fetch editing tools directly from MongoDB database
   const fetchEditingLinks = async () => {
     try {
       setLoading(true)
-      const res = await fetch(API_URL).catch(() => null)
+      // First try dedicated editing endpoint, then fallback to /hub
+      const res = await fetch(API_EDITING_URL).catch(() => null)
       if (res && res.ok) {
         const data = await res.json()
-        // Filter ONLY database links categorized under 'Editing' or legacy 'Research'
+        if (Array.isArray(data) && data.length > 0) {
+          const editingItems = data.map(item => ({
+            id: item.id || item._id,
+            name: item.title || 'Untitled Link',
+            desc: item.description || '',
+            url: item.url,
+            category: item.category || 'Editing',
+            tag: item.badge || item.category || 'Editing',
+            pricing: item.badge || 'PRO',
+            bannerUrl: item.bannerUrl || '',
+            logoUrl: item.logoUrl || '',
+            isSaved: true,
+            favorite: Boolean(item.favorite),
+          }))
+          setDbLinks(editingItems)
+          return
+        }
+      }
+
+      // Fallback to /hub if dedicated endpoint returns empty
+      const hubRes = await fetch(API_URL).catch(() => null)
+      if (hubRes && hubRes.ok) {
+        const data = await hubRes.json()
         const editingItems = (data || []).filter(item => {
           if (!item.category) return false
           const cats = item.category.toLowerCase()
@@ -357,6 +381,7 @@ export default function EditingPage({
           if (target === 'landing') onBack?.()
           else if (target === 'design') onNavigateToDesign?.()
           else if (target === 'ai-tools') onNavigateToAITools?.()
+          else if (target === 'skills') onNavigateToSkills?.()
           else if (target === 'editing') window.scrollTo({ top: 0, behavior: 'smooth' })
           else if (target === 'app') onNavigateToDashboard?.()
         }}
@@ -570,6 +595,7 @@ export default function EditingPage({
           if (target === 'landing') onBack?.()
           else if (target === 'design') onNavigateToDesign?.()
           else if (target === 'ai-tools') onNavigateToAITools?.()
+          else if (target === 'skills') onNavigateToSkills?.()
           else if (target === 'editing') window.scrollTo({ top: 0, behavior: 'smooth' })
           else if (target === 'app') onNavigateToDashboard?.()
         }}

@@ -135,6 +135,8 @@ app.use("/users", userRoutes);
 app.use("/editing", editingRoutes);
 app.use("/api/editing", editingRoutes);
 app.use("/api/ai-tools", require("./routes/aiTools"));
+app.use("/skills", require("./routes/skills"));
+app.use("/api/skills", require("./routes/skills"));
 
 // 404 handler
 app.use((req, res) => {
